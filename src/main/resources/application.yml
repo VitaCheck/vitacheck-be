@@ -1,0 +1,4 @@
+# application.yml
+spring:
+  profiles:
+    active: local # 로컬 환경에서는 local 프로파일을 사용
