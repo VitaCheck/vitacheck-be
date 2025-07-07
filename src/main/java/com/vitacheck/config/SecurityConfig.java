@@ -21,32 +21,44 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final JwtUtil jwtUtil;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-    private static final String[] SWAGGER_URL_ARRAY = {
-            "/swagger-ui/**",
+
+    private static final String[] PERMIT_ALL_URL_ARRAY = {
+            // Swagger UI v3
             "/v3/api-docs/**",
-            "/swagger-resources/**"
+            "/swagger-ui/**",
+            // OAuth2
+            "/",
+            "/login/**",
+            "/oauth2/**",
+            // 기타
+            "/error"
     };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // 기본 설정: CSRF, HTTP Basic, Form Login, Session 비활성화
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(customAuthenticationEntryPoint)) // 인증 실패시 해당 클래스가 동작
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/oauth2/**", "/login/**", "/error").permitAll()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(SWAGGER_URL_ARRAY).permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler)
-                        // .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-                );
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        // 요청 경로별 권한 설정
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PERMIT_ALL_URL_ARRAY).permitAll()
+                        .anyRequest().authenticated());
+
+        // OAuth2 로그인 설정
+        http
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler));
+
+        // JWT 필터 및 예외 처리 설정
+        http
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(customAuthenticationEntryPoint));
 
         return http.build();
     }

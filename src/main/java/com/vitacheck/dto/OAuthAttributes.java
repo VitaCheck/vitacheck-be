@@ -2,11 +2,13 @@ package com.vitacheck.dto;
 
 import com.vitacheck.domain.user.Role;
 import com.vitacheck.domain.user.User;
+import com.vitacheck.domain.user.UserStatus;
 import com.vitacheck.util.RandomNicknameGenerator;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
@@ -110,6 +112,8 @@ public class OAuthAttributes {
                 .email(email)
                 .provider(provider)
                 .providerId(providerId)
+                .status(UserStatus.ACTIVE)
+                .lastLoginAt(LocalDateTime.now())
                 .role(Role.USER) // 기본 권한은 USER
                 .build();
     }

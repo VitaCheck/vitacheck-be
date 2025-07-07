@@ -16,5 +16,6 @@ public class UserDto {
     public static class InfoResponse {
         private String email;
         private String nickname;
+        private String provider;
     }
 }
