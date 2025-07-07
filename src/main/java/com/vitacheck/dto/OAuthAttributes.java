@@ -2,11 +2,14 @@ package com.vitacheck.dto;
 
 import com.vitacheck.domain.user.Role;
 import com.vitacheck.domain.user.User;
+import com.vitacheck.util.RandomNicknameGenerator;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
+@Slf4j
 @Getter
 public class OAuthAttributes {
     private Map<String, Object> attributes;
@@ -76,8 +79,15 @@ public class OAuthAttributes {
         // Naver는 응답이 response라는 키 값 내부에 중첩되어 있습니다.
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
+        /* 랜덤 닉네임 생성을 위한 로직(주석 or 추후 삭제)
+        String name = (String) response.get("name");
+        log.info("네이버에서 받은 원본 닉네임: {}", name);
+        name = null;
+         */
+
         return OAuthAttributes.builder()
                 .name((String) response.get("name"))
+                // .name(name) // 랜덤 닉네임 테스트용 코드
                 .email((String) response.get("email"))
                 .provider("naver")
                 .providerId((String) response.get("id"))
@@ -88,8 +98,15 @@ public class OAuthAttributes {
 
     // 처음 가입하는 사용자일 경우, User 엔티티를 생성하는 메소드
     public User toEntity() {
+        String finalNickname = this.name;
+
+        // 닉네임이 없거나 비어있을 경우 랜덤 닉네임 생성기 호출
+        if (finalNickname == null || finalNickname.isBlank()) {
+            finalNickname = RandomNicknameGenerator.generate();
+        }
+
         return User.builder()
-                .nickname(name)
+                .nickname(finalNickname)
                 .email(email)
                 .provider(provider)
                 .providerId(providerId)
