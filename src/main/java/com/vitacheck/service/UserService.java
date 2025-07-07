@@ -18,7 +18,7 @@ public class UserService {
     public UserDto.InfoResponse getMyInfo(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
-        return new UserDto.InfoResponse(user.getEmail(), user.getNickname());
+        return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getProvider());
     }
 
     @Transactional
@@ -26,6 +26,6 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
         user.updateNickname(request.getNickname());
-        return new UserDto.InfoResponse(user.getEmail(), user.getNickname());
+        return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getProvider());
     }
 }
