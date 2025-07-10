@@ -38,3 +38,5 @@ out/
 
 ### Local application properties ###
 application-local.yml
+
+.DS_Store
