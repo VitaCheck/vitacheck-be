@@ -1,9 +1,12 @@
+# src/test/resources/application.yml
+
 # API 키 설정
 api-key: "test-api-key-for-ci"
 
 # JWT 설정
 jwt:
-  secret: "a-very-long-and-secure-test-secret-key-for-ci-cd-environment-12345"
+  # Base64로 인코딩된 테스트 시크릿 키
+  secret: "YS12ZXJ5LWxvbmctYW5kLXNlY3VyZS10ZXN0LXNlY3JldC1rZXktZm9yLWNpLWNkLTEyMzQ1"
   access-token-expiration-minutes: 10
   refresh-token-expiration-days: 7
 
