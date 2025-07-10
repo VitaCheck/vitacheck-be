@@ -1,16 +1,17 @@
-# src/test/resources/application.yml
-
 # API 키 설정
-api-key: "test-api-key-for-ci"
+# open-api.food-safety-korea.api-key 로 키 이름을 변경해야 합니다.
+open-api:
+  food-safety-korea:
+    api-key: "test-api-key-for-ci"
 
-# JWT 설정
+# JWT 설정 (이하 동일)
 jwt:
   # Base64로 인코딩된 테스트 시크릿 키
   secret: "YS12ZXJ5LWxvbmctYW5kLXNlY3VyZS10ZXN0LXNlY3JldC1rZXktZm9yLWNpLWNkLTEyMzQ1"
   access-token-expiration-minutes: 10
   refresh-token-expiration-days: 7
 
-# Spring Security OAuth2 설정 (이전 오류 방지를 위해 유지)
+# Spring Security OAuth2 설정 (이하 동일)
 spring:
   security:
     oauth2:
