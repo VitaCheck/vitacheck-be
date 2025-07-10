@@ -1,11 +1,13 @@
-# src/test/resources/application.yml
+# API 키 설정
+api-key: "test-api-key-for-ci"
 
-# JWT 설정 예시
+# JWT 설정
 jwt:
-  secret:
-    key: "test-secret-key-for-ci-cd-12345678901234567890"
+  secret: "a-very-long-and-secure-test-secret-key-for-ci-cd-environment-12345"
+  access-token-expiration-minutes: 10
+  refresh-token-expiration-days: 7
 
-# Spring Security OAuth2 설정 예시
+# Spring Security OAuth2 설정 (이전 오류 방지를 위해 유지)
 spring:
   security:
     oauth2:
