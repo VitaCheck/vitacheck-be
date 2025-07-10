@@ -28,4 +28,11 @@ public class UserService {
         user.updateNickname(request.getNickname());
         return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getProvider());
     }
+
+    public Long findIdByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+        return user.getId();
+    }
+
 }
