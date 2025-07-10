@@ -2,8 +2,9 @@ package com.vitacheck.service;
 
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.UserDto;
+import com.vitacheck.global.apiPayload.CustomException;
+import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,21 +18,21 @@ public class UserService {
 
     public UserDto.InfoResponse getMyInfo(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getProvider());
     }
 
     @Transactional
     public UserDto.InfoResponse updateMyInfo(String email, UserDto.UpdateRequest request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updateNickname(request.getNickname());
         return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getProvider());
     }
 
     public Long findIdByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return user.getId();
     }
 

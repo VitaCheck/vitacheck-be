@@ -1,4 +1,4 @@
-package com.vitacheck.config.oauth;
+package com.vitacheck.config.oAuth;
 
 import com.vitacheck.config.jwt.JwtUtil;
 import com.vitacheck.domain.user.User;
