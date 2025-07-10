@@ -59,3 +59,7 @@ jwt:
   secret: # 여기에 256비트 이상의 매우 긴 JWT 시크릿 키를 입력하세요 (절대 커밋 금지!)
   access-token-expiration-minutes: 30
   refresh-token-expiration-days: 14
+
+open-api:
+  food-safety-korea:
+    api-key: api 키

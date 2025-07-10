@@ -1,4 +1,22 @@
-# application.yml
+# src/test/resources/application.yml
+
+# JWT 설정 예시
+jwt:
+  secret:
+    key: "test-secret-key-for-ci-cd-12345678901234567890"
+
+# Spring Security OAuth2 설정 예시
 spring:
-  profiles:
-    active: local # 로컬 환경에서는 local 프로파일을 사용
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "test-google-client-id"
+            client-secret: "test-google-client-secret"
+          kakao:
+            client-id: "test-kakao-client-id"
+            client-secret: "test-kakao-client-secret"
+          naver:
+            client-id: "test-naver-client-id"
+            client-secret: "test-naver-client-secret"
