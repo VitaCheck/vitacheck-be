@@ -1,5 +1,4 @@
 # API 키 설정
-# open-api.food-safety-korea.api-key 로 키 이름을 변경해야 합니다.
 open-api:
   food-safety-korea:
     api-key: "test-api-key-for-ci"
