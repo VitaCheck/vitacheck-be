@@ -1,6 +1,7 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.dto.AllPurposeDto;
+import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.service.PurposeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -41,9 +42,9 @@ public class PurposeController {
                     content = @Content
             )
     })
-    public ResponseEntity<List<AllPurposeDto>> getAllPurposes() {
+    public CustomResponse<List<AllPurposeDto>> getAllPurposes() {
         List<AllPurposeDto> purposes = purposeService.getAllPurposes();
-        return ResponseEntity.ok(purposes);
+        return CustomResponse.ok(purposes);
     }
 }
 

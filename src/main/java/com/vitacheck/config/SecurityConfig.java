@@ -2,7 +2,7 @@ package com.vitacheck.config;
 
 import com.vitacheck.config.jwt.JwtAuthenticationFilter;
 import com.vitacheck.config.jwt.JwtUtil;
-import com.vitacheck.config.oauth.OAuth2SuccessHandler;
+import com.vitacheck.config.oAuth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

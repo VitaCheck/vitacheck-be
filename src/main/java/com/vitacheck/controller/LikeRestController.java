@@ -1,6 +1,7 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.dto.LikeToggleResponseDto;
+import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.service.LikeCommandService;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +34,7 @@ public class LikeRestController {
             @ApiResponse(responseCode = "404", description = "사용자 또는 영양제 없음", content = @Content)
     })
     @PostMapping("/{id}/like")
-    public ResponseEntity<LikeToggleResponseDto> toggleLike(
+    public CustomResponse<LikeToggleResponseDto> toggleLike(
             @PathVariable("id") Long supplementId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
@@ -41,6 +42,6 @@ public class LikeRestController {
         Long userId = userService.findIdByEmail(email);
 
         LikeToggleResponseDto responseDto = likeCommandService.toggleLike(supplementId, userId);
-        return ResponseEntity.ok(responseDto);
+        return CustomResponse.ok(responseDto);
     }
 }

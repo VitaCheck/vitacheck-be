@@ -1,6 +1,8 @@
 package com.vitacheck.service;
 
 import com.vitacheck.dto.FoodSafetyApiResponseDto;
+import com.vitacheck.global.apiPayload.CustomException;
+import com.vitacheck.global.apiPayload.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,7 +76,7 @@ public class FoodSafetyApiService {
             }
         } catch (Exception e) {
             log.error("식품안전나라 API 호출 중 에러 발생: {}", e.getMessage());
-            throw new RuntimeException("식품안전나라 API 호출에 실패했습니다.");
+            throw new CustomException(ErrorCode.EXTERNAL_API_ERROR);
         }
     }
 }

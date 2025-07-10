@@ -4,10 +4,11 @@ import com.vitacheck.domain.Like;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.LikeToggleResponseDto;
+import com.vitacheck.global.apiPayload.CustomException;
+import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.LikeRepository;
 import com.vitacheck.repository.SupplementRepository;
 import com.vitacheck.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,11 +25,11 @@ public class LikeCommandService {
     public LikeToggleResponseDto toggleLike(Long supplementId, Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다.")); // TODO: 나중에 에러응답 통일되면 교체할 것
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
 
         Supplement supplement = supplementRepository.findById(supplementId)
-                .orElseThrow(() -> new EntityNotFoundException("영양제를 찾을 수 없습니다.")); // TODO: 나중에 에러응답 통일되면 교체할 것
+                .orElseThrow(() -> new CustomException(ErrorCode.SUPPLEMENT_NOT_FOUND));
 
 
         return likeRepository.findByUserAndSupplement(user, supplement)

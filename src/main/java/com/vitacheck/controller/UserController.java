@@ -1,6 +1,7 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.dto.UserDto;
+import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,10 +31,10 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
     })
     @GetMapping("/me")
-    public ResponseEntity<UserDto.InfoResponse> getMyInfo(@AuthenticationPrincipal UserDetails userDetails){
+    public CustomResponse<UserDto.InfoResponse> getMyInfo(@AuthenticationPrincipal UserDetails userDetails){
         String email = userDetails.getUsername();
         UserDto.InfoResponse myInfo = userService.getMyInfo(email);
-        return ResponseEntity.ok(myInfo);
+        return CustomResponse.ok(myInfo);
     }
 
     @Operation(summary = "내 정보 수정", description = "사용자의 닉네임을 수정합니다.")
@@ -44,12 +45,12 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
     })
     @PutMapping("/me")
-    public ResponseEntity<UserDto.InfoResponse> updateMyInfo(
+    public CustomResponse<UserDto.InfoResponse> updateMyInfo(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UserDto.UpdateRequest request
     ) {
         String email = userDetails.getUsername();
         UserDto.InfoResponse updatedInfo = userService.updateMyInfo(email, request);
-        return ResponseEntity.ok(updatedInfo);
+        return CustomResponse.ok(updatedInfo);
     }
 }
