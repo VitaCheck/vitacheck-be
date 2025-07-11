@@ -4,8 +4,7 @@ import com.vitacheck.domain.user.Role;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.domain.user.UserStatus;
 import com.vitacheck.util.RandomNicknameGenerator;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
@@ -13,6 +12,9 @@ import java.util.Map;
 
 @Slf4j
 @Getter
+@Data
+@Builder
+@NoArgsConstructor
 public class OAuthAttributes {
     private Map<String, Object> attributes;
     private String nameAttributeKey;

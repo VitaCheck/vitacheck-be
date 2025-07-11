@@ -1,0 +1,67 @@
+# ===============================================
+# 테스트 환경을 위한 설정 파일 (application-test.yml)
+# ===============================================
+
+# -----------------------------------------------
+# JWT 테스트 설정
+# -----------------------------------------------
+jwt:
+  # 아래 secret 값을 올바른 Base64 인코딩 값으로 수정했습니다.
+  secret: "YS12ZXJ5LWxvbmctYW5kLXNlY3VyZS10ZXN0LXNlY3JldC1rZXktZm9yLWNpLWNkLTEyMzQ1Njc4OTA="
+  access-token-expiration-minutes: 1
+  refresh-token-expiration-days: 1
+
+# -----------------------------------------------
+# 외부 API 테스트 설정
+# -----------------------------------------------
+open-api:
+  food-safety-korea:
+    api-key: "test-api-key"
+
+# -----------------------------------------------
+# AWS S3 및 클라우드 테스트 설정
+# -----------------------------------------------
+cloud:
+  aws:
+    credentials:
+      access-key: TEST_ACCESS_KEY
+      secret-key: TEST_SECRET_KEY
+    s3:
+      bucket: test-bucket
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+
+# -----------------------------------------------
+# Spring & 데이터베이스 테스트 설정
+# -----------------------------------------------
+spring:
+  # 인메모리 H2 데이터베이스 사용
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  # OAuth2 설정: provider 없이 registration만 정의
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+          kakao:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+          naver:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            authorization-grant-type: authorization_code
