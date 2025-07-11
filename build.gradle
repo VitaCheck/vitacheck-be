@@ -51,6 +51,8 @@ dependencies {
     implementation('com.amazonaws:aws-java-sdk-s3:1.12.600') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
+
+    implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.4' // 혹은 최신 안정 버전
 }
 
 tasks.named('test') {

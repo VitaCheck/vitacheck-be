@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
@@ -37,25 +38,35 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 2. OAuthAttributes 클래스 사용 -> 사용자 정보 통일
         OAuthAttributes attributes = OAuthAttributes.of(provider, provider, oAuth2User.getAttributes());
 
-        // 가상 이메일 추가 -> provider, providerId로 사용자 찾기
-        User user = userRepository.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
-                .orElseGet(() -> userRepository.save(attributes.toEntity()));
+        // DB에서 사용자 조회
+        User user = userRepository.findByEmail(attributes.getEmail()).orElse(null);
 
-        /*
-        // 3. DB에서 사용자 조회 -> 없으면 새로 만들기
-        User user = userRepository.findByEmail(attributes.getEmail())
-                .orElseGet(() -> userRepository.save(attributes.toEntity()));
-        */
+        String targetUrl;
 
-        // 4. JWT 생성
-        String accessToken = jwtUtil.createAccessToken(user.getEmail()); // 카카오는 가상 이메일 사용
-        String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
+        // 사용자가 존재하지 않는 경우
+        if (user == null) {
+            log.info("신규 사용자입니다. 추가 정보 입력 페이지로 리다이렉션합니다.");
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/social-signup")
+                    .queryParam("email", attributes.getEmail())
+                    .queryParam("fullName", attributes.getName())
+                    .queryParam("provider", attributes.getProvider())
+                    .queryParam("providerId", attributes.getProviderId())
+                    .build()
+                    .encode(StandardCharsets.UTF_8)
+                    .toUriString();
+        }
+        // 사용자가 이미 존재
+        else {
+            log.info("기존 사용자입니다. JWT 발급 후 메인 페이지로 이동합니다.");
+            String accessToken = jwtUtil.createAccessToken(user.getEmail());
+            String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
 
-        // 5. 프론트엔드로 토큰을 담아 리다이렉트
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth-redirect")
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
-                .build().toUriString();
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth-redirect")
+                    .queryParam("accessToken", accessToken)
+                    .queryParam("refreshToken", refreshToken)
+                    .build()
+                    .toUriString();
+        }
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }

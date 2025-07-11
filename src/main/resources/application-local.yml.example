@@ -18,15 +18,6 @@ spring:
             scope:
               - email
               - profile
-          kakao:
-            client-id: # 카카오 디벨로퍼스에서 발급받은 REST API 키
-            client-secret: # 카카오 디벨로퍼스에서 발급받은 Client Secret
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            client-authentication-method: client_secret_post
-            authorization-grant-type: authorization_code
-            scope:
-              - profile_nickname
-            client-name: Kakao
           naver:
             client-id: # 네이버 개발자 센터에서 발급받은 Client ID
             client-secret: # 네이버 개발자 센터에서 발급받은 Client Secret
@@ -40,11 +31,6 @@ spring:
 
         provider:
           # Google은 Spring Boot가 자동 설정해주므로 생략 가능
-          kakao:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
           naver:
             authorization-uri: https://nid.naver.com/oauth2.0/authorize
             token-uri: https://nid.naver.com/oauth2.0/token
@@ -63,3 +49,16 @@ jwt:
 open-api:
   food-safety-korea:
     api-key: api 키
+
+# S3 관련 설정
+cloud:
+  aws:
+    credentials:
+      access-key: test-key
+      secret-key: test-secret
+    s3:
+      bucket: local-vitacheck
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

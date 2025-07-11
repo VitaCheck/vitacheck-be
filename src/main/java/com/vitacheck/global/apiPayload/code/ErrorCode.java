@@ -13,6 +13,8 @@ public enum ErrorCode implements BaseErrorCode {
     // 유저
     UNAUTHORIZED("U0001", "로그인이 필요합니다.", HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND("U0002", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    DUPLICATED_EMAIL("U0003", "이미 사용 중인 이메일입니다.", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH("U0004", "비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     // 영양제
     SUPPLEMENT_NOT_FOUND("S0001", "영양제를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),

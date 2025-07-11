@@ -37,9 +37,6 @@ public class OAuthAttributes {
         if ("naver".equals(registrationId)) {
             return ofNaver("id", attributes);
         }
-        if ("kakao".equals(registrationId)) {
-            return ofKakao("id", attributes);
-        }
         return ofGoogle(userNameAttributeName, attributes);
     }
 
@@ -49,31 +46,6 @@ public class OAuthAttributes {
                 .email((String) attributes.get("email"))
                 .provider("google")
                 .providerId((String) attributes.get("sub"))
-                .attributes(attributes)
-                .nameAttributeKey(userNameAttributeName)
-                .build();
-    }
-
-    private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
-        // Kakao는 응답이 중첩된 JSON 구조이므로, 필요한 정보를 꺼내야 합니다.
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> kakaoProfile = (Map<String, Object>) kakaoAccount.get("profile");
-        String providerId = String.valueOf(attributes.get("id"));
-
-        String email = null;
-        if (kakaoAccount != null) {
-            email = (String) kakaoAccount.get("email");
-        }
-        // 가상 이메일 생성
-        if (email == null || email.isBlank()) {
-            email = providerId + "@kakao.com";
-        }
-
-        return OAuthAttributes.builder()
-                .name((String) kakaoProfile.get("nickname"))
-                .email(email)
-                .provider("kakao")
-                .providerId(providerId)
                 .attributes(attributes)
                 .nameAttributeKey(userNameAttributeName)
                 .build();
