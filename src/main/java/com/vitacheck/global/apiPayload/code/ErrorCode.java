@@ -18,7 +18,10 @@ public enum ErrorCode implements BaseErrorCode {
     SUPPLEMENT_NOT_FOUND("S0001", "영양제를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
 
     // 외부 API 에러
-    EXTERNAL_API_ERROR("A0001", "외부 API 호출에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE);
+    EXTERNAL_API_ERROR("A0001", "외부 API 호출에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE),
+
+    // AWS
+    S3_UPLOAD_ERROR("S30001", "S3 업로드에 실패했습니다.", HttpStatus.CONFLICT);
 
 
     private final String code;
