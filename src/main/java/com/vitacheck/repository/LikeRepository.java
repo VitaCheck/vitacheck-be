@@ -4,8 +4,11 @@ import com.vitacheck.domain.Like;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
@@ -14,4 +17,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     Optional<Like> findByUserAndSupplement(User user, Supplement supplement);
 
+    @Query("SELECT l FROM Like l JOIN FETCH l.supplement s JOIN FETCH s.brand WHERE l.user.id = :userId")
+    List<Like> findAllByUserIdWithSupplement(@Param("userId") Long userId);
 }
