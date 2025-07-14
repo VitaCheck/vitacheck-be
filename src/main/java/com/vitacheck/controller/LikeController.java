@@ -24,7 +24,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/supplements")
-public class LikeRestController {
+public class LikeController {
 
     private final LikeCommandService likeCommandService;
     private final UserService userService;
