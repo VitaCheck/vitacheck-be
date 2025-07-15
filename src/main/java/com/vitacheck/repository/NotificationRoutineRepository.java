@@ -28,4 +28,6 @@ public interface NotificationRoutineRepository extends JpaRepository<Notificatio
             List<RoutineDayOfWeek> days,
             List<LocalTime> times
     );
+
+    List<NotificationRoutine> findAllByUserId(Long userId);
 }
