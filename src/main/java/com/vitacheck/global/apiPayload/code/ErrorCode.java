@@ -23,8 +23,10 @@ public enum ErrorCode implements BaseErrorCode {
     EXTERNAL_API_ERROR("A0001", "외부 API 호출에 실패했습니다.", HttpStatus.SERVICE_UNAVAILABLE),
 
     // AWS
-    S3_UPLOAD_ERROR("S30001", "S3 업로드에 실패했습니다.", HttpStatus.CONFLICT);
+    S3_UPLOAD_ERROR("S30001", "S3 업로드에 실패했습니다.", HttpStatus.CONFLICT),
 
+    // 복용 루틴
+    DUPLICATED_ROUTINE("R0001", "이미 등록된 복용 루틴입니다.", HttpStatus.CONFLICT);
 
     private final String code;
     private final String message;
