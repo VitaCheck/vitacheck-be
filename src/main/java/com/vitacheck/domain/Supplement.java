@@ -3,6 +3,10 @@ package com.vitacheck.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "supplements")
 @Getter
@@ -33,4 +37,15 @@ public class Supplement extends BaseTimeEntity {
 
     @Column(name = "description", length = 255)
     private String description;
+
+    private String method;
+
+    private String caution;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    // 영양제(1) <-> 영양제-성분(N)
+    @OneToMany(mappedBy = "supplement", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SupplementIngredient> supplementIngredients = new ArrayList<>();
 }
