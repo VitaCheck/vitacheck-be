@@ -26,7 +26,7 @@ public enum ErrorCode implements BaseErrorCode {
     S3_UPLOAD_ERROR("S30001", "S3 업로드에 실패했습니다.", HttpStatus.CONFLICT),
 
     SEARCH_KEYWORD_EMPTY("S0002", "검색 파라미터가 하나 이상 필요합니다.", HttpStatus.BAD_REQUEST),
-    SUPPLEMENT_LIST_EMPTY("S0003", "분석할 영양제 목록이 비어있습니다.", HttpStatus.BAD_REQUEST);
+    SUPPLEMENT_LIST_EMPTY("S0003", "분석할 영양제 목록이 비어있습니다.", HttpStatus.BAD_REQUEST),
 
 
     // 복용 루틴
