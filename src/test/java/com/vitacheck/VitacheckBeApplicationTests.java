@@ -11,12 +11,6 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class VitacheckBeApplicationTests {
 
-    @MockBean
-    private FirebaseApp firebaseApp;
-
-    @MockBean
-    private FirebaseMessaging firebaseMessaging;
-
     @Test
     void contextLoads() {
     }
