@@ -8,7 +8,6 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
@@ -17,7 +16,6 @@ import java.util.List;
 
 @Slf4j
 @Configuration
-@Profile("!test")
 public class FirebaseConfig {
 
     // 이 Bean이 생성될 때 FirebaseApp 초기화를 먼저 수행합니다.
