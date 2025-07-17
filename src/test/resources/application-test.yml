@@ -47,7 +47,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
-  # OAuth2 설정: provider 정보를 추가하여 오류 해결
+  # OAuth2 설정: redirect-uri 등 모든 필수 항목 추가
   security:
     oauth2:
       client:
@@ -55,17 +55,19 @@ spring:
           google:
             client-id: dummy-client-id
             client-secret: dummy-client-secret
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google" # 추가
             scope:
               - email
               - profile
           naver:
             client-id: dummy-client-id
             client-secret: dummy-client-secret
+            redirect-uri: "http://localhost:8080/login/oauth2/code/naver" # 추가
             authorization-grant-type: authorization_code
+            client-name: Naver # 추가
             scope:
               - name
               - email
-        # --- 👇 [수정/추가된 부분] ---
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
