@@ -18,6 +18,7 @@ public class CombinationDTO {
 
     @Getter
     @Builder
+    @AllArgsConstructor
     public static class AnalysisResponse {
 
         private List<IngredientAnalysisResultDto> ingredientResults;
@@ -30,6 +31,8 @@ public class CombinationDTO {
             private String unit;           // 단위 (mg, IU 등)
             private Integer recommendedAmount; // 권장량
             private Integer upperAmount;       // 상한량
+            private boolean isOverRecommended; // 권장량 초과 여부 (true/false)
+            private double dosageRatio;        // 섭취 비율 (0.0 ~ 1.0)
         }
     }
 
