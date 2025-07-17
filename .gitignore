@@ -48,3 +48,5 @@ out/
 application-local.yml
 
 .DS_Store
+
+firebase-service-account-key.json

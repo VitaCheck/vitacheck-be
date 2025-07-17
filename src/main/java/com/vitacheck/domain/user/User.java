@@ -54,8 +54,15 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "fcm_token", columnDefinition = "TEXT")
+    private String fcmToken;
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
     public User updateFromSocial(String nickname) {
