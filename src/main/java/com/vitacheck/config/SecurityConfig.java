@@ -42,7 +42,9 @@ public class SecurityConfig {
             "/login/**",
             "/oauth2/**",
             // 기타
-            "/error"
+            "/error",
+            "/fcm_test.html",
+            "/firebase-messaging-sw.js"
     };
 
     @Bean

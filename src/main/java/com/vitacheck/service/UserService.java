@@ -109,4 +109,10 @@ public class UserService {
         return user.getId();
     }
 
+    @Transactional
+    public void updateFcmToken(String email, String fcmToken) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.updateFcmToken(fcmToken);
+    }
 }
