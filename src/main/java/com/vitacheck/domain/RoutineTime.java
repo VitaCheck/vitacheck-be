@@ -1,5 +1,6 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.notification.NotificationRoutine;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

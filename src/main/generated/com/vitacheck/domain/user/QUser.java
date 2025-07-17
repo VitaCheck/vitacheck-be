@@ -19,7 +19,7 @@ public class QUser extends EntityPathBase<User> {
 
     public static final QUser user = new QUser("user");
 
-    public final com.vitacheck.domain.QBaseTimeEntity _super = new com.vitacheck.domain.QBaseTimeEntity(this);
+    public final com.vitacheck.domain.common.QBaseTimeEntity _super = new com.vitacheck.domain.common.QBaseTimeEntity(this);
 
     public final DatePath<java.time.LocalDate> birthDate = createDate("birthDate", java.time.LocalDate.class);
 

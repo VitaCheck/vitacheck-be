@@ -22,7 +22,7 @@ public class QLike extends EntityPathBase<Like> {
 
     public static final QLike like = new QLike("like1");
 
-    public final QBaseTimeEntity _super = new QBaseTimeEntity(this);
+    public final com.vitacheck.domain.common.QBaseTimeEntity _super = new com.vitacheck.domain.common.QBaseTimeEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;

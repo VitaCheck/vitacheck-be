@@ -20,7 +20,7 @@ public class QBrand extends EntityPathBase<Brand> {
 
     public static final QBrand brand = new QBrand("brand");
 
-    public final QBaseTimeEntity _super = new QBaseTimeEntity(this);
+    public final com.vitacheck.domain.common.QBaseTimeEntity _super = new com.vitacheck.domain.common.QBaseTimeEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;

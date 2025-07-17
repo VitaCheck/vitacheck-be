@@ -1,9 +1,7 @@
 package com.vitacheck.dto;
 
-import com.vitacheck.domain.Brand;
-import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.Supplement;
-import com.vitacheck.domain.SupplementIngredient;
+import com.vitacheck.domain.mapping.SupplementIngredient;
 import lombok.Builder;
 import lombok.Getter;
 

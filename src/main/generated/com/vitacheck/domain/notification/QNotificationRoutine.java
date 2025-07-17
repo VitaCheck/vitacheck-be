@@ -1,4 +1,4 @@
-package com.vitacheck.domain;
+package com.vitacheck.domain.notification;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -16,13 +16,13 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QNotificationRoutine extends EntityPathBase<NotificationRoutine> {
 
-    private static final long serialVersionUID = -722027934L;
+    private static final long serialVersionUID = -2035847891L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
     public static final QNotificationRoutine notificationRoutine = new QNotificationRoutine("notificationRoutine");
 
-    public final QBaseTimeEntity _super = new QBaseTimeEntity(this);
+    public final com.vitacheck.domain.common.QBaseTimeEntity _super = new com.vitacheck.domain.common.QBaseTimeEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
@@ -31,11 +31,11 @@ public class QNotificationRoutine extends EntityPathBase<NotificationRoutine> {
 
     public final BooleanPath isEnabled = createBoolean("isEnabled");
 
-    public final ListPath<RoutineDay, QRoutineDay> routineDays = this.<RoutineDay, QRoutineDay>createList("routineDays", RoutineDay.class, QRoutineDay.class, PathInits.DIRECT2);
+    public final ListPath<com.vitacheck.domain.RoutineDay, com.vitacheck.domain.QRoutineDay> routineDays = this.<com.vitacheck.domain.RoutineDay, com.vitacheck.domain.QRoutineDay>createList("routineDays", com.vitacheck.domain.RoutineDay.class, com.vitacheck.domain.QRoutineDay.class, PathInits.DIRECT2);
 
-    public final ListPath<RoutineTime, QRoutineTime> routineTimes = this.<RoutineTime, QRoutineTime>createList("routineTimes", RoutineTime.class, QRoutineTime.class, PathInits.DIRECT2);
+    public final ListPath<com.vitacheck.domain.RoutineTime, com.vitacheck.domain.QRoutineTime> routineTimes = this.<com.vitacheck.domain.RoutineTime, com.vitacheck.domain.QRoutineTime>createList("routineTimes", com.vitacheck.domain.RoutineTime.class, com.vitacheck.domain.QRoutineTime.class, PathInits.DIRECT2);
 
-    public final QSupplement supplement;
+    public final com.vitacheck.domain.QSupplement supplement;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
@@ -60,7 +60,7 @@ public class QNotificationRoutine extends EntityPathBase<NotificationRoutine> {
 
     public QNotificationRoutine(Class<? extends NotificationRoutine> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.supplement = inits.isInitialized("supplement") ? new QSupplement(forProperty("supplement"), inits.get("supplement")) : null;
+        this.supplement = inits.isInitialized("supplement") ? new com.vitacheck.domain.QSupplement(forProperty("supplement"), inits.get("supplement")) : null;
         this.user = inits.isInitialized("user") ? new com.vitacheck.domain.user.QUser(forProperty("user")) : null;
     }
 
