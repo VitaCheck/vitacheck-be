@@ -1,5 +1,9 @@
-package com.vitacheck.domain;
+package com.vitacheck.domain.notification;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
+import com.vitacheck.domain.RoutineDay;
+import com.vitacheck.domain.RoutineTime;
+import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

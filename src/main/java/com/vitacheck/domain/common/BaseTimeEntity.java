@@ -1,4 +1,4 @@
-package com.vitacheck.domain;
+package com.vitacheck.domain.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

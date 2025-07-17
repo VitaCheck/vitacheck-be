@@ -1,4 +1,4 @@
-package com.vitacheck.domain.Combination;
+package com.vitacheck.domain.combination;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -15,7 +15,7 @@ import com.querydsl.core.types.Path;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QCombination extends EntityPathBase<Combination> {
 
-    private static final long serialVersionUID = 360809113L;
+    private static final long serialVersionUID = 1538566841L;
 
     public static final QCombination combination = new QCombination("combination");
 

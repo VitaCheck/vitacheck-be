@@ -1,6 +1,6 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.NotificationRoutine;
+import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.dto.RoutineResponseDto;
 import com.vitacheck.repository.NotificationRoutineRepository;
 import lombok.RequiredArgsConstructor;

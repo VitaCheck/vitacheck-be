@@ -22,7 +22,7 @@ public class QSupplement extends EntityPathBase<Supplement> {
 
     public static final QSupplement supplement = new QSupplement("supplement");
 
-    public final QBaseTimeEntity _super = new QBaseTimeEntity(this);
+    public final com.vitacheck.domain.common.QBaseTimeEntity _super = new com.vitacheck.domain.common.QBaseTimeEntity(this);
 
     public final QBrand brand;
 
@@ -44,7 +44,7 @@ public class QSupplement extends EntityPathBase<Supplement> {
 
     public final NumberPath<Integer> price = createNumber("price", Integer.class);
 
-    public final ListPath<SupplementIngredient, QSupplementIngredient> supplementIngredients = this.<SupplementIngredient, QSupplementIngredient>createList("supplementIngredients", SupplementIngredient.class, QSupplementIngredient.class, PathInits.DIRECT2);
+    public final ListPath<com.vitacheck.domain.mapping.SupplementIngredient, com.vitacheck.domain.mapping.QSupplementIngredient> supplementIngredients = this.<com.vitacheck.domain.mapping.SupplementIngredient, com.vitacheck.domain.mapping.QSupplementIngredient>createList("supplementIngredients", com.vitacheck.domain.mapping.SupplementIngredient.class, com.vitacheck.domain.mapping.QSupplementIngredient.class, PathInits.DIRECT2);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

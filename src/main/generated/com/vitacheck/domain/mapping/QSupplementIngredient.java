@@ -1,4 +1,4 @@
-package com.vitacheck.domain;
+package com.vitacheck.domain.mapping;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -16,7 +16,7 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QSupplementIngredient extends EntityPathBase<SupplementIngredient> {
 
-    private static final long serialVersionUID = -1344775295L;
+    private static final long serialVersionUID = 344434081L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
@@ -26,9 +26,9 @@ public class QSupplementIngredient extends EntityPathBase<SupplementIngredient> 
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final QIngredient ingredient;
+    public final com.vitacheck.domain.QIngredient ingredient;
 
-    public final QSupplement supplement;
+    public final com.vitacheck.domain.QSupplement supplement;
 
     public final StringPath unit = createString("unit");
 
@@ -50,8 +50,8 @@ public class QSupplementIngredient extends EntityPathBase<SupplementIngredient> 
 
     public QSupplementIngredient(Class<? extends SupplementIngredient> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.ingredient = inits.isInitialized("ingredient") ? new QIngredient(forProperty("ingredient")) : null;
-        this.supplement = inits.isInitialized("supplement") ? new QSupplement(forProperty("supplement"), inits.get("supplement")) : null;
+        this.ingredient = inits.isInitialized("ingredient") ? new com.vitacheck.domain.QIngredient(forProperty("ingredient")) : null;
+        this.supplement = inits.isInitialized("supplement") ? new com.vitacheck.domain.QSupplement(forProperty("supplement"), inits.get("supplement")) : null;
     }
 
 }

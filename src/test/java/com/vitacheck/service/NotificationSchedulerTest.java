@@ -1,6 +1,6 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.NotificationRoutine;
+import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.RoutineDayOfWeek;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;

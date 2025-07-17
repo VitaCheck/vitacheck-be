@@ -1,4 +1,4 @@
-package com.vitacheck.domain.Combination;
+package com.vitacheck.domain.combination;
 
 import jakarta.persistence.*;
 import lombok.*;
