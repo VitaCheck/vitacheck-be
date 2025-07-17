@@ -91,4 +91,10 @@ public class UserDto {
         private String fullName;
         private String provider;
     }
+
+    @Getter
+    @NoArgsConstructor
+    public static class UpdateFcmTokenRequest {
+        private String fcmToken;
+    }
 }

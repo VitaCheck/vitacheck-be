@@ -30,4 +30,14 @@ public interface NotificationRoutineRepository extends JpaRepository<Notificatio
     );
 
     List<NotificationRoutine> findAllByUserId(Long userId);
+
+    @Query("""
+        SELECT r FROM NotificationRoutine r
+        JOIN FETCH r.user
+        JOIN FETCH r.supplement
+        WHERE r.isEnabled = true
+          AND r.id IN (SELECT rd.notificationRoutine.id FROM RoutineDay rd WHERE rd.dayOfWeek = :dayOfWeek)
+          AND r.id IN (SELECT rt.notificationRoutine.id FROM RoutineTime rt WHERE rt.time = :time)
+    """)
+    List<NotificationRoutine> findRoutinesToSend(RoutineDayOfWeek dayOfWeek, LocalTime time);
 }
