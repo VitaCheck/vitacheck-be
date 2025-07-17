@@ -1,7 +1,7 @@
 package com.vitacheck.dto;
 
-import com.vitacheck.domain.Combination.Combination;
-import com.vitacheck.domain.Combination.RecommandType;
+import com.vitacheck.domain.combination.Combination;
+import com.vitacheck.domain.combination.RecommandType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

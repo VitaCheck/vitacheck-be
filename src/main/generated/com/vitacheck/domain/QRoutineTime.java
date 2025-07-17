@@ -24,7 +24,7 @@ public class QRoutineTime extends EntityPathBase<RoutineTime> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final QNotificationRoutine notificationRoutine;
+    public final com.vitacheck.domain.notification.QNotificationRoutine notificationRoutine;
 
     public final TimePath<java.time.LocalTime> time = createTime("time", java.time.LocalTime.class);
 
@@ -46,7 +46,7 @@ public class QRoutineTime extends EntityPathBase<RoutineTime> {
 
     public QRoutineTime(Class<? extends RoutineTime> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.notificationRoutine = inits.isInitialized("notificationRoutine") ? new QNotificationRoutine(forProperty("notificationRoutine"), inits.get("notificationRoutine")) : null;
+        this.notificationRoutine = inits.isInitialized("notificationRoutine") ? new com.vitacheck.domain.notification.QNotificationRoutine(forProperty("notificationRoutine"), inits.get("notificationRoutine")) : null;
     }
 
 }
