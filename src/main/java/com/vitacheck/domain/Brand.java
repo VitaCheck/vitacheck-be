@@ -1,5 +1,6 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

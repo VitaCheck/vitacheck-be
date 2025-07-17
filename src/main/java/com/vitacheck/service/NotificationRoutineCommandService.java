@@ -1,7 +1,7 @@
 package com.vitacheck.service;
 
-import com.amazonaws.services.kms.model.NotFoundException;
 import com.vitacheck.domain.*;
+import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.RoutineRegisterRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;

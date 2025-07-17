@@ -1,6 +1,6 @@
 package com.vitacheck.repository;
 
-import com.vitacheck.domain.NotificationRoutine;
+import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.RoutineDayOfWeek;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

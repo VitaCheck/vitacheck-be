@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 import static com.vitacheck.domain.QSupplement.supplement;
-import static com.vitacheck.domain.QSupplementIngredient.supplementIngredient;
+import static com.vitacheck.domain.mapping.QSupplementIngredient.supplementIngredient;
 import static com.vitacheck.domain.QBrand.brand;
 
 @Repository

@@ -1,5 +1,7 @@
-package com.vitacheck.domain;
+package com.vitacheck.domain.mapping;
 
+import com.vitacheck.domain.Ingredient;
+import com.vitacheck.domain.Supplement;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
