@@ -1,9 +1,13 @@
 HELP.md
 .gradle
-build/
+/build/
+*.jar
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+# macOS
+.DS_Store
 
 ### STS ###
 .apt_generated
@@ -16,6 +20,10 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+
+*.pem
+ubuntu@*
+vitacheck@*
 
 ### IntelliJ IDEA ###
 .idea
@@ -38,3 +46,7 @@ out/
 
 ### Local application properties ###
 application-local.yml
+
+.DS_Store
+
+firebase-service-account-key.json
