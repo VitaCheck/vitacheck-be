@@ -30,7 +30,8 @@ public enum ErrorCode implements BaseErrorCode {
 
 
     // 복용 루틴
-    DUPLICATED_ROUTINE("R0001", "이미 등록된 복용 루틴입니다.", HttpStatus.CONFLICT);
+    DUPLICATED_ROUTINE("R0001", "이미 등록된 복용 루틴입니다.", HttpStatus.CONFLICT),
+    ROUTINE_NOT_FOUND("R0002", "복용 루틴을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;
