@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NotificationRoutineRepository extends JpaRepository<NotificationRoutine, Long> {
@@ -40,4 +41,7 @@ public interface NotificationRoutineRepository extends JpaRepository<Notificatio
           AND r.id IN (SELECT rt.notificationRoutine.id FROM RoutineTime rt WHERE rt.time = :time)
     """)
     List<NotificationRoutine> findRoutinesToSend(RoutineDayOfWeek dayOfWeek, LocalTime time);
+
+    // 사용자와 루틴 ID 모두 일치하는 루틴만 조회
+    Optional<NotificationRoutine> findByIdAndUserId(Long id, Long userId);
 }

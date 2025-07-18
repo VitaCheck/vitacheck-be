@@ -20,7 +20,7 @@ public class RoutineQueryService {
 
         return routines.stream()
                 .map(routine -> RoutineResponseDto.builder()
-                        .routineId(routine.getId())
+                        .notificationRoutineId(routine.getId())
                         .supplementId(routine.getSupplement().getId())
                         .supplementName(routine.getSupplement().getName())
                         .supplementImageUrl(routine.getSupplement().getImageUrl())

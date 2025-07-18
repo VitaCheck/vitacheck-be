@@ -1,5 +1,6 @@
 package com.vitacheck.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.vitacheck.domain.*;
 import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.user.User;
@@ -73,7 +74,7 @@ public class NotificationRoutineCommandService {
 
         // 8. 응답 DTO 반환
         return RoutineRegisterResponseDto.builder()
-                .routineId(saved.getId())
+                .notificationRoutineId(saved.getId())
                 .supplementId(saved.getSupplement().getId())
                 .daysOfWeek(saved.getRoutineDays().stream()
                         .map(RoutineDay::getDayOfWeek)
