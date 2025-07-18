@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class RoutineRegisterResponseDto {
 
-    private Long routineId;
+    private Long notificationRoutineId;
 
     private Long supplementId;
 

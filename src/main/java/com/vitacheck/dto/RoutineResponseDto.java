@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 public class RoutineResponseDto {
 
-    private Long routineId;
+    private Long notificationRoutineId;
 
     private Long supplementId;
 
