@@ -48,6 +48,7 @@ public class Supplement extends BaseTimeEntity {
     private LocalDateTime createdAt;
 
     // 영양제(1) <-> 영양제-성분(N)
+    @Builder.Default
     @OneToMany(mappedBy = "supplement", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupplementIngredient> supplementIngredients = new ArrayList<>();
 }
