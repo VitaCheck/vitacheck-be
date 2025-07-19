@@ -1,5 +1,13 @@
 # application-prod.yml (최종 수정본)
 spring:
+  cloud:
+    aws:
+      s3:
+        bucket: vitacheck-assets
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
   config:
     import: "aws-secretsmanager:vitacheck/prod"
   datasource:
@@ -43,13 +51,6 @@ jwt:
 open-api:
   food-safety-korea:
     api-key: ${FOOD_SAFETY_API_KEY}
-
-cloud:
-  aws:
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
 
 # Firebase 키 설정을 위한 부분 (Secrets Manager에서 값을 가져옴)
 firebase:
