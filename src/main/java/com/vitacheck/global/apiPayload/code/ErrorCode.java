@@ -31,7 +31,12 @@ public enum ErrorCode implements BaseErrorCode {
 
     // 복용 루틴
     DUPLICATED_ROUTINE("R0001", "이미 등록된 복용 루틴입니다.", HttpStatus.CONFLICT),
-    ROUTINE_NOT_FOUND("R0002", "복용 루틴을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    ROUTINE_NOT_FOUND("R0002", "복용 루틴을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+
+    // FCM 관련
+    FCM_CONFIG_NOT_FOUND("F0001", "FCM 설정(키 파일 경로 또는 JSON 값)을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    FCM_FILE_NOT_FOUND("F0002", "지정된 경로에서 FCM 키 파일을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+
 
     private final String code;
     private final String message;
