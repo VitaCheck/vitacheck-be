@@ -1,11 +1,11 @@
 # application-prod.yml (최종 수정본)
 spring:
+  config:
+    import: ["aws-secretsmanager:vitacheck/prod", "aws-secretsmanager:vitacheck/fcm-key"]
   datasource:
     url: jdbc:mysql://${PROD_DB_ENDPOINT}:3306/vitacheck?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     username: ${PROD_DB_USERNAME}
     password: ${PROD_DB_PASSWORD}
-  config:
-    import: "aws-secretsmanager:vitacheck/fcm-key"
   security:
     oauth2:
       client:

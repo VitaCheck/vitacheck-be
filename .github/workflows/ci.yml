@@ -72,14 +72,5 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            export PROD_DB_ENDPOINT=${{ secrets.PROD_DB_ENDPOINT }}
-            export PROD_DB_USERNAME=${{ secrets.PROD_DB_USERNAME }}
-            export PROD_DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
-            export JWT_SECRET=${{ secrets.JWT_SECRET }}
-            export FOOD_SAFETY_API_KEY=${{ secrets.FOOD_SAFETY_API_KEY }}
-            export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            export NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}
-            export NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
-            sh ~/deploy.sh
+          # script에서 모든 export 구문을 제거합니다.
+          script: 'sh ~/deploy.sh'
