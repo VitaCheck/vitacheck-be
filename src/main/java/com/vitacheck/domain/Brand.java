@@ -23,5 +23,6 @@ public class Brand extends BaseTimeEntity {
     private String name;
 
     @OneToMany(mappedBy = "brand")
+    @Builder.Default
     private List<Supplement> supplements = new ArrayList<>();
 }
