@@ -42,6 +42,7 @@ public class Supplement extends BaseTimeEntity {
 
     private String method;
 
+    @Column(name = "caution")
     private String caution;
 
     @Column(nullable = false)
