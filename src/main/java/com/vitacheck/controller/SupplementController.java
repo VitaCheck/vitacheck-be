@@ -1,6 +1,8 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.dto.SupplementByPurposeResponse;
 import com.vitacheck.dto.SupplementDto;
+import com.vitacheck.dto.SupplementPurposeRequest;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
@@ -10,13 +12,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,5 +44,13 @@ public class SupplementController {
         List<SupplementDto.SearchResponse> response = supplementService.search(keyword, brandName, ingredientName);
 
         return CustomResponse.ok(response);
+    }
+
+    @PostMapping("/by-purposes")
+    @Operation(summary = "목적별 영양소 및 영양제 조회", description = "선택한 목적에 맞는 성분 및 관련 영양제를 반환합니다.")
+    public ResponseEntity<Map<String, SupplementByPurposeResponse>> getSupplementsByPurposes(
+            @RequestBody SupplementPurposeRequest request
+    ) {
+        return ResponseEntity.ok(supplementService.getSupplementsByPurposes(request));
     }
 }

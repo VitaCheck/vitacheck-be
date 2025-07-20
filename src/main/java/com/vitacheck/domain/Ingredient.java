@@ -1,9 +1,13 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.mapping.SupplementIngredient;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ingredients")
@@ -27,4 +31,7 @@ public class Ingredient {
 
     @Column(nullable = false, length = 20)
     private String unit;
+
+    @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SupplementIngredient> supplementIngredients = new ArrayList<>();
 }
