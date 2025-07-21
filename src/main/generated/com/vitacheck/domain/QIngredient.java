@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -26,6 +27,8 @@ public class QIngredient extends EntityPathBase<Ingredient> {
     public final StringPath name = createString("name");
 
     public final NumberPath<Integer> recommendedDosage = createNumber("recommendedDosage", Integer.class);
+
+    public final ListPath<com.vitacheck.domain.mapping.SupplementIngredient, com.vitacheck.domain.mapping.QSupplementIngredient> supplementIngredients = this.<com.vitacheck.domain.mapping.SupplementIngredient, com.vitacheck.domain.mapping.QSupplementIngredient>createList("supplementIngredients", com.vitacheck.domain.mapping.SupplementIngredient.class, com.vitacheck.domain.mapping.QSupplementIngredient.class, PathInits.DIRECT2);
 
     public final StringPath unit = createString("unit");
 
