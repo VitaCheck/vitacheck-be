@@ -19,40 +19,32 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI() {
-        // API 문서에 대한 기본 정보 설정
         Info info = new Info()
                 .title("💊VitaCheck API")
                 .version("1.0.0")
                 .description("비타체크 API 명세서입니다.");
 
-        // JWT 인증 스키마 설정
-        String jwtSchemeName = "JWT Authentication";
+        // API 문서에 인증 기능 추가
+        String jwtSchemeName = "JWT Authentication"; // 문서상 보여질 이름
+
+        // 1. SecurityScheme 설정
         SecurityScheme securityScheme = new SecurityScheme()
-                .name(jwtSchemeName)
-                .type(SecurityScheme.Type.HTTP) // HTTP 타입
-                .scheme("bearer") // Bearer 토큰 방식 사용
-                .bearerFormat("JWT"); // 토큰 형식 지정
+                .name("Authorization") // ✅ 실제 HTTP 헤더 이름
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT");
 
-        Components components = new Components().addSecuritySchemes(jwtSchemeName, securityScheme);
+        // 2. SecurityRequirement 설정
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
 
+        // 3. Components에 SecurityScheme 추가
+        Components components = new Components()
+                .addSecuritySchemes(jwtSchemeName, securityScheme);
+
+        // 4. OpenAPI 객체에 Components와 SecurityRequirement 추가
         return new OpenAPI()
                 .info(info)
+                .addSecurityItem(securityRequirement) // ✅ 모든 API에 전역적으로 인증 적용
                 .components(components);
-    }
-
-    @Bean
-    public OperationCustomizer customOperationCustomizer() {
-        // 이 커스터마이저가 각 API(@Operation)를 돌면서 설정을 변경합니다.
-        return (operation, handlerMethod) -> {
-            // @AuthenticationPrincipal 어노테이션이 있는지 확인합니다.
-            boolean isAuthRequired = Arrays.stream(handlerMethod.getMethodParameters())
-                    .anyMatch(param -> param.getParameterAnnotation(AuthenticationPrincipal.class) != null);
-
-            // 어노테이션이 있다면 해당 API에만 자물쇠 아이콘을 추가합니다.
-            if (isAuthRequired) {
-                operation.addSecurityItem(new SecurityRequirement().addList("JWT Authentication"));
-            }
-            return operation;
-        };
     }
 }

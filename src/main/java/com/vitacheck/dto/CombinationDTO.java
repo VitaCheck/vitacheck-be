@@ -18,18 +18,24 @@ public class CombinationDTO {
 
     @Getter
     @Builder
+    @AllArgsConstructor // ✅ new AnalysisResponse(ingredientResults)를 위해 생성자 추가
     public static class AnalysisResponse {
 
         private List<IngredientAnalysisResultDto> ingredientResults;
-        // 분석된 개별 성분 결과
+
         @Getter
         @Builder
         public static class IngredientAnalysisResultDto {
-            private String ingredientName; // 성분명 (예: 비타민 C)
-            private Integer totalAmount;       // 총 섭취량
-            private String unit;           // 단위 (mg, IU 등)
-            private Integer recommendedAmount; // 권장량
-            private Integer upperAmount;       // 상한량
+            // --- 기존 필드 ---
+            private String ingredientName;
+            private Integer totalAmount;
+            private String unit;
+            private Integer recommendedAmount;
+            private Integer upperAmount;
+
+            // ✅ 서비스 로직에서 계산한 필드 추가
+            private boolean isOverRecommended; // 권장량 초과 여부
+            private double dosageRatio;        // 섭취 비율
         }
     }
 

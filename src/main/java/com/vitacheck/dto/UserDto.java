@@ -98,4 +98,10 @@ public class UserDto {
     public static class UpdateFcmTokenRequest {
         private String fcmToken;
     }
+
+    @Getter
+    @NoArgsConstructor
+    public static class UpdateFcmTokenRequest {
+        private String fcmToken;
+    }
 }
