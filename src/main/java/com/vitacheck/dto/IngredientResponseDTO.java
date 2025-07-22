@@ -19,8 +19,8 @@ public class IngredientResponseDTO {
         private String description;    // 설명
         private String effect;         // 효능
         private String caution;        // 부작용 및 주의사
-        private Double upper_limit;     // 상한
-        private Double lower_limit;     // 하한
+        private Double upperLimit;     // 상한
+        private Double lowerLimit;     // 하한
         private String unit;           // 단위
     }
 

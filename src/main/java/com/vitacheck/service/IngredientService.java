@@ -23,8 +23,8 @@ public class IngredientService {
                 .description(ingredient.getDescription())
                 .effect(ingredient.getEffect())
                 .caution(ingredient.getCaution())
-                .upper_limit(ingredient.getUpperLimit())
-                .lower_limit(ingredient.getLowerLimit())
+                .upperLimit(ingredient.getUpperLimit())
+                .lowerLimit(ingredient.getLowerLimit())
                 .unit(ingredient.getUnit())
                 .build();
 
