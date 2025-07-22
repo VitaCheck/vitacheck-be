@@ -90,6 +90,7 @@ public class UserDto {
         private String nickname;
         private String fullName;
         private String provider;
+        private int age;
     }
 
     @Getter
