@@ -44,7 +44,9 @@ public class SecurityConfig {
             // 기타
             "/error",
             "/fcm_test.html",
-            "/firebase-messaging-sw.js"
+            "/firebase-messaging-sw.js",
+            //성분
+            "/api/ingredients/**"
     };
 
     @Bean
