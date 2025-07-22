@@ -13,7 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 
 @Service
 @Transactional(readOnly = true)
@@ -92,7 +94,18 @@ public class UserService {
     public UserDto.InfoResponse getMyInfo(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getFullName(), user.getProvider());
+
+        int age = 0; // 기본값
+        if (user.getBirthDate() != null) {
+            age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+        }
+        return new UserDto.InfoResponse(
+                user.getEmail(),
+                user.getNickname(),
+                user.getFullName(),
+                user.getProvider(),
+                age
+        );
     }
 
     @Transactional
@@ -100,7 +113,19 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updateNickname(request.getNickname());
-        return new UserDto.InfoResponse(user.getEmail(), user.getNickname(), user.getFullName(), user.getProvider());
+
+        int age = 0; // 기본값
+        if (user.getBirthDate() != null) {
+            age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+        }
+
+        return new UserDto.InfoResponse(
+                user.getEmail(),
+                user.getNickname(),
+                user.getFullName(),
+                user.getProvider(),
+                age
+        );
     }
 
     public Long findIdByEmail(String email) {

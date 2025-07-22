@@ -40,14 +40,19 @@ public class SupplementService {
                 .map(AllPurpose::valueOf)
                 .toList();
 
-        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
+        // N+1 지점: 목적 -> 성분, 성분 -> 영양제 모두 Lazy 로딩
+        // QueryDSL로 fetch join 처리된 메서드로 교체
+        // List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
+        List<PurposeCategory> categories = purposeCategoryRepository.findAllWithIngredientAndSupplementByNameIn(allPurposes);
 
         // 성분 -> 목적 리스트 매핑
         Map<Ingredient, Set<String>> ingredientToPurposes = new HashMap<>();
 
         for (PurposeCategory category : categories) {
             String purposeDesc = category.getName().getDescription();
+            // category.getIngredientCategories() 가 Lazy 일 경우 루프마다 쿼리 발생
             for (IngredientCategory ic : category.getIngredientCategories()) {
+                // ic.getIngredient() 도 Lazy 로딩 시마다 쿼리 발생
                 Ingredient ingredient = ic.getIngredient();
                 ingredientToPurposes
                         .computeIfAbsent(ingredient, k -> new HashSet<>())
@@ -61,6 +66,8 @@ public class SupplementService {
             Ingredient ingredient = entry.getKey();
             Set<String> purposes = entry.getValue();
 
+            // ingredient.getSupplementIngredients() 도 Lazy
+            // 각 SupplementIngredient → Supplement 도 추가 쿼리 발생 가능
             List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
                     .map(SupplementIngredient::getSupplement)
                     .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))

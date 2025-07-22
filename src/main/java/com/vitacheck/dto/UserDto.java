@@ -90,6 +90,13 @@ public class UserDto {
         private String nickname;
         private String fullName;
         private String provider;
+        private int age;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    public static class UpdateFcmTokenRequest {
+        private String fcmToken;
     }
 
     @Getter
