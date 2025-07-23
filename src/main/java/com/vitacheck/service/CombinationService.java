@@ -43,8 +43,8 @@ public class CombinationService {
                         .map(entry -> {
                             Ingredient ingredient = entry.getKey();
                             int totalAmount = entry.getValue();
-                            Integer recommendedAmount = ingredient.getRecommendedDosage();
-                            Integer upperAmount = ingredient.getUpperLimit();
+                            Double recommendedAmount = ingredient.getRecommendedDosage();
+                            Double upperAmount = ingredient.getUpperLimit();
 
                             boolean isOver = (recommendedAmount != null && totalAmount >= recommendedAmount);
 
