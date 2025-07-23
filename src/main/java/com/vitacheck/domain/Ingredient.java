@@ -42,6 +42,9 @@ public class Ingredient {
     @Column(name = "lower_limit")
     private Double lowerLimit;
 
+    @Column(name = "recommended_")
+    private Double recommendedDosage;
+
     @Column(name = "upper_limit")
     private Double upperLimit;
 

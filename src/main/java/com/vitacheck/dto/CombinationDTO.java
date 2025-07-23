@@ -30,8 +30,8 @@ public class CombinationDTO {
             private String ingredientName;
             private Integer totalAmount;
             private String unit;
-            private Integer recommendedAmount;
-            private Integer upperAmount;
+            private Double recommendedAmount;
+            private Double upperAmount;
 
             // ✅ 서비스 로직에서 계산한 필드 추가
             private boolean isOverRecommended; // 권장량 초과 여부
