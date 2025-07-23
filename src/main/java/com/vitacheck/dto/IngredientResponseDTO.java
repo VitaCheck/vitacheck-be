@@ -31,6 +31,7 @@ public class IngredientResponseDTO {
     public static class IngredientSupplement{
         private Long id;
         private String name;
+        @Builder.Default
         private List<SubIngredient> subIngredients = new ArrayList<>();
     }
 
@@ -41,6 +42,7 @@ public class IngredientResponseDTO {
     public static class IngredientFood{
         private Long id;
         private String name;
+        @Builder.Default
         private List<SubIngredient> subIngredients = new ArrayList<>();
     }
 
