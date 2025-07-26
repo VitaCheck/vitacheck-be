@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IngredientDosageRepository extends JpaRepository<IngredientDosage, Long> {
 
@@ -20,4 +21,23 @@ public interface IngredientDosageRepository extends JpaRepository<IngredientDosa
             @Param("ingredientIds") List<Long> ingredientIds,
             @Param("gender") Gender gender,
             @Param("age") int age);
+
+    @Query("SELECT d FROM IngredientDosage d " +
+            "WHERE d.ingredient.id = :ingredientId " +
+            "AND (:age BETWEEN d.minAge AND d.maxAge) " +
+            "AND d.gender IN (:gender, com.vitacheck.domain.user.Gender.ALL) " +
+            "ORDER BY d.gender DESC") // MALE/FEMALE이 ALL보다 우선순위가 높도록 정렬
+    List<IngredientDosage> findApplicableDosages(
+            @Param("ingredientId") Long ingredientId,
+            @Param("gender") Gender gender,
+            @Param("age") int age);
+
+
+
+    default Optional<IngredientDosage> findBestDosage(Long ingredientId, Gender gender, int age) {
+        // 우선순위대로 정렬된 목록에서 가장 첫 번째 결과를 반환합니다.
+        return findApplicableDosages(ingredientId, gender, age)
+                .stream()
+                .findFirst();
+    }
 }
