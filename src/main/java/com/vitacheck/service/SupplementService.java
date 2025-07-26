@@ -6,14 +6,20 @@ import com.vitacheck.domain.mapping.IngredientCategory;
 import com.vitacheck.domain.mapping.SupplementIngredient;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
+import com.vitacheck.domain.user.User;
+import com.vitacheck.dto.SearchDto;
 import com.vitacheck.dto.SupplementByPurposeResponse;
 import com.vitacheck.dto.SupplementDto;
 import com.vitacheck.dto.SupplementPurposeRequest;
+import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.repository.PurposeCategoryRepository;
 import com.vitacheck.repository.SupplementRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,14 +30,48 @@ import java.util.stream.Collectors;
 public class SupplementService {
 
     private final SupplementRepository supplementRepository;
+    private final IngredientRepository ingredientRepository;
     private final PurposeCategoryRepository purposeCategoryRepository;
+    private final SearchLogService searchLogService;
+    private final StatisticsService statisticsService;
 
-    public List<SupplementDto.SearchResponse> search(String keyword, String brandName, String ingredientName) {
-        List<Supplement> supplements = supplementRepository.search(keyword, brandName, ingredientName);
+    public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
-        return supplements.stream()
-                .map(SupplementDto.SearchResponse::from)
-                .collect(Collectors.toList());
+        List<SearchDto.IngredientInfo> matchedIngredients = findMatchedIngredients(keyword, ingredientName);
+
+        Page<Supplement> supplementsPage = supplementRepository.search(keyword, brandName, ingredientName, pageable);
+        Page<SupplementDto.SearchResponse> supplementDtos = supplementsPage.map(SupplementDto.SearchResponse::from);
+
+        if (user != null) {
+            searchLogService.logSearch(user, keyword, brandName, ingredientName);
+            if (StringUtils.hasText(ingredientName)) {
+                statisticsService.updateIngredientSearchStats(user, ingredientName);
+            }
+        }
+
+        return SearchDto.UnifiedSearchResponse.builder()
+                .matchedIngredients(matchedIngredients)
+                .supplements(supplementDtos)
+                .build();
+    }
+
+
+    private List<SearchDto.IngredientInfo> findMatchedIngredients(String keyword, String ingredientName) {
+        // ingredientName 파라미터가 있으면 정확히 일치하는 1개만 찾음
+        if (StringUtils.hasText(ingredientName)) {
+            return ingredientRepository.findByName(ingredientName)
+                    .stream()
+                    .map(SearchDto.IngredientInfo::from)
+                    .collect(Collectors.toList());
+        }
+        // ingredientName이 없고 keyword만 있으면 이름에 포함되는 모든 성분을 찾음
+        if (StringUtils.hasText(keyword)) {
+            return ingredientRepository.findByNameContainingIgnoreCase(keyword).stream()
+                    .map(SearchDto.IngredientInfo::from)
+                    .collect(Collectors.toList());
+        }
+        // 둘 다 없으면 빈 리스트 반환
+        return Collections.emptyList();
     }
 
     @Transactional(readOnly = true)

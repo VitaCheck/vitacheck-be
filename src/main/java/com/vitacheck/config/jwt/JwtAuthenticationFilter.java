@@ -1,5 +1,7 @@
 package com.vitacheck.config.jwt;
 
+import com.vitacheck.domain.user.User;
+import com.vitacheck.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,23 +10,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
+@Component // ✅ 3. 스프링 빈으로 등록
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
 
-        // 1. 헤더에서 Authorization을 찾은 후 Bearer 토큰 추출
+        // 1. 헤더에서 토큰 추출 (기존과 동일)
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request,response);
@@ -32,16 +35,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         String token = authorizationHeader.substring(7);
 
-        // 2. 토큰 검증
+        // 2. 토큰 검증 (기존과 동일)
         if (jwtUtil.validateToken(token)) {
-            // 3. 토큰 유효 -> 사용자 정보 추출 -> Authentication 객체 생성
+            // 3. 토큰 유효 -> 사용자 정보 추출
             String email = jwtUtil.getEmailFromToken(token);
 
-            // DB 조회 X -> 토큰 정보로 인증 객체 생성
-            UserDetails userDetails = new User(email, "", Collections.emptyList());
-            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new SecurityException("User not found with email: " + email));
 
-            // 4. SecurityContext에 인증 객체 저장
+            // CustomUserDetails 클래스를 만들어 사용하는 것이 일반적입니다.
+            UserDetails userDetails = new CustomUserDetails(user);
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    user, // 👈 Principal로 User 엔티티 객체를 사용
+                    "",
+                    userDetails.getAuthorities());
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

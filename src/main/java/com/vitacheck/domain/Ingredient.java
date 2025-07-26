@@ -41,11 +41,6 @@ public class Ingredient {
     @Column(name = "effect",columnDefinition = "TEXT")
     private String effect;
 
-    @Column(name = "recommended_dosage")
-    private Double recommendedDosage;
-
-    @Column(name = "upper_limit")
-    private Double upperLimit;
 
     @Column(name = "unit", length = 20)
     private String unit;
@@ -57,6 +52,9 @@ public class Ingredient {
     @Column(name = "updated_at")
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "ingredient")
+    private List<IngredientDosage> dosages = new ArrayList<>();
 
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupplementIngredient> supplementIngredients = new ArrayList<>();
