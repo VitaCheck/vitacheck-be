@@ -1,8 +1,10 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.mapping.IngredientAlternativeFood;
 import com.vitacheck.domain.mapping.SupplementIngredient;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -39,10 +41,7 @@ public class Ingredient {
     @Column(name = "effect",columnDefinition = "TEXT")
     private String effect;
 
-    @Column(name = "lower_limit")
-    private Double lowerLimit;
-
-    @Column(name = "recommended_")
+    @Column(name = "recommended_dosage")
     private Double recommendedDosage;
 
     @Column(name = "upper_limit")
@@ -61,4 +60,7 @@ public class Ingredient {
 
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupplementIngredient> supplementIngredients = new ArrayList<>();
+
+    @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<IngredientAlternativeFood> alternativeFoods = new ArrayList<>();
 }
