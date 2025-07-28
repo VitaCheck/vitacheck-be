@@ -1,5 +1,6 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.CombinationDTO;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.CustomResponse;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name="combination", description = "조합 관련 API")
@@ -26,13 +28,14 @@ public class CombinationController {
     })
     @PostMapping("/analyze") //
     public CustomResponse<CombinationDTO.AnalysisResponse> analyzeSupplementCombinations(
+            @AuthenticationPrincipal User user,
             @RequestBody CombinationDTO.AnalysisRequest request){
 
         if (request.getSupplementIds() == null || request.getSupplementIds().isEmpty()) {
             throw new CustomException(ErrorCode.SUPPLEMENT_LIST_EMPTY);
         }
 
-        CombinationDTO.AnalysisResponse response = combinationService.analyze(request);
+        CombinationDTO.AnalysisResponse response = combinationService.analyze(user, request);
         return CustomResponse.ok(response);
     }
 

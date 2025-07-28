@@ -1,10 +1,12 @@
 package com.vitacheck.service;
 
 import com.vitacheck.domain.Ingredient;
+import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.combination.Combination;
 import com.vitacheck.domain.combination.RecommandType;
 import com.vitacheck.domain.mapping.SupplementIngredient;
+import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.CombinationDTO;
 import com.vitacheck.repository.CombinationRepository;
 import com.vitacheck.repository.SupplementRepository;
@@ -12,9 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,9 +24,10 @@ public class CombinationService {
 
     private final CombinationRepository combinationRepository; // 리포지토리 주입
     private final SupplementRepository supplementRepository;
+    private final DosageService dosageService;
 
     @Transactional(readOnly = true)
-    public CombinationDTO.AnalysisResponse analyze(CombinationDTO.AnalysisRequest request) {
+    public CombinationDTO.AnalysisResponse analyze(User user, CombinationDTO.AnalysisRequest request) {
         // 1. 요청받은 ID로 DB에서 영양제와 성분 정보들을 한 번에 조회
         List<Supplement> supplements = supplementRepository.findSupplementsWithIngredientsByIds(request.getSupplementIds());
 
@@ -38,13 +40,19 @@ public class CombinationService {
             }
         }
 
+        Map<Long, IngredientDosage> dosageMap = dosageService.getDosagesForUserAndIngredients(user, totalAmountMap.keySet());
+
+
         List<CombinationDTO.AnalysisResponse.IngredientAnalysisResultDto> ingredientResults =
                 totalAmountMap.entrySet().stream()
                         .map(entry -> {
                             Ingredient ingredient = entry.getKey();
                             int totalAmount = entry.getValue();
-                            Double recommendedAmount = ingredient.getRecommendedDosage();
-                            Double upperAmount = ingredient.getUpperLimit();
+
+                            // 조회된 섭취 기준 Map에서 해당 성분의 기준을 가져옴
+                            IngredientDosage dosage = dosageMap.get(ingredient.getId());
+                            Double recommendedAmount = (dosage != null) ? dosage.getRecommendedDosage() : null;
+                            Double upperAmount = (dosage != null) ? dosage.getUpperLimit() : null;
 
                             boolean isOver = (recommendedAmount != null && totalAmount >= recommendedAmount);
 
@@ -77,6 +85,7 @@ public class CombinationService {
 
         return new CombinationDTO.AnalysisResponse(ingredientResults);
     }
+
 
     @Transactional(readOnly = true)
     public CombinationDTO.RecommendCombinationResponse getRecommendCombinations() {
