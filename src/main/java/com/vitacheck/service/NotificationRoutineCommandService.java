@@ -74,7 +74,9 @@ public class NotificationRoutineCommandService {
         // 8. 응답 DTO 반환
         return RoutineRegisterResponseDto.builder()
                 .notificationRoutineId(saved.getId())
-                .supplementId(saved.getSupplement().getId())
+                .supplementId(supplement.getId())
+                .supplementName(supplement.getName())
+                .supplementImageUrl(supplement.getImageUrl())
                 .daysOfWeek(saved.getRoutineDays().stream()
                         .map(RoutineDay::getDayOfWeek)
                         .toList())
