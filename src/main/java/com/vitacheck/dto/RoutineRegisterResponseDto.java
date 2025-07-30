@@ -19,6 +19,10 @@ public class RoutineRegisterResponseDto {
 
     private Long supplementId;
 
+    private String supplementName;
+
+    private String supplementImageUrl;
+
     private List<RoutineDayOfWeek> daysOfWeek;
 
     private List<LocalTime> times;
