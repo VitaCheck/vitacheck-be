@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = new CustomUserDetails(user);
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    user, // 👈 Principal로 User 엔티티 객체를 사용
+                    userDetails, // 👈 Principal로 User 엔티티 객체를 사용
                     "",
                     userDetails.getAuthorities());
 
