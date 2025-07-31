@@ -1,8 +1,10 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.dto.IngredientLikeToggleResponseDto;
 import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.dto.LikedSupplementResponseDto;
 import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.service.IngredientLikeCommandService;
 import com.vitacheck.service.LikeCommandService;
 import com.vitacheck.service.LikeQueryService;
 import com.vitacheck.service.UserService;
@@ -24,12 +26,13 @@ import java.util.List;
 @Tag(name = "likes", description = "사용자 찜 기능 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/supplements")
+@RequestMapping("/api/v1")
 public class LikeController {
 
     private final LikeCommandService likeCommandService;
     private final UserService userService;
     private final LikeQueryService likeQueryService;
+    private final IngredientLikeCommandService ingredientLikeCommandService;
 
     @Operation(
             summary = "영양제 찜하기",
@@ -49,7 +52,7 @@ public class LikeController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
             @ApiResponse(responseCode = "404", description = "사용자 또는 영양제 없음", content = @Content)
     })
-    @PostMapping("/{supplementId}/like")
+    @PostMapping("/supplements/{supplementId}/like")
     public CustomResponse<LikeToggleResponseDto> toggleLike(
             @PathVariable("supplementId") Long supplementId,
             @AuthenticationPrincipal UserDetails userDetails
@@ -76,5 +79,35 @@ public class LikeController {
 
         List<LikedSupplementResponseDto> likedSupplements = likeQueryService.getLikedSupplementsByUserId(userId);
         return CustomResponse.ok(likedSupplements);
+    }
+
+    @PostMapping("/ingredients/{ingredientId}/like")
+    @Operation(
+            summary = "성분 찜하기",
+            description = "사용자가 특정 성분을 찜하거나, 이미 찜한 경우 찜을 해제합니다. (토글 방식)",
+            parameters = {
+                    @Parameter(
+                            name = "ingredientId",
+                            description = "찜할 성분의 ID",
+                            required = true,
+                            example = "1"
+                    )
+            }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "찜 토글 성공",
+                    content = @Content(schema = @Schema(implementation = IngredientLikeToggleResponseDto.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "사용자 또는 성분 없음", content = @Content)
+    })
+    public CustomResponse<IngredientLikeToggleResponseDto> toggleIngredientLike(
+            @PathVariable("ingredientId") Long ingredientId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails.getUsername();
+        Long userId = userService.findIdByEmail(email);
+
+        IngredientLikeToggleResponseDto responseDto = ingredientLikeCommandService.toggleIngredientLike(ingredientId, userId);
+        return CustomResponse.ok(responseDto);
     }
 }
