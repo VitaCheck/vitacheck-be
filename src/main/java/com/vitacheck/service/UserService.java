@@ -25,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final NotificationSettingsService notificationSettingsService;
 
     @Transactional
     public void signUp(UserDto.SignUpRequest request) {
@@ -46,6 +47,8 @@ public class UserService {
                 .lastLoginAt(LocalDateTime.now())
                 .build();
         userRepository.save(newUser);
+
+        notificationSettingsService.createDefaultSettingsForUser(newUser);
     }
 
     public UserDto.TokenResponse login(UserDto.LoginRequest request) {
@@ -84,6 +87,8 @@ public class UserService {
                 .build();
 
         userRepository.save(newUser);
+
+        notificationSettingsService.createDefaultSettingsForUser(newUser);
 
         String accessToken = jwtUtil.createAccessToken(newUser.getEmail());
         String refreshToken = jwtUtil.createRefreshToken(newUser.getEmail());
