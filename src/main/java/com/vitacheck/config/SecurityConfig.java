@@ -47,7 +47,7 @@ public class SecurityConfig {
             "/fcm_test.html",
             "/firebase-messaging-sw.js",
             //성분
-            "/api/ingredients/**"
+            "/api/v1/ingredients/**",
     };
 
     @Bean
