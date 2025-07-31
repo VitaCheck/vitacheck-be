@@ -91,6 +91,8 @@ public class UserDto {
         private String fullName;
         private String provider;
         private int age;
+        private LocalDate birthDate;
+        private String phoneNumber;
     }
 
     @Getter

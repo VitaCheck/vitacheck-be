@@ -104,7 +104,9 @@ public class UserService {
                 user.getNickname(),
                 user.getFullName(),
                 user.getProvider(),
-                age
+                age,
+                user.getBirthDate(),
+                user.getPhoneNumber()
         );
     }
 
@@ -124,7 +126,9 @@ public class UserService {
                 user.getNickname(),
                 user.getFullName(),
                 user.getProvider(),
-                age
+                age,
+                user.getBirthDate(),
+                user.getPhoneNumber()
         );
     }
 
