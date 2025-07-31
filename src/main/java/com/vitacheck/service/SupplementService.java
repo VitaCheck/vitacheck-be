@@ -7,11 +7,9 @@ import com.vitacheck.domain.mapping.SupplementIngredient;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.user.User;
-import com.vitacheck.dto.SearchDto;
-import com.vitacheck.dto.SupplementByPurposeResponse;
-import com.vitacheck.dto.SupplementDto;
-import com.vitacheck.dto.SupplementPurposeRequest;
+import com.vitacheck.dto.*;
 import com.vitacheck.repository.IngredientRepository;
+import com.vitacheck.repository.LikeRepository;
 import com.vitacheck.repository.PurposeCategoryRepository;
 import com.vitacheck.repository.SupplementRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +32,7 @@ public class SupplementService {
     private final PurposeCategoryRepository purposeCategoryRepository;
     private final SearchLogService searchLogService;
     private final StatisticsService statisticsService;
+    private final LikeRepository likeRepository;
 
     public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
@@ -123,4 +122,31 @@ public class SupplementService {
 
         return result;
     }
+
+    @Transactional(readOnly = true)
+    public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
+        Supplement supplement = supplementRepository.findByIdWithIngredientsAndBrand(supplementId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 영양제를 찾을 수 없습니다."));
+
+        boolean liked = likeRepository.existsByUserIdAndSupplementId(userId, supplementId);
+
+        return SupplementDetailResponseDto.builder()
+                .supplementId(supplement.getId())
+                .brandName(supplement.getBrand().getName())
+                .brandImageUrl(supplement.getBrand().getImageUrl())
+                .supplementName(supplement.getName())
+                .supplementImageUrl(supplement.getImageUrl())
+                .liked(liked)
+                .coupangLink(supplement.getCoupangUrl())
+                .intakeTime(supplement.getMethod())
+                .ingredients(
+                        supplement.getSupplementIngredients().stream()
+                                .map(i -> new SupplementDetailResponseDto.IngredientDto(
+                                        i.getIngredient().getName(),
+                                        (i.getAmount() != null ? i.getAmount() : "") + i.getUnit()
+                                ))
+                                .toList())
+                .build();
+    }
+
 }
