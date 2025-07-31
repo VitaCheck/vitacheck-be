@@ -60,4 +60,21 @@ public class LikeController {
         LikeToggleResponseDto responseDto = likeCommandService.toggleLike(supplementId, userId);
         return CustomResponse.ok(responseDto);
     }
+
+    @GetMapping("/likes/me")
+    @Operation(summary = "내가 찜한 영양제 목록 조회", description = "JWT 인증 기반으로 사용자가 찜한 영양제 목록을 반환합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = LikedSupplementResponseDto.class)))),
+            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
+    })
+    public CustomResponse<List<LikedSupplementResponseDto>> getMyLikedSupplements(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails.getUsername();
+        Long userId = userService.findIdByEmail(email);
+
+        List<LikedSupplementResponseDto> likedSupplements = likeQueryService.getLikedSupplementsByUserId(userId);
+        return CustomResponse.ok(likedSupplements);
+    }
 }
