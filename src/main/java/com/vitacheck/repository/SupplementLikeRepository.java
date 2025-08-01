@@ -19,4 +19,6 @@ public interface SupplementLikeRepository extends JpaRepository<SupplementLike, 
 
     @Query("SELECT l FROM SupplementLike l JOIN FETCH l.supplement s JOIN FETCH s.brand WHERE l.user.id = :userId")
     List<SupplementLike> findAllByUserIdWithSupplement(@Param("userId") Long userId);
+
+    boolean existsByUserIdAndSupplementId(Long userId, Long supplementId);
 }

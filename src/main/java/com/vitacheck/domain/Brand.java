@@ -22,6 +22,9 @@ public class Brand extends BaseTimeEntity {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
+
     @OneToMany(mappedBy = "brand")
     @Builder.Default
     private List<Supplement> supplements = new ArrayList<>();

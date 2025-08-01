@@ -1,5 +1,6 @@
 package com.vitacheck.dto;
 
+import com.vitacheck.domain.user.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,9 +19,11 @@ public class IngredientResponseDTO {
         private String name;
         private String description;    // 설명
         private String effect;         // 효능
-        private String caution;        // 부작용 및 주의사
+        private String caution; // 부작용 및 주의사항
+        private Gender gender;
+        private Integer age;
         private Double upperLimit;     // 상한
-        private Double lowerLimit;     // 하한
+        private Double recommendedDosage;     // 하한
         private String unit;           // 단위
     }
 
