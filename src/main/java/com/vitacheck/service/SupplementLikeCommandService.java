@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class LikeCommandService {
+public class SupplementLikeCommandService {
 
     private final SupplementLikeRepository supplementLikeRepository;
     private final SupplementRepository supplementRepository;

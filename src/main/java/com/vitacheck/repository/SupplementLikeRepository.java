@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.List;
 
-public interface LikeRepository extends JpaRepository<SupplementLike, Long> {
+public interface SupplementLikeRepository extends JpaRepository<SupplementLike, Long> {
 
     // 사용자가 이미 특정 영양제를 찜했는지 확인
     boolean existsByUserAndSupplement(User user, Supplement supplement);

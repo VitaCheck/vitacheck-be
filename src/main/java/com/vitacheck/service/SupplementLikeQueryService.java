@@ -10,7 +10,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LikeQueryService {
+public class SupplementLikeQueryService {
 
     private final SupplementLikeRepository supplementLikeRepository;
 

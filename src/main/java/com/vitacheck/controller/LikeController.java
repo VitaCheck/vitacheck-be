@@ -5,8 +5,8 @@ import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.dto.LikedSupplementResponseDto;
 import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.service.IngredientLikeCommandService;
-import com.vitacheck.service.LikeCommandService;
-import com.vitacheck.service.LikeQueryService;
+import com.vitacheck.service.SupplementLikeCommandService;
+import com.vitacheck.service.SupplementLikeQueryService;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,9 +29,9 @@ import java.util.List;
 @RequestMapping("/api/v1")
 public class LikeController {
 
-    private final LikeCommandService likeCommandService;
+    private final SupplementLikeCommandService supplementLikeCommandService;
     private final UserService userService;
-    private final LikeQueryService likeQueryService;
+    private final SupplementLikeQueryService supplementLikeQueryService;
     private final IngredientLikeCommandService ingredientLikeCommandService;
 
     @Operation(
@@ -60,7 +60,7 @@ public class LikeController {
         String email = userDetails.getUsername();
         Long userId = userService.findIdByEmail(email);
 
-        LikeToggleResponseDto responseDto = likeCommandService.toggleLike(supplementId, userId);
+        LikeToggleResponseDto responseDto = supplementLikeCommandService.toggleLike(supplementId, userId);
         return CustomResponse.ok(responseDto);
     }
 
@@ -77,7 +77,7 @@ public class LikeController {
         String email = userDetails.getUsername();
         Long userId = userService.findIdByEmail(email);
 
-        List<LikedSupplementResponseDto> likedSupplements = likeQueryService.getLikedSupplementsByUserId(userId);
+        List<LikedSupplementResponseDto> likedSupplements = supplementLikeQueryService.getLikedSupplementsByUserId(userId);
         return CustomResponse.ok(likedSupplements);
     }
 
