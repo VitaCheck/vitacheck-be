@@ -2,14 +2,12 @@ package com.vitacheck.controller;
 
 import com.vitacheck.dto.IngredientLikeToggleResponseDto;
 import com.vitacheck.dto.LikeToggleResponseDto;
+import com.vitacheck.dto.LikedIngredientResponseDto;
 import com.vitacheck.dto.LikedSupplementResponseDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
-import com.vitacheck.service.IngredientLikeCommandService;
-import com.vitacheck.service.SupplementLikeCommandService;
-import com.vitacheck.service.SupplementLikeQueryService;
-import com.vitacheck.service.UserService;
+import com.vitacheck.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -35,6 +33,7 @@ public class LikeController {
     private final UserService userService;
     private final SupplementLikeQueryService supplementLikeQueryService;
     private final IngredientLikeCommandService ingredientLikeCommandService;
+    private final IngredientLikeQueryService ingredientLikeQueryService;
 
     @Operation(
             summary = "영양제 찜하기",
@@ -110,10 +109,31 @@ public class LikeController {
             @PathVariable("ingredientId") Long ingredientId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
+        if (userDetails == null) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
         String email = userDetails.getUsername();
         Long userId = userService.findIdByEmail(email);
 
         IngredientLikeToggleResponseDto responseDto = ingredientLikeCommandService.toggleIngredientLike(ingredientId, userId);
         return CustomResponse.ok(responseDto);
+    }
+
+    @Operation(summary = "내가 찜한 성분 목록 조회", description = "JWT 인증 기반으로 사용자가 찜한 성분 목록을 반환합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = LikedIngredientResponseDto.class)))),
+            @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
+    })
+    @GetMapping("/users/me/likes/ingredients")
+    public CustomResponse<List<LikedIngredientResponseDto>> getMyLikedIngredients(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        String email = userDetails.getUsername();
+        Long userId = userService.findIdByEmail(email);
+
+        List<LikedIngredientResponseDto> likedIngredients = ingredientLikeQueryService.getLikedIngredientsByUserId(userId);
+        return CustomResponse.ok(likedIngredients);
     }
 }
