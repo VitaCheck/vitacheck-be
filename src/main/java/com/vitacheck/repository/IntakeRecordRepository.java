@@ -15,4 +15,7 @@ public interface IntakeRecordRepository extends JpaRepository<IntakeRecord, Long
     Optional<IntakeRecord> findByUserAndNotificationRoutineAndDate(User user,
                                                                    NotificationRoutine notificationRoutine,
                                                                    LocalDate date);
+
+    boolean existsByNotificationRoutineIdAndUserIdAndDate(Long routineId, Long userId, LocalDate date);
+
 }
