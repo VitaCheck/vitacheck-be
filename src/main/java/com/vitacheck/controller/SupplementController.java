@@ -1,10 +1,7 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.domain.user.User;
-import com.vitacheck.dto.SearchDto;
-import com.vitacheck.dto.SupplementByPurposeResponse;
-import com.vitacheck.dto.SupplementDto;
-import com.vitacheck.dto.SupplementPurposeRequest;
+import com.vitacheck.dto.*;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
@@ -77,5 +74,13 @@ public class SupplementController {
             log.info("유저없음");
         }
         return CustomResponse.ok("클릭이 기록되었습니다.");
+    }
+
+    // 특정 영양제 상세 정보 반환 API
+    @GetMapping
+    @Operation(summary = "영양제 상세 조회", description = "supplementId로 상세 정보를 조회합니다.")
+    public SupplementDetailResponseDto getSupplement(@RequestParam Long id,
+                                                     @RequestHeader(name = "X-User-Id") Long userId) {
+        return supplementService.getSupplementDetail(id, userId);
     }
 }
