@@ -38,7 +38,10 @@ public enum ErrorCode implements BaseErrorCode {
     FCM_FILE_NOT_FOUND("F0002", "지정된 경로에서 FCM 키 파일을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // 성분 관련
-    INGREDIENT_NOT_FOUND("INGREDIENT404_0","해당 성분이 존재하지 않습니다.",HttpStatus.NOT_FOUND);
+    INGREDIENT_NOT_FOUND("INGREDIENT404_0","해당 성분이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+    INGREDIENT_FOOD_NOT_FOUND("INGREDIENT404_1","대체 식품이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+    INGREDIENT_DOSAGE_NOT_FOUND("INGREDIENT404_2","상한 및 하한이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+    INGREDIENT_USER_DOSAGE_NOT_FOUND("INGREDIENT404_2","사용자 연령과 성별에 맞는 상한 및 하한이 존재하지 않습니다.",HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;

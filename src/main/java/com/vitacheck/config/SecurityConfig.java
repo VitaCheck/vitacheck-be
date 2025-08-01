@@ -46,7 +46,8 @@ public class SecurityConfig {
             "/error",
             "/fcm_test.html",
             "/firebase-messaging-sw.js",
-            //성분
+            //성분, 목적, 조합 등
+            "/api/v1/ingredients/**",
             "/api/v1/purposes/**",
             "/api/v1/supplements/**",
             "/api/v1/combinations/**"
