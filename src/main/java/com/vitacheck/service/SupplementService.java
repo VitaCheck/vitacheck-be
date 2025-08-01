@@ -9,8 +9,8 @@ import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
 import com.vitacheck.repository.IngredientRepository;
-import com.vitacheck.repository.LikeRepository;
 import com.vitacheck.repository.PurposeCategoryRepository;
+import com.vitacheck.repository.SupplementLikeRepository;
 import com.vitacheck.repository.SupplementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,7 +32,7 @@ public class SupplementService {
     private final PurposeCategoryRepository purposeCategoryRepository;
     private final SearchLogService searchLogService;
     private final StatisticsService statisticsService;
-    private final LikeRepository likeRepository;
+    private final SupplementLikeRepository supplementLikeRepository;
 
     public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
@@ -128,7 +128,7 @@ public class SupplementService {
         Supplement supplement = supplementRepository.findById(supplementId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 영양제를 찾을 수 없습니다."));
 
-        boolean liked = likeRepository.existsByUserIdAndSupplementId(userId, supplementId);
+        boolean liked = supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
 
         return SupplementDetailResponseDto.builder()
                 .supplementId(supplement.getId())
