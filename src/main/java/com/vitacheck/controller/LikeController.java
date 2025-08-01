@@ -3,7 +3,9 @@ package com.vitacheck.controller;
 import com.vitacheck.dto.IngredientLikeToggleResponseDto;
 import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.dto.LikedSupplementResponseDto;
+import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.service.IngredientLikeCommandService;
 import com.vitacheck.service.SupplementLikeCommandService;
 import com.vitacheck.service.SupplementLikeQueryService;
@@ -57,6 +59,10 @@ public class LikeController {
             @PathVariable("supplementId") Long supplementId,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
+        if (userDetails == null) { // ✅ 인증 실패 시 처리 (임시방편)
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
         String email = userDetails.getUsername();
         Long userId = userService.findIdByEmail(email);
 
