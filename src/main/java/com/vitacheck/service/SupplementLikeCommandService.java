@@ -1,12 +1,12 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.Like;
+import com.vitacheck.domain.SupplementLike;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
-import com.vitacheck.repository.LikeRepository;
+import com.vitacheck.repository.SupplementLikeRepository;
 import com.vitacheck.repository.SupplementRepository;
 import com.vitacheck.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class LikeCommandService {
 
-    private final LikeRepository likeRepository;
+    private final SupplementLikeRepository supplementLikeRepository;
     private final SupplementRepository supplementRepository;
     private final UserRepository userRepository;
 
@@ -32,16 +32,16 @@ public class LikeCommandService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SUPPLEMENT_NOT_FOUND));
 
 
-        return likeRepository.findByUserAndSupplement(user, supplement)
-                .map(existingLike -> {
-                    likeRepository.delete(existingLike);
+        return supplementLikeRepository.findByUserAndSupplement(user, supplement)
+                .map(existingSupplementLike -> {
+                    supplementLikeRepository.delete(existingSupplementLike);
                     return LikeToggleResponseDto.builder()
                             .supplementId(supplementId)
                             .liked(false)
                             .build();
                 })
                 .orElseGet(() -> {
-                    likeRepository.save(Like.builder()
+                    supplementLikeRepository.save(SupplementLike.builder()
                             .user(user)
                             .supplement(supplement)
                             .build());
