@@ -125,7 +125,7 @@ public class SupplementService {
 
     @Transactional(readOnly = true)
     public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
-        Supplement supplement = supplementRepository.findByIdWithIngredientsAndBrand(supplementId)
+        Supplement supplement = supplementRepository.findById(supplementId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 영양제를 찾을 수 없습니다."));
 
         boolean liked = likeRepository.existsByUserIdAndSupplementId(userId, supplementId);
