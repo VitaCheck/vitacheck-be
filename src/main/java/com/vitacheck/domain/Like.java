@@ -6,14 +6,14 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "supplement_likes", uniqueConstraints = {
+@Table(name = "likes", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "supplement_id"})
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class SupplementLike extends BaseTimeEntity {
+public class Like extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
