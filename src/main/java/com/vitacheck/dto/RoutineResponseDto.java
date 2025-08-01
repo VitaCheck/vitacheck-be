@@ -24,4 +24,6 @@ public class RoutineResponseDto {
     private List<String> daysOfWeek; // ex: ["MON", "WED", "FRI"]
 
     private List<String> times;      // ex: ["08:00", "20:00"]
+
+    private Boolean isTaken;
 }
