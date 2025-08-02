@@ -69,4 +69,23 @@ public class NotificationRoutineController {
         List<RoutineResponseDto> response = routineQueryService.getMyRoutines(userId);
         return ResponseEntity.ok(CustomResponse.ok(response));
     }
+
+    @DeleteMapping("/routines/{id}")
+    @Operation(summary = "복용 루틴 삭제", description = "현재 로그인한 사용자의 특정 복용 루틴을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "복용 루틴 삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "루틴을 찾을 수 없음")
+    })
+    public ResponseEntity<CustomResponse<Void>> deleteRoutine(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("id") Long routineId
+    ) {
+        String email = userDetails.getUsername();
+        Long userId = userService.findIdByEmail(email);
+
+        notificationRoutineCommandService.deleteRoutine(userId, routineId);
+        return ResponseEntity.ok(CustomResponse.ok(null));
+    }
 }
