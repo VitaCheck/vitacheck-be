@@ -27,7 +27,7 @@ public class NotificationScheduler {
     private final NotificationSettingsRepository notificationSettingsRepository; // 주입
     private final FcmService fcmService;
 
-    @Scheduled(cron = "0 * * * * *")
+   //@Scheduled(cron = "0 * * * * *")
     public void sendRoutineNotifications() {
         LocalDateTime now = LocalDateTime.now();
         LocalTime currentTime = now.toLocalTime().withSecond(0).withNano(0);
