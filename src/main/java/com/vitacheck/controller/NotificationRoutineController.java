@@ -70,7 +70,7 @@ public class NotificationRoutineController {
         return ResponseEntity.ok(CustomResponse.ok(response));
     }
 
-    @DeleteMapping("/routines/{id}")
+    @DeleteMapping("/routines/{notificationRoutineId}")
     @Operation(summary = "복용 루틴 삭제", description = "현재 로그인한 사용자의 특정 복용 루틴을 삭제합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "복용 루틴 삭제 성공"),
@@ -80,7 +80,7 @@ public class NotificationRoutineController {
     })
     public ResponseEntity<CustomResponse<Void>> deleteRoutine(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable("id") Long routineId
+            @PathVariable("notificationRoutineId") Long routineId
     ) {
         String email = userDetails.getUsername();
         Long userId = userService.findIdByEmail(email);
