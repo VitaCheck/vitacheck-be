@@ -1,5 +1,6 @@
 package com.vitacheck.domain.notification;
 
+import com.vitacheck.domain.IntakeRecord;
 import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.RoutineDay;
 import com.vitacheck.domain.RoutineTime;
@@ -40,6 +41,9 @@ public class NotificationRoutine extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "notificationRoutine", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RoutineTime> routineTimes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "notificationRoutine", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<IntakeRecord> intakeRecords = new ArrayList<>();
 
     @Builder
     public NotificationRoutine(User user, Supplement supplement) {
