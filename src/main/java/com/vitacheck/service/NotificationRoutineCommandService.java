@@ -85,4 +85,16 @@ public class NotificationRoutineCommandService {
                         .toList())
                 .build();
     }
+
+    public void deleteRoutine(Long userId, Long routineId) {
+        NotificationRoutine routine = notificationRoutineRepository.findById(routineId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
+
+        // 본인 루틴이 아닌 경우
+        if (!routine.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.ROUTINE_NOT_FOUND);
+        }
+
+        notificationRoutineRepository.delete(routine);
+    }
 }
