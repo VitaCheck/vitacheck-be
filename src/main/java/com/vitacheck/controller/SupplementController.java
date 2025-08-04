@@ -20,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -83,4 +84,12 @@ public class SupplementController {
                                                      @RequestHeader(name = "X-User-Id") Long userId) {
         return supplementService.getSupplementDetail(id, userId);
     }
+
+    // 특정 브랜드 다른 영양제 목록 반환 API
+    @GetMapping("/brand")
+    public Map<String, List<SupplementDto.SimpleResponse>> getByBrandId(@RequestParam Long id) {
+        List<SupplementDto.SimpleResponse> list = supplementService.getSupplementsByBrandId(id);
+        return Map.of("supplements", list);
+    }
+
 }

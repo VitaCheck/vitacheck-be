@@ -62,4 +62,21 @@ public class SupplementDto {
                     .build();
         }
     }
+
+    // 특정 브랜드의 다른 영양제 목록 반환 시 사용할 간단한 DTO입니당 by 나영
+    @Getter
+    @Builder
+    public static class SimpleResponse {
+        private Long id;
+        private String name;
+        private String imageUrl;
+
+        public static SimpleResponse from(Supplement supplement) {
+            return SimpleResponse.builder()
+                    .id(supplement.getId())
+                    .name(supplement.getName())
+                    .imageUrl(supplement.getImageUrl())
+                    .build();
+        }
+    }
 }

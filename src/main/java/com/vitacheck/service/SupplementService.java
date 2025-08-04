@@ -149,4 +149,10 @@ public class SupplementService {
                 .build();
     }
 
+    public List<SupplementDto.SimpleResponse> getSupplementsByBrandId(Long brandId) {
+        return supplementRepository.findAllByBrandId(brandId).stream()
+                .map(SupplementDto.SimpleResponse::from)
+                .toList();
+    }
+
 }

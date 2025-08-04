@@ -15,4 +15,6 @@ public interface SupplementRepository extends JpaRepository<Supplement, Long>, S
 
     @EntityGraph(attributePaths = {"brand", "supplementIngredients", "supplementIngredients.ingredient"})
     Optional<Supplement> findById(Long id);
+
+    List<Supplement> findAllByBrandId(Long brandId);
 }
