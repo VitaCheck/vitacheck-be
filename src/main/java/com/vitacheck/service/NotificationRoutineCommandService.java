@@ -27,32 +27,46 @@ public class NotificationRoutineCommandService {
 
     public RoutineRegisterResponseDto registerRoutine(Long userId, RoutineRegisterRequestDto request) {
 
-        // 1. 중복 등록 검사
-        boolean isDuplicate = notificationRoutineRepository.existsDuplicateRoutine(
-                userId,
-                request.getSupplementId(),
-                request.getDaysOfWeek(),
-                request.getTimes()
-        );
-        if (isDuplicate) {
-            throw new CustomException(ErrorCode.DUPLICATED_ROUTINE);
-        }
-
-        // 2. 사용자 조회
+        // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 3. 영양제 존재 여부 검증
+        // 영양제 존재 여부 검증
         Supplement supplement = supplementRepository.findById(request.getSupplementId())
                 .orElseThrow(() -> new CustomException(ErrorCode.SUPPLEMENT_NOT_FOUND));
 
-        // 4. 루틴 엔티티 생성
-        NotificationRoutine routine = NotificationRoutine.builder()
-                .user(user)
-                .supplement(supplement)
-                .build();
+        NotificationRoutine routine;
 
-        // 5. 요일 추가
+        if (request.getNotificationRoutineId() != null) {
+            // ---------------------- ✏️ 수정 로직 ----------------------
+            routine = notificationRoutineRepository.findByIdAndUserId(
+                    request.getNotificationRoutineId(), userId
+            ).orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
+
+            // 기존 요일/시간 모두 제거
+            routine.getRoutineDays().clear();
+            routine.getRoutineTimes().clear();
+
+        } else {
+            // ---------------------- ➕ 등록 로직 ----------------------
+            // 중복 등록 검사
+            boolean isDuplicate = notificationRoutineRepository.existsDuplicateRoutine(
+                    userId,
+                    request.getSupplementId(),
+                    request.getDaysOfWeek(),
+                    request.getTimes()
+            );
+            if (isDuplicate) {
+                throw new CustomException(ErrorCode.DUPLICATED_ROUTINE);
+            }
+
+            routine = NotificationRoutine.builder()
+                    .user(user)
+                    .supplement(supplement)
+                    .build();
+        }
+
+        // 공통: 요일 추가
         for (RoutineDayOfWeek dayOfWeek : request.getDaysOfWeek()) {
             RoutineDay day = RoutineDay.builder()
                     .dayOfWeek(dayOfWeek)
@@ -60,7 +74,7 @@ public class NotificationRoutineCommandService {
             routine.addRoutineDay(day);
         }
 
-        // 6. 시간 추가
+        // 공통: 시간 추가
         for (LocalTime time : request.getTimes()) {
             RoutineTime routineTime = RoutineTime.builder()
                     .time(time)
@@ -68,10 +82,10 @@ public class NotificationRoutineCommandService {
             routine.addRoutineTime(routineTime);
         }
 
-        // 7. 저장 (cascade로 하위 엔티티도 자동 저장)
+        // 저장
         NotificationRoutine saved = notificationRoutineRepository.save(routine);
 
-        // 8. 응답 DTO 반환
+        // 응답 DTO 반환
         return RoutineRegisterResponseDto.builder()
                 .notificationRoutineId(saved.getId())
                 .supplementId(supplement.getId())
@@ -85,6 +99,7 @@ public class NotificationRoutineCommandService {
                         .toList())
                 .build();
     }
+
 
     public void deleteRoutine(Long userId, Long routineId) {
         NotificationRoutine routine = notificationRoutineRepository.findById(routineId)

@@ -15,6 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class RoutineRegisterRequestDto {
 
+    @Schema(description = "루틴 ID (수정 시에만 전달)", example = "5")
+    private Long notificationRoutineId;
+
     @Schema(description = "복용할 영양제 ID", example = "1")
     private Long supplementId;
 
