@@ -33,14 +33,21 @@ public class NotificationRoutineController {
     private final UserService userService;
 
     @PostMapping("/routines")
-    @Operation(summary = "복용 루틴 등록", description = "현재 로그인한 사용자의 영양제 복용 루틴을 등록합니다.")
+    @Operation(
+        summary = "복용 루틴 등록/수정",
+        description = """
+        현재 로그인한 사용자의 복용 루틴을 등록하거나 수정합니다.  
+        - `notificationRoutineId`가 **없으면 등록**,  
+        - `notificationRoutineId`가 **있으면 해당 루틴을 수정**합니다.
+        """
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "복용 루틴 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "201", description = "복용 루틴 등록 또는 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (중복 루틴, 필드 오류 등)"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "404", description = "사용자 정보를 찾을 수 없음")
+            @ApiResponse(responseCode = "404", description = "사용자 또는 루틴을 찾을 수 없음")
     })
-    public ResponseEntity<CustomResponse<RoutineRegisterResponseDto>> registerRoutine(
+    public ResponseEntity<CustomResponse<RoutineRegisterResponseDto>> registerOrUpdateRoutine(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid RoutineRegisterRequestDto request
     ) {
