@@ -1,6 +1,7 @@
 package com.vitacheck.service;
 
 import com.vitacheck.domain.Ingredient;
+import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.mapping.IngredientCategory;
 import com.vitacheck.domain.mapping.SupplementIngredient;
@@ -8,10 +9,7 @@ import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
-import com.vitacheck.repository.IngredientRepository;
-import com.vitacheck.repository.PurposeCategoryRepository;
-import com.vitacheck.repository.SupplementLikeRepository;
-import com.vitacheck.repository.SupplementRepository;
+import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +31,7 @@ public class SupplementService {
     private final SearchLogService searchLogService;
     private final StatisticsService statisticsService;
     private final SupplementLikeRepository supplementLikeRepository;
+    private final IngredientDosageRepository dosageRepository;
 
     public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
@@ -155,4 +154,45 @@ public class SupplementService {
                 .toList();
     }
 
+    public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
+        Supplement supplement = supplementRepository.findByIdWithIngredients(id)
+                .orElseThrow(() -> new RuntimeException("해당 영양제를 찾을 수 없습니다."));
+
+        List<SupplementDto.DetailResponse.IngredientDetail> ingredients =
+                supplement.getSupplementIngredients().stream()
+                        .map(si -> {
+                            Ingredient ingredient = si.getIngredient();
+                            IngredientDosage dosage = dosageRepository.findGeneralDosageByIngredientId(ingredient.getId())
+                                    .orElseThrow(() -> new RuntimeException("기준 정보 없음: " + ingredient.getName()));
+
+                            double amount = si.getAmount();
+                            String unit = si.getUnit();
+                            double ul = dosage.getUpperLimit();
+
+                            double percent = (amount / ul) * 100.0;
+                            percent = Math.min(percent, 999); // 너무 큰 값 제한
+
+                            String status = percent < 30.0 ? "deficient"
+                                    : percent <= 70.0 ? "in_range"
+                                    : "excessive";
+
+                            return SupplementDto.DetailResponse.IngredientDetail.builder()
+                                    .id(ingredient.getId())
+                                    .name(ingredient.getName())
+                                    .amount(amount + unit)
+                                    .status(status)
+                                    .visualization(SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
+                                            .normalizedAmountPercent(Math.round(percent * 10) / 10.0)
+                                            .recommendedStartPercent(30.0)
+                                            .recommendedEndPercent(70.0)
+                                            .build())
+                                    .build();
+                        })
+                        .toList();
+
+        return SupplementDto.DetailResponse.builder()
+                .supplementId(supplement.getId())
+                .ingredients(ingredients)
+                .build();
+    }
 }

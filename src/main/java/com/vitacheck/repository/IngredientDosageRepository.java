@@ -40,4 +40,10 @@ public interface IngredientDosageRepository extends JpaRepository<IngredientDosa
                 .stream()
                 .findFirst();
     }
+
+    @Query("""
+        SELECT d FROM IngredientDosage d
+        WHERE d.ingredient.id = :ingredientId AND d.gender = 'ALL'
+    """)
+    Optional<IngredientDosage> findGeneralDosageByIngredientId(@Param("ingredientId") Long ingredientId);
 }

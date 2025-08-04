@@ -17,4 +17,11 @@ public interface SupplementRepository extends JpaRepository<Supplement, Long>, S
     Optional<Supplement> findById(Long id);
 
     List<Supplement> findAllByBrandId(Long brandId);
+
+    @Query("""
+           SELECT s FROM Supplement s JOIN FETCH s.supplementIngredients si
+           JOIN FETCH si.ingredient i WHERE s.id = :id
+           """)
+    Optional<Supplement> findByIdWithIngredients(@Param("id") Long id);
+
 }
