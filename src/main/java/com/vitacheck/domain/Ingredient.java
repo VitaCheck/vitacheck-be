@@ -12,8 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +56,7 @@ public class Ingredient {
     private List<IngredientDosage> dosages = new ArrayList<>();
 
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SupplementIngredient> supplementIngredients = new ArrayList<>();
+    private Set<SupplementIngredient> supplementIngredients = new HashSet<>();
 
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IngredientAlternativeFood> alternativeFoods = new ArrayList<>();
