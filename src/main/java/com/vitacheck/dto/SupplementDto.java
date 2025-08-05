@@ -79,4 +79,30 @@ public class SupplementDto {
                     .build();
         }
     }
+
+    // 특정 영양제의 상세 정보 반환 시 사용될 DTO 입니다 by 나영
+    @Getter
+    @Builder
+    public static class DetailResponse {
+        private Long supplementId;
+        private List<IngredientDetail> ingredients;
+
+        @Getter
+        @Builder
+        public static class IngredientDetail {
+            private String name;
+            private Long id;
+            private String amount; // 단위 포함 문자열 (ex: 20ug)
+            private String status; // deficient, in_range, excessive
+            private Visualization visualization;
+
+            @Getter
+            @Builder
+            public static class Visualization {
+                private double normalizedAmountPercent;
+                private double recommendedStartPercent; // 항상 30.0 임
+                private double recommendedEndPercent; // 항상 70.0 임
+            }
+        }
+    }
 }
