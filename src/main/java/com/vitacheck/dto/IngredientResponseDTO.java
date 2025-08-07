@@ -25,6 +25,11 @@ public class IngredientResponseDTO {
         private Double upperLimit;     // 상한
         private Double recommendedDosage;     // 하한
         private String unit;           // 단위
+        private List<SubIngredient> subIngredients = new ArrayList<>(); // 대체 식품
+        private List<IngredientSupplement> supplements; // 영양제
+        private String DosageErrorCode;  // 상한, 권장량 오류
+        private String FoodErrorCode;    // 대체 식품 오류
+        private String SupplementErrorCode;  // 관련 영양제 오류
     }
 
     @Getter
@@ -34,20 +39,19 @@ public class IngredientResponseDTO {
     public static class IngredientSupplement{
         private Long id;
         private String name;
-        @Builder.Default
-        private List<SubIngredient> subIngredients = new ArrayList<>();
+        private String ImageUrl;
     }
 
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class IngredientFood{
-        private Long id;
-        private String name;
-        @Builder.Default
-        private List<SubIngredient> subIngredients = new ArrayList<>();
-    }
+//    @Getter
+//    @AllArgsConstructor
+//    @NoArgsConstructor
+//    @Builder
+//    public static class IngredientFood{
+//        private Long id;
+//        private String name;
+//        @Builder.Default
+//        private List<SubIngredient> subIngredients = new ArrayList<>();
+//    }
 
     @Getter
     @AllArgsConstructor
@@ -56,6 +60,15 @@ public class IngredientResponseDTO {
     public static class SubIngredient {
         private String name;
         private String imageOrEmoji;  // 이미지 URL 또는 이모지 표현
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class IngredientName {
+        private Long id;
+        private String name;
     }
 
 

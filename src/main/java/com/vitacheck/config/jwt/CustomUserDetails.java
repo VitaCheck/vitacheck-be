@@ -35,6 +35,9 @@ public class CustomUserDetails implements UserDetails {
         // Principal을 식별할 수 있는 고유한 값으로, 여기서는 이메일을 사용합니다.
         return user.getEmail();
     }
+    public User getUser() {
+        return this.user;
+    }
 
     // 아래 4개는 계정의 상태를 나타냅니다. (만료, 잠김 등)
     @Override
