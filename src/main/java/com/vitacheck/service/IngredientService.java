@@ -80,8 +80,6 @@ public class IngredientService {
             LocalDate birthDate = user.getBirthDate();
             int age = Period.between(birthDate, LocalDate.now()).getYears();
             ageGroup = (age / 10) * 10;
-            System.out.println(age);
-            System.out.println(gender);
 
         }
 
@@ -100,10 +98,9 @@ public class IngredientService {
                 // 값은 있으나 필드가 null일 수 있는 경우 처리
                 if (dosage.getRecommendedDosage() == null || dosage.getUpperLimit() == null) {
                     dosageErrorCode = ErrorCode.INGREDIENT_DOSAGE_HAVE_NULL.name();
-                } else {
-                    recommendedDosage = dosage.getRecommendedDosage();
-                    upperLimit = dosage.getUpperLimit();
                 }
+                recommendedDosage = dosage.getRecommendedDosage();
+                upperLimit = dosage.getUpperLimit();
             }
         }
 
