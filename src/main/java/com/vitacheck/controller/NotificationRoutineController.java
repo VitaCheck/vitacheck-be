@@ -63,12 +63,33 @@ public class NotificationRoutineController {
     }
 
     @GetMapping("/routines")
-    @Operation(summary = "복용 루틴 목록 조회", description = "현재 로그인한 사용자의 복용 루틴 전체 목록을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "복용 루틴 조회 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "404", description = "사용자 정보를 찾을 수 없음")
-    })
+    @Operation(
+            summary = "복용 루틴 목록 조회",
+            description = """
+        현재 로그인한 사용자의 복용 루틴 목록을 조회합니다.
+        
+        ✅ `date` 파라미터 관련  
+        - `date`를 입력하지 않으면 **오늘 날짜(LocalDate.now())** 기준으로 조회됩니다.  
+        - 날짜 형식은 `yyyy-MM-dd` (예: 2025-08-07)입니다.
+        
+        ✅ `isTaken` 필드 설명  
+        - 각 루틴의 `isTaken` 값은 해당 날짜에 등록된 섭취 기록의 `isTaken` 필드를 기준으로 판단됩니다.  
+        - 즉, 단순히 기록이 있는지 여부가 아닌 실제 저장된 `true` / `false` 값이 반영됩니다.
+        """,
+            parameters = {
+                    @io.swagger.v3.oas.annotations.Parameter(
+                            name = "date",
+                            description = "조회할 날짜 (형식: yyyy-MM-dd). 입력하지 않으면 오늘 날짜 기준으로 조회됩니다.",
+                            required = false,
+                            example = "2025-08-07"
+                    )
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "복용 루틴 조회 성공"),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+                    @ApiResponse(responseCode = "404", description = "사용자 정보를 찾을 수 없음")
+            }
+    )
     public ResponseEntity<CustomResponse<List<RoutineResponseDto>>> getMyRoutines(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
