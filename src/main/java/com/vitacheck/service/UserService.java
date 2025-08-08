@@ -59,6 +59,8 @@ public class UserService {
             throw new CustomException(ErrorCode.PASSWORD_NOT_MATCH);
         }
 
+        notificationSettingsService.getNotificationSettings(user.getId());
+
         String accessToken = jwtUtil.createAccessToken(user.getEmail());
         String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
 
