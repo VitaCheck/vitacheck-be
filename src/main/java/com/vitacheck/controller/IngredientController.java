@@ -41,6 +41,26 @@ public class IngredientController {
             summary = "성분 상세 조회 API By 박지영",
             description = """
         성분의 설명, 효능, 부작용 및 주의사항, 상한 섭취량, 하한 섭취량, 대체식품 등을 반환합니다..
+        
+        dosageErrorCode, foodErrorCode, supplementErrorCode 는 아래의 에러들을 나타냅니다. 에러에 따라서 화면 처리 부탁드립니다.
+        
+        1. dosageErrorCode
+        
+        **`UNAUTHORIZED`** : 미로그인 사용자 (상한 , 권장량, 나이, 성별 정보 없음)
+        
+        **`INGREDIENT_DOSAGE_NOT_FOUND` :** 해당 성분의 상한과 권장량 데이터 아예 없음 (하한과 상한 -1로 처리함)
+        
+        **`INGREDIENT_DOSAGE_HAVE_NULL` :** 해당 성분의 상한과 권장량 중에서 하나의 값이 없음 (없는 값은 null로 처리함)
+        
+        2. foodErrorCode
+        
+        **`INGREDIENT_FOOD_NOT_FOUND` :** 해당 성분의 대체 식품 없음
+        
+        3. supplementErrorCode
+        
+        **`INGREDIENT_SUPPLEMENT_NOT_FOUND` :** 해당 성분 관련 영양제 없음
+        
+        
         """
 
     )
