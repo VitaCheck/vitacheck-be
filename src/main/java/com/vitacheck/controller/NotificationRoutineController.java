@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "notification-routines", description = "복용 루틴 관련 API")
@@ -68,12 +70,13 @@ public class NotificationRoutineController {
             @ApiResponse(responseCode = "404", description = "사용자 정보를 찾을 수 없음")
     })
     public ResponseEntity<CustomResponse<List<RoutineResponseDto>>> getMyRoutines(
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         String email = userDetails.getUsername();
         Long userId = userService.findIdByEmail(email);
 
-        List<RoutineResponseDto> response = routineQueryService.getMyRoutines(userId);
+        List<RoutineResponseDto> response = routineQueryService.getMyRoutines(userId, date);
         return ResponseEntity.ok(CustomResponse.ok(response));
     }
 

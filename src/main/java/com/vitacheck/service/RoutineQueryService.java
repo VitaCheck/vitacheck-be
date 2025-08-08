@@ -1,5 +1,6 @@
 package com.vitacheck.service;
 
+import com.vitacheck.domain.IntakeRecord;
 import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.dto.RoutineResponseDto;
 import com.vitacheck.repository.IntakeRecordRepository;
@@ -18,14 +19,17 @@ public class RoutineQueryService {
     private final NotificationRoutineRepository notificationRoutineRepository;
     private final IntakeRecordRepository intakeRecordRepository;
 
-    public List<RoutineResponseDto> getMyRoutines(Long userId) {
+    public List<RoutineResponseDto> getMyRoutines(Long userId, LocalDate date) {
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
         List<NotificationRoutine> routines = notificationRoutineRepository.findAllByUserId(userId);
-        LocalDate today = LocalDate.now();
 
         return routines.stream()
                 .map(routine -> {
                     boolean isTaken = intakeRecordRepository
-                            .existsByNotificationRoutineIdAndUserIdAndDate(routine.getId(), userId, today);
+                            .findByUserAndNotificationRoutineAndDate(routine.getUser(), routine, targetDate)
+                            .map(IntakeRecord::getIsTaken)
+                            .orElse(false);
+
 
                     return RoutineResponseDto.builder()
                             .notificationRoutineId(routine.getId())
