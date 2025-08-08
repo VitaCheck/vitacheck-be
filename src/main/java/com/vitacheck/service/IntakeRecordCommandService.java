@@ -24,7 +24,7 @@ public class IntakeRecordCommandService {
     private final NotificationRoutineRepository notificationRoutineRepository;
 
     @Transactional
-    public IntakeRecordResponseDto toggleIntake(Long notificationRoutineId, Long userId) {
+    public IntakeRecordResponseDto toggleIntake(Long notificationRoutineId, Long userId, LocalDate date) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -32,10 +32,10 @@ public class IntakeRecordCommandService {
                 .findByIdAndUserId(notificationRoutineId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
 
-        LocalDate today = LocalDate.now();
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
 
         IntakeRecord record = intakeRecordRepository
-                .findByUserAndNotificationRoutineAndDate(user, routine, today)
+                .findByUserAndNotificationRoutineAndDate(user, routine, targetDate)
                 .map(existing -> {
                     existing.updateIsTaken(!existing.getIsTaken()); // 상태 반전
                     return existing;
@@ -44,7 +44,7 @@ public class IntakeRecordCommandService {
                         IntakeRecord.builder()
                                 .user(user)
                                 .notificationRoutine(routine)
-                                .date(today)
+                                .date(targetDate)
                                 .isTaken(true) // 첫 등록은 true로 저장
                                 .build()
                 ));
