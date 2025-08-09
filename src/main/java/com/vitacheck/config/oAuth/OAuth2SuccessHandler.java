@@ -46,7 +46,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 사용자가 존재하지 않는 경우
         if (user == null) {
             log.info("신규 사용자입니다. 추가 정보 입력 페이지로 리다이렉션합니다.");
-            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/social-signup")
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/social-signup")
                     .queryParam("email", attributes.getEmail())
                     .queryParam("fullName", attributes.getName())
                     .queryParam("provider", attributes.getProvider())
@@ -61,7 +61,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String accessToken = jwtUtil.createAccessToken(user.getEmail());
             String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
 
-            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/oauth-redirect")
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth-redirect")
                     .queryParam("accessToken", accessToken)
                     .queryParam("refreshToken", refreshToken)
                     .build()
