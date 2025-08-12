@@ -42,6 +42,9 @@ public class Ingredient extends BaseTimeEntity {
     @Column(name = "effect",columnDefinition = "TEXT")
     private String effect;
 
+    @Column(name = "unit", length = 20)
+    private String unit;
+
     @OneToMany(mappedBy = "ingredient")
     private List<IngredientDosage> dosages = new ArrayList<>();
 
