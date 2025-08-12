@@ -1,10 +1,12 @@
 package com.vitacheck.dto;
 
+import com.vitacheck.domain.RoutineDayOfWeek;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Getter
@@ -21,9 +23,14 @@ public class RoutineResponseDto {
 
     private String supplementImageUrl;
 
-    private List<String> daysOfWeek; // ex: ["MON", "WED", "FRI"]
+    private boolean isTaken;
 
-    private List<String> times;      // ex: ["08:00", "20:00"]
+    private List<ScheduleResponse> schedules;
 
-    private Boolean isTaken;
+    @Getter
+    @Builder
+    public static class ScheduleResponse {
+        private RoutineDayOfWeek dayOfWeek;
+        private LocalTime time;
+    }
 }

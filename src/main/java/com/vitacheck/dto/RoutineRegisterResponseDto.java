@@ -23,7 +23,12 @@ public class RoutineRegisterResponseDto {
 
     private String supplementImageUrl;
 
-    private List<RoutineDayOfWeek> daysOfWeek;
+    private List<ScheduleResponse> schedules;
 
-    private List<LocalTime> times;
+    @Getter
+    @Builder
+    public static class ScheduleResponse {
+        private RoutineDayOfWeek dayOfWeek;
+        private LocalTime time;
+    }
 }

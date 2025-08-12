@@ -8,6 +8,9 @@ import com.vitacheck.service.NotificationRoutineCommandService;
 import com.vitacheck.service.RoutineQueryService;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,11 +39,12 @@ public class NotificationRoutineController {
 
     @PostMapping("/routines")
     @Operation(
-        summary = "복용 루틴 등록/수정",
-        description = """
-        현재 로그인한 사용자의 복용 루틴을 등록하거나 수정합니다.  
-        - `notificationRoutineId`가 **없으면 등록**,  
+            summary = "복용 루틴 등록/수정",
+            description = """
+        현재 로그인한 사용자의 복용 루틴을 등록하거나 수정합니다.
+        - `notificationRoutineId`가 **없으면 등록**,
         - `notificationRoutineId`가 **있으면 해당 루틴을 수정**합니다.
+        - schedules 리스트에는 요일과 시간을 조합하여 복합적인 스케줄을 설정할 수 있습니다.
         """
     )
     @ApiResponses(value = {
@@ -51,6 +55,33 @@ public class NotificationRoutineController {
     })
     public ResponseEntity<CustomResponse<RoutineRegisterResponseDto>> registerOrUpdateRoutine(
             @AuthenticationPrincipal UserDetails userDetails,
+
+            // Swagger 예시를 직접 지정하는 어노테이션 추가
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "등록 또는 수정할 루틴 정보를 전달합니다.",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = RoutineRegisterRequestDto.class),
+                            examples = @ExampleObject(
+                                    name = "복합 스케줄 등록 예시",
+                                    summary = "평일 오전 9시, 주말 오후 10시에 알림 설정",
+                                    value = """
+                                {
+                                  "supplementId": 1,
+                                  "schedules": [
+                                    { "dayOfWeek": "MON", "time": "09:00" },
+                                    { "dayOfWeek": "TUE", "time": "09:00" },
+                                    { "dayOfWeek": "WED", "time": "09:00" },
+                                    { "dayOfWeek": "THU", "time": "09:00" },
+                                    { "dayOfWeek": "FRI", "time": "09:00" },
+                                    { "dayOfWeek": "SAT", "time": "22:00" },
+                                    { "dayOfWeek": "SUN", "time": "22:00" }
+                                  ]
+                                }
+                                """
+                            )
+                    )
+            )
             @RequestBody @Valid RoutineRegisterRequestDto request
     ) {
         String email = userDetails.getUsername();

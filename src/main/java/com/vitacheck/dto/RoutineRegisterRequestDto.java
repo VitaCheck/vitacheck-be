@@ -28,10 +28,11 @@ public class RoutineRegisterRequestDto {
     private String supplementImageUrl;
 
     @NotEmpty
-    @Schema(description = "복용 요일 리스트 (Enum)", example = "[\"MON\", \"WED\", \"FRI\"]")
-    private List<RoutineDayOfWeek> daysOfWeek;
+    private List<ScheduledRequest> schedules;
 
-    @NotEmpty
-    @Schema(description = "복용 시간 리스트", example = "[\"08:00\", \"20:00\"]")
-    private List<LocalTime> times;
+    @Getter
+    public static class ScheduledRequest {
+        private RoutineDayOfWeek dayOfWeek;;
+        private LocalTime time;
+    }
 }
