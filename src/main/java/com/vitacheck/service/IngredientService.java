@@ -170,7 +170,6 @@ public class IngredientService {
 //                .upperLimit(dosage.getUpperLimit())
                     .recommendedDosage(recommendedDosage)
                     .upperLimit(upperLimit)
-                    .unit(ingredient.getUnit())
                     .subIngredients(foodDTOs)
                     .supplements(supplements)
                     .DosageErrorCode(dosageErrorCode)

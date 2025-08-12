@@ -1,5 +1,6 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.mapping.IngredientAlternativeFood;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -15,7 +16,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class AlternativeFood {
+public class AlternativeFood extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

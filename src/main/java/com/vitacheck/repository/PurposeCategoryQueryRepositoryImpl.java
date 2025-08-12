@@ -1,10 +1,7 @@
+// src/main/java/com/vitacheck/repository/PurposeCategoryQueryRepositoryImpl.java
 package com.vitacheck.repository;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.vitacheck.domain.QIngredient;
-import com.vitacheck.domain.QSupplement;
-import com.vitacheck.domain.mapping.QIngredientCategory;
-import com.vitacheck.domain.mapping.QSupplementIngredient;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.purposes.QPurposeCategory;
@@ -22,20 +19,13 @@ public class PurposeCategoryQueryRepositoryImpl implements PurposeCategoryQueryR
     @Override
     public List<PurposeCategory> findAllWithIngredientAndSupplementByNameIn(List<AllPurpose> names) {
         QPurposeCategory pc = QPurposeCategory.purposeCategory;
-        QIngredientCategory ic = QIngredientCategory.ingredientCategory;
-        QIngredient i = QIngredient.ingredient;
-        QSupplementIngredient si = QSupplementIngredient.supplementIngredient;
-        QSupplement s = QSupplement.supplement;
 
+        // 👇👇👇 기존의 복잡한 쿼리를 아래 코드로 교체합니다. 👇👇👇
         return queryFactory
                 .selectFrom(pc)
                 .distinct()
-                .join(pc.ingredientCategories, ic).fetchJoin()
-                .join(ic.ingredient, i).fetchJoin()
-                .join(i.supplementIngredients, si).fetchJoin()
-                .join(si.supplement, s).fetchJoin()
+                .leftJoin(pc.ingredients).fetchJoin() // PurposeCategory에서 ingredients로 바로 조인
                 .where(pc.name.in(names))
                 .fetch();
     }
 }
-

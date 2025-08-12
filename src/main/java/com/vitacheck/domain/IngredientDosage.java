@@ -1,5 +1,6 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.user.Gender;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +11,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class IngredientDosage {
+public class IngredientDosage extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

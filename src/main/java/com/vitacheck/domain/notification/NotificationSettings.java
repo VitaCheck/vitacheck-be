@@ -1,5 +1,6 @@
 package com.vitacheck.domain.notification;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +11,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class NotificationSettings {
+public class NotificationSettings extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

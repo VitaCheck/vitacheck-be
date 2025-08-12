@@ -1,7 +1,9 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.mapping.IngredientAlternativeFood;
 import com.vitacheck.domain.mapping.SupplementIngredient;
+import com.vitacheck.domain.purposes.PurposeCategory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,7 +24,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class Ingredient {
+public class Ingredient extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,18 +42,6 @@ public class Ingredient {
     @Column(name = "effect",columnDefinition = "TEXT")
     private String effect;
 
-
-    @Column(name = "unit", length = 20)
-    private String unit;
-
-    @Column(name = "created_at")
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
-
     @OneToMany(mappedBy = "ingredient")
     private List<IngredientDosage> dosages = new ArrayList<>();
 
@@ -60,4 +50,7 @@ public class Ingredient {
 
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IngredientAlternativeFood> alternativeFoods = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "ingredients")
+    private List<PurposeCategory> purposeCategories = new ArrayList<>();
 }

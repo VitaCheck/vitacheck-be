@@ -50,15 +50,13 @@ public class SupplementDto {
     @Builder
     public static class IngredientInfo {
         private String ingredientName;
-        private Integer amount;
-        private String unit;
+        private Double amount;
 
         // SupplementIngredient 엔티티를 이 DTO로 변환
         public static IngredientInfo from(SupplementIngredient si) {
             return IngredientInfo.builder()
                     .ingredientName(si.getIngredient().getName())
                     .amount(si.getAmount())
-                    .unit(si.getUnit())
                     .build();
         }
     }

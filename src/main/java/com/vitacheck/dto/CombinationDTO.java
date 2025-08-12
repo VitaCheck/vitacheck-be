@@ -28,7 +28,7 @@ public class CombinationDTO {
         public static class IngredientAnalysisResultDto {
             // --- 기존 필드 ---
             private String ingredientName;
-            private Integer totalAmount;
+            private Double totalAmount;
             private String unit;
             private Double recommendedAmount;
             private Double upperAmount;
