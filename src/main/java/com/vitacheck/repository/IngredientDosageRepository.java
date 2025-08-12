@@ -46,4 +46,7 @@ public interface IngredientDosageRepository extends JpaRepository<IngredientDosa
         WHERE d.ingredient.id = :ingredientId AND d.gender = 'ALL'
     """)
     Optional<IngredientDosage> findGeneralDosageByIngredientId(@Param("ingredientId") Long ingredientId);
+
+    @Query("SELECT d FROM IngredientDosage d WHERE d.ingredient.id IN :ingredientIds AND d.gender = 'ALL'")
+    List<IngredientDosage> findGeneralDosageByIngredientIdIn(@Param("ingredientIds") List<Long> ingredientIds);
 }

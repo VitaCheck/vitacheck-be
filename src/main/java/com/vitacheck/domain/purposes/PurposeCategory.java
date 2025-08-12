@@ -1,7 +1,7 @@
 package com.vitacheck.domain.purposes;
 
 import com.vitacheck.domain.Ingredient;
-import com.vitacheck.domain.mapping.IngredientCategory;
+import com.vitacheck.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PurposeCategory {
+public class PurposeCategory extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,12 @@ public class PurposeCategory {
 
     private Integer displayOrder; // 정렬 순서
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany
+    @JoinTable(
+            name = "purpose_ingredient", // 생성될 매핑 테이블의 이름
+            joinColumns = @JoinColumn(name = "purpose_category_id"),
+            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
+    )
     @Builder.Default
-    private List<IngredientCategory> ingredientCategories = new ArrayList<>();
+    private List<Ingredient> ingredients = new ArrayList<>();
 }

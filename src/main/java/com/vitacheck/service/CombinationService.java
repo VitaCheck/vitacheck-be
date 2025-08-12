@@ -32,11 +32,11 @@ public class CombinationService {
         List<Supplement> supplements = supplementRepository.findSupplementsWithIngredientsByIds(request.getSupplementIds());
 
         // 2. 성분별 총 섭취량을 계산 (Key: 성분 Entity, Value: 총 함량)
-        Map<Ingredient, Integer> totalAmountMap = new HashMap<>();
+        Map<Ingredient, Double> totalAmountMap = new HashMap<>();
         for (Supplement supplement : supplements) {
             for (SupplementIngredient si : supplement.getSupplementIngredients()) {
                 // 맵에 이미 성분이 있으면 기존 값에 더하고, 없으면 새로 추가
-                totalAmountMap.merge(si.getIngredient(), si.getAmount(), Integer::sum);
+                totalAmountMap.merge(si.getIngredient(), si.getAmount(), Double::sum);
             }
         }
 
@@ -47,7 +47,7 @@ public class CombinationService {
                 totalAmountMap.entrySet().stream()
                         .map(entry -> {
                             Ingredient ingredient = entry.getKey();
-                            int totalAmount = entry.getValue();
+                            Double totalAmount = entry.getValue();
 
                             // 조회된 섭취 기준 Map에서 해당 성분의 기준을 가져옴
                             IngredientDosage dosage = dosageMap.get(ingredient.getId());
@@ -74,7 +74,6 @@ public class CombinationService {
                             return CombinationDTO.AnalysisResponse.IngredientAnalysisResultDto.builder()
                                     .ingredientName(ingredient.getName())
                                     .totalAmount(totalAmount)
-                                    .unit(ingredient.getUnit())
                                     .recommendedAmount(recommendedAmount)
                                     .upperAmount(upperAmount)
                                     .isOverRecommended(isOver)

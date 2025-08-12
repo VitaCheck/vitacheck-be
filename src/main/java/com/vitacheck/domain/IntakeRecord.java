@@ -1,5 +1,6 @@
 package com.vitacheck.domain;
 
+import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 @Table(name = "intake_records")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IntakeRecord {
+public class IntakeRecord extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

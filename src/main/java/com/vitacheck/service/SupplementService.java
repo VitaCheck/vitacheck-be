@@ -3,7 +3,6 @@ package com.vitacheck.service;
 import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
-import com.vitacheck.domain.mapping.IngredientCategory;
 import com.vitacheck.domain.mapping.SupplementIngredient;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,47 +78,37 @@ public class SupplementService {
                 .map(AllPurpose::valueOf)
                 .toList();
 
-        // N+1 지점: 목적 -> 성분, 성분 -> 영양제 모두 Lazy 로딩
-        // QueryDSL로 fetch join 처리된 메서드로 교체
-        // List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
-        List<PurposeCategory> categories = purposeCategoryRepository.findAllWithIngredientAndSupplementByNameIn(allPurposes);
+        // 1. 목적(Purpose)으로 PurposeCategory 엔티티를 조회합니다.
+        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
 
-        // 성분 -> 목적 리스트 매핑
-        Map<Ingredient, Set<String>> ingredientToPurposes = new HashMap<>();
-
-        for (PurposeCategory category : categories) {
-            String purposeDesc = category.getName().getDescription();
-            // category.getIngredientCategories() 가 Lazy 일 경우 루프마다 쿼리 발생
-            for (IngredientCategory ic : category.getIngredientCategories()) {
-                // ic.getIngredient() 도 Lazy 로딩 시마다 쿼리 발생
-                Ingredient ingredient = ic.getIngredient();
-                ingredientToPurposes
-                        .computeIfAbsent(ingredient, k -> new HashSet<>())
-                        .add(purposeDesc);
-            }
-        }
-
+        // 결과를 담을 Map을 생성합니다.
         Map<String, SupplementByPurposeResponse> result = new HashMap<>();
 
-        for (Map.Entry<Ingredient, Set<String>> entry : ingredientToPurposes.entrySet()) {
-            Ingredient ingredient = entry.getKey();
-            Set<String> purposes = entry.getValue();
+        // 2. 각 PurposeCategory를 순회합니다.
+        for (PurposeCategory category : categories) {
 
-            // ingredient.getSupplementIngredients() 도 Lazy
-            // 각 SupplementIngredient → Supplement 도 추가 쿼리 발생 가능
-            List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
-                    .map(SupplementIngredient::getSupplement)
-                    .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
-                    .toList();
+            // 3. category.getIngredients()를 통해 직접 성분(Ingredient) 목록에 접근합니다.
+            for (Ingredient ingredient : category.getIngredients()) {
 
-            result.put(ingredient.getName(),
-                    SupplementByPurposeResponse.builder()
-                            .purposes(new ArrayList<>(purposes))
-                            .supplements(supplementInfo)
-                            .build()
-            );
+                // 4. 각 성분에 연결된 영양제 정보를 가져옵니다.
+                List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
+                        .map(si -> si.getSupplement())
+                        .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
+                        .toList();
+
+                // 5. 목적(Purpose) 목록을 가져옵니다.
+                List<String> purposes = ingredient.getPurposeCategories().stream()
+                        .map(pc -> pc.getName().getDescription())
+                        .toList();
+
+                // 6. 최종 결과 Map에 담습니다.
+                result.put(ingredient.getName(),
+                        SupplementByPurposeResponse.builder()
+                                .purposes(purposes)
+                                .supplements(supplementInfo)
+                                .build());
+            }
         }
-
         return result;
     }
 
@@ -127,10 +117,16 @@ public class SupplementService {
         Supplement supplement = supplementRepository.findById(supplementId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 영양제를 찾을 수 없습니다."));
 
-        boolean liked = false;
-        if (userId != null) {
-            liked = supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
-        }
+        boolean liked = (userId != null) && supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
+
+        // 1. 영양제에 포함된 모든 성분의 ID 목록을 추출합니다.
+        List<Long> ingredientIds = supplement.getSupplementIngredients().stream()
+                .map(si -> si.getIngredient().getId())
+                .toList();
+
+        // 2. 성분 ID 목록으로 모든 Dosage 정보를 한 번의 쿼리로 가져와 Map으로 만듭니다.
+        Map<Long, IngredientDosage> dosageMap = dosageRepository.findGeneralDosageByIngredientIdIn(ingredientIds).stream()
+                .collect(Collectors.toMap(dosage -> dosage.getIngredient().getId(), Function.identity()));
 
         return SupplementDetailResponseDto.builder()
                 .supplementId(supplement.getId())
@@ -143,10 +139,17 @@ public class SupplementService {
                 .intakeTime(supplement.getMethod())
                 .ingredients(
                         supplement.getSupplementIngredients().stream()
-                                .map(i -> new SupplementDetailResponseDto.IngredientDto(
-                                        i.getIngredient().getName(),
-                                        (i.getAmount() != null ? i.getAmount() : "") + i.getUnit()
-                                ))
+                                .map(si -> {
+                                    // 3. Map에서 해당 성분의 Dosage 정보를 찾아 단위를 사용합니다.
+                                    IngredientDosage dosage = dosageMap.get(si.getIngredient().getId());
+                                    String unit = (dosage != null) ? dosage.getUnit() : "";
+                                    String amount = (si.getAmount() != null) ? si.getAmount().toString() : "";
+
+                                    return new SupplementDetailResponseDto.IngredientDto(
+                                            si.getIngredient().getName(),
+                                            amount + unit
+                                    );
+                                })
                                 .toList())
                 .build();
     }
@@ -169,11 +172,12 @@ public class SupplementService {
                                     .orElseThrow(() -> new RuntimeException("기준 정보 없음: " + ingredient.getName()));
 
                             double amount = si.getAmount();
-                            String unit = si.getUnit();
+                            // dosage 객체에서 unit 정보를 가져오도록 수정
+                            String unit = dosage.getUnit();
                             double ul = dosage.getUpperLimit();
 
-                            double percent = (amount / ul) * 100.0;
-                            percent = Math.min(percent, 999); // 너무 큰 값 제한
+                            double percent = (ul > 0) ? (amount / ul) * 100.0 : 0.0;
+                            percent = Math.min(percent, 999);
 
                             String status = percent < 30.0 ? "deficient"
                                     : percent <= 70.0 ? "in_range"

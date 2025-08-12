@@ -1,6 +1,7 @@
 package com.vitacheck.domain.searchLog;
 
 import com.vitacheck.domain.common.BaseTimeEntity;
+import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,13 @@ public class SearchLog extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private SearchCategory category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Method method;
 }
