@@ -1,9 +1,15 @@
 package com.vitacheck.repository;
 
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.domain.Supplement;
+import com.vitacheck.domain.user.User;
+import com.vitacheck.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -17,6 +23,7 @@ import static com.vitacheck.domain.QBrand.brand;
 import static com.vitacheck.domain.QIngredient.ingredient;
 import static com.vitacheck.domain.QSupplement.supplement;
 import static com.vitacheck.domain.mapping.QSupplementIngredient.supplementIngredient;
+import static com.vitacheck.domain.QAgeGroupSupplementStats.ageGroupSupplementStats;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,10 +32,25 @@ public class SupplementRepositoryImpl implements SupplementRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Supplement> search(String keyword, String brandName, String ingredientName, Pageable pageable) {
-        // 데이터 조회를 위한 기본 쿼리
+    public Page<Supplement> search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
+        Expression<Long> popularityScore;
+
+        if (user!=null) {
+            String ageGroup = DateUtils.calculateAgeGroup(user.getBirthDate());
+
+            popularityScore = JPAExpressions.select(ageGroupSupplementStats.clickCount.coalesce(0L))
+                    .from(ageGroupSupplementStats)
+                    .where(ageGroupSupplementStats.supplement.eq(supplement)
+                            .and(ageGroupSupplementStats.age.eq(ageGroup)));
+        }else {
+            popularityScore = JPAExpressions.select(ageGroupSupplementStats.clickCount.sum().coalesce(0L))
+                    .from(ageGroupSupplementStats)
+                    .where(ageGroupSupplementStats.supplement.eq(supplement));
+        }
+
         List<Supplement> content = queryFactory
-                .selectFrom(supplement)
+                .select(supplement) // selectFrom(supplement) 대신 select(supplement) 사용
+                .from(supplement)
                 .leftJoin(supplement.brand, brand).fetchJoin()
                 .leftJoin(supplement.supplementIngredients, supplementIngredient).fetchJoin()
                 .leftJoin(supplementIngredient.ingredient, ingredient).fetchJoin()
@@ -38,9 +60,15 @@ public class SupplementRepositoryImpl implements SupplementRepositoryCustom {
                         hasIngredientName(ingredientName)
                 )
                 .distinct()
-                .offset(pageable.getOffset()) // 페이지네이션 적용
-                .limit(pageable.getPageSize())  // 페이지네이션 적용
+                // 4. 동적으로 계산된 인기도 점수와 가나다순으로 정렬
+                .orderBy(
+                        new OrderSpecifier<>(Order.DESC, popularityScore, OrderSpecifier.NullHandling.NullsLast), //1순위: 인기순
+                        supplement.name.asc()               // 2순위: 가나다순
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
+
 
         // 전체 카운트 조회를 위한 쿼리
         JPAQuery<Long> countQuery = queryFactory

@@ -37,7 +37,7 @@ public class SupplementService {
 
         List<SearchDto.IngredientInfo> matchedIngredients = findMatchedIngredients(keyword, ingredientName);
 
-        Page<Supplement> supplementsPage = supplementRepository.search(keyword, brandName, ingredientName, pageable);
+        Page<Supplement> supplementsPage = supplementRepository.search(user, keyword, brandName, ingredientName, pageable);
         Page<SupplementDto.SearchResponse> supplementDtos = supplementsPage.map(SupplementDto.SearchResponse::from);
 
         if (user != null) {
@@ -55,20 +55,17 @@ public class SupplementService {
 
 
     private List<SearchDto.IngredientInfo> findMatchedIngredients(String keyword, String ingredientName) {
-        // ingredientName 파라미터가 있으면 정확히 일치하는 1개만 찾음
-        if (StringUtils.hasText(ingredientName)) {
-            return ingredientRepository.findByName(ingredientName)
-                    .stream()
+        // 1. 실제 검색에 사용할 검색어를 정합니다. ingredientName이 우선순위를 가집니다.
+        String finalSearchTerm = StringUtils.hasText(ingredientName) ? ingredientName : keyword;
+
+        // 2. 검색어가 존재하는 경우, 이름을 포함하는 모든 성분을 검색합니다.
+        if (StringUtils.hasText(finalSearchTerm)) {
+            return ingredientRepository.findByNameContainingIgnoreCase(finalSearchTerm).stream()
                     .map(SearchDto.IngredientInfo::from)
                     .collect(Collectors.toList());
         }
-        // ingredientName이 없고 keyword만 있으면 이름에 포함되는 모든 성분을 찾음
-        if (StringUtils.hasText(keyword)) {
-            return ingredientRepository.findByNameContainingIgnoreCase(keyword).stream()
-                    .map(SearchDto.IngredientInfo::from)
-                    .collect(Collectors.toList());
-        }
-        // 둘 다 없으면 빈 리스트 반환
+
+        // 3. 검색어가 없으면 빈 리스트를 반환합니다.
         return Collections.emptyList();
     }
 
