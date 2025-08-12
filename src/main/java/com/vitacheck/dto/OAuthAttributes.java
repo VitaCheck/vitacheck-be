@@ -29,7 +29,7 @@ public class OAuthAttributes {
     private String provider;
     private String providerId;
 
-    // 👇👇👇 1. 새로운 정보를 담을 필드를 추가합니다. 👇👇👇
+    // 새로운 정보를 담을 필드
     private Gender gender;
     private LocalDate birthDate;
     private String phoneNumber;
@@ -55,7 +55,7 @@ public class OAuthAttributes {
     }
 
     private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
-        // 구글은 기본 정보만 제공하므로 기존 로직 유지
+        // 구글 로직은 그대로 유지
         return OAuthAttributes.builder()
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
@@ -66,41 +66,52 @@ public class OAuthAttributes {
                 .build();
     }
 
-    // 👇👇👇 2. ofNaver 메소드를 아래와 같이 수정합니다. 👇👇👇
+    // 👇👇👇 ofNaver 메소드를 아래의 안전한 코드로 교체합니다. 👇👇👇
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
-        // 생년월일 파싱 (YYYY-MM-DD 형식으로 조합)
+        // [수정] 생년월일 파싱 - null 체크 추가
+        LocalDate parsedBirthDate = null;
         String birthYear = (String) response.get("birthyear");
-        String birthday = (String) response.get("birthday"); // "MM-dd" 형식
-        LocalDate birthDate = null;
-        if (birthYear != null && birthday != null) {
-            birthDate = LocalDate.parse(birthYear + "-" + birthday, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String birthday = (String) response.get("birthday"); // "MM-dd"
+        if (birthYear != null && !birthYear.isBlank() && birthday != null && !birthday.isBlank()) {
+            try {
+                parsedBirthDate = LocalDate.parse(birthYear + "-" + birthday, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            } catch (Exception e) {
+                log.error("네이버 생년월일 파싱 중 오류 발생", e);
+            }
         }
 
-        // 성별 파싱 (F/M -> FEMALE/MALE)
-        Gender gender = null;
+        // [수정] 성별 파싱 - null 체크 추가
+        Gender parsedGender = null;
         String naverGender = (String) response.get("gender");
-        if ("F".equalsIgnoreCase(naverGender)) {
-            gender = Gender.FEMALE;
-        } else if ("M".equalsIgnoreCase(naverGender)) {
-            gender = Gender.MALE;
+        if (naverGender != null) {
+            if ("F".equalsIgnoreCase(naverGender)) {
+                parsedGender = Gender.FEMALE;
+            } else if ("M".equalsIgnoreCase(naverGender)) {
+                parsedGender = Gender.MALE;
+            }
         }
+
+        // [수정] 전화번호 - null 체크 추가 (네이버는 mobile 필드로 제공)
+        String mobile = (String) response.get("mobile");
+        String phoneNumber = (mobile != null) ? mobile.replaceAll("-", "") : null;
 
         return OAuthAttributes.builder()
                 .name((String) response.get("name"))
                 .email((String) response.get("email"))
                 .provider("naver")
                 .providerId((String) response.get("id"))
-                .phoneNumber((String) response.get("mobile")) // 휴대폰 번호 추가
-                .birthDate(birthDate) // 생년월일 추가
-                .gender(gender) // 성별 추가
+                .phoneNumber(phoneNumber)
+                .birthDate(parsedBirthDate)
+                .gender(parsedGender)
                 .attributes(attributes)
                 .nameAttributeKey(userNameAttributeName)
                 .build();
     }
 
-    // 👇👇👇 3. toEntity 메소드를 아래와 같이 수정합니다. 👇👇👇
+    // toEntity 메소드는 소셜 로그인 후 '추가 정보 입력' 단계에서 사용되므로,
+    // 여기서는 수정하지 않아도 됩니다. (UserService의 socialSignUp이 이 역할을 담당)
     public User toEntity() {
         String finalNickname = this.name;
         if (finalNickname == null || finalNickname.isBlank()) {
@@ -109,13 +120,13 @@ public class OAuthAttributes {
 
         return User.builder()
                 .nickname(finalNickname)
-                .fullName(this.name) // 실명 정보 추가
+                .fullName(this.name)
                 .email(email)
                 .provider(provider)
                 .providerId(providerId)
-                .gender(gender) // 성별 정보 추가
-                .birthDate(birthDate) // 생년월일 정보 추가
-                .phoneNumber(phoneNumber) // 휴대폰 번호 정보 추가
+                .gender(gender)
+                .birthDate(birthDate)
+                .phoneNumber(phoneNumber)
                 .status(UserStatus.ACTIVE)
                 .lastLoginAt(LocalDateTime.now())
                 .role(Role.USER)
