@@ -65,11 +65,18 @@ public class OAuthAttributes {
                 .build();
     }
 
-    // 👇👇👇 명세서에 맞춰 100% 안전하게 수정한 ofNaver 메소드 👇👇👇
+    /**
+     * 네이버 API 응답 명세에 맞춰 사용자 정보를 파싱합니다.
+     * @param userNameAttributeName 네이버에서 고유 사용자 ID를 나타내는 속성 키 ("id")
+     * @param attributes OAuth2User의 attribute 맵
+     * @return 파싱된 사용자 정보가 담긴 OAuthAttributes 객체
+     */
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
+        // API 응답에서 "response" 필드에 실제 사용자 정보가 포함되어 있습니다.
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
-        // [수정] 생년월일 파싱 (null 체크 강화)
+        // 생년월일 파싱 (null 및 공백 체크)
+        // 'birthyear'와 'birthday'를 조합하여 LocalDate 객체를 생성합니다.
         LocalDate parsedBirthDate = null;
         String birthYear = (String) response.get("birthyear");
         String birthday = (String) response.get("birthday"); // "MM-DD" 형식
@@ -81,7 +88,8 @@ public class OAuthAttributes {
             }
         }
 
-        // [수정] 성별 파싱 (null 체크 강화)
+        // 성별 파싱 (null 체크)
+        // 'F'는 FEMALE, 'M'은 MALE로 변환합니다.
         Gender parsedGender = null;
         String naverGender = (String) response.get("gender");
         if (naverGender != null) {
@@ -92,25 +100,24 @@ public class OAuthAttributes {
             }
         }
 
-        // [수정] 전화번호 파싱 (null 체크 강화)
+        // 휴대폰 번호 파싱 (null 체크 및 포맷팅)
+        // '-' 문자를 제거하여 숫자만 저장합니다.
         String mobile = (String) response.get("mobile");
         String parsedPhoneNumber = (mobile != null) ? mobile.replaceAll("-", "") : null;
 
         return OAuthAttributes.builder()
-                .name((String) response.get("name"))
-                .email((String) response.get("email"))
+                .name((String) response.get("name")) // 실명
+                .email((String) response.get("email")) // 이메일
                 .provider("naver")
-                .providerId((String) response.get("id"))
+                .providerId((String) response.get("id")) // 고유 식별자
                 .phoneNumber(parsedPhoneNumber)
                 .birthDate(parsedBirthDate)
                 .gender(parsedGender)
-                .attributes(attributes)
+                .attributes(response) // 사용자 정보 전체
                 .nameAttributeKey(userNameAttributeName)
                 .build();
     }
 
-    // toEntity() 메소드는 UserService의 socialSignUp에서 사용자가 직접 입력한 값으로 User를 생성하므로,
-    // 여기서는 수정할 필요가 없습니다. (소셜 로그인 콜백 시점에서는 호출되지 않음)
     public User toEntity() {
         String finalNickname = this.name;
         if (finalNickname == null || finalNickname.isBlank()) {
