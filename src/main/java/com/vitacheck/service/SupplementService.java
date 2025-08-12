@@ -127,7 +127,10 @@ public class SupplementService {
         Supplement supplement = supplementRepository.findById(supplementId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 영양제를 찾을 수 없습니다."));
 
-        boolean liked = supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
+        boolean liked = false;
+        if (userId != null) {
+            liked = supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
+        }
 
         return SupplementDetailResponseDto.builder()
                 .supplementId(supplement.getId())

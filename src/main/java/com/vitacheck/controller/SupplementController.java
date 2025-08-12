@@ -81,7 +81,7 @@ public class SupplementController {
     @GetMapping
     @Operation(summary = "영양제 상세 조회", description = "supplementId로 상세 정보를 조회합니다.")
     public SupplementDetailResponseDto getSupplement(@RequestParam Long id,
-                                                     @RequestHeader(name = "X-User-Id") Long userId) {
+                                                     @RequestHeader(name = "X-User-Id", required = false) Long userId) {
         return supplementService.getSupplementDetail(id, userId);
     }
 
