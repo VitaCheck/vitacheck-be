@@ -29,7 +29,7 @@ public class OAuthAttributes {
     private String provider;
     private String providerId;
 
-    // 새로운 정보를 담을 필드
+    // 네이버로부터 추가로 받을 수 있는 정보 필드
     private Gender gender;
     private LocalDate birthDate;
     private String phoneNumber;
@@ -55,7 +55,6 @@ public class OAuthAttributes {
     }
 
     private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
-        // 구글 로직은 그대로 유지
         return OAuthAttributes.builder()
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
@@ -66,23 +65,23 @@ public class OAuthAttributes {
                 .build();
     }
 
-    // 👇👇👇 ofNaver 메소드를 아래의 안전한 코드로 교체합니다. 👇👇👇
+    // 👇👇👇 명세서에 맞춰 100% 안전하게 수정한 ofNaver 메소드 👇👇👇
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
-        // [수정] 생년월일 파싱 - null 체크 추가
+        // [수정] 생년월일 파싱 (null 체크 강화)
         LocalDate parsedBirthDate = null;
         String birthYear = (String) response.get("birthyear");
-        String birthday = (String) response.get("birthday"); // "MM-dd"
+        String birthday = (String) response.get("birthday"); // "MM-DD" 형식
         if (birthYear != null && !birthYear.isBlank() && birthday != null && !birthday.isBlank()) {
             try {
                 parsedBirthDate = LocalDate.parse(birthYear + "-" + birthday, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             } catch (Exception e) {
-                log.error("네이버 생년월일 파싱 중 오류 발생", e);
+                log.error("네이버 생년월일 파싱 중 오류가 발생했습니다. birthYear={}, birthday={}", birthYear, birthday, e);
             }
         }
 
-        // [수정] 성별 파싱 - null 체크 추가
+        // [수정] 성별 파싱 (null 체크 강화)
         Gender parsedGender = null;
         String naverGender = (String) response.get("gender");
         if (naverGender != null) {
@@ -93,16 +92,16 @@ public class OAuthAttributes {
             }
         }
 
-        // [수정] 전화번호 - null 체크 추가 (네이버는 mobile 필드로 제공)
+        // [수정] 전화번호 파싱 (null 체크 강화)
         String mobile = (String) response.get("mobile");
-        String phoneNumber = (mobile != null) ? mobile.replaceAll("-", "") : null;
+        String parsedPhoneNumber = (mobile != null) ? mobile.replaceAll("-", "") : null;
 
         return OAuthAttributes.builder()
                 .name((String) response.get("name"))
                 .email((String) response.get("email"))
                 .provider("naver")
                 .providerId((String) response.get("id"))
-                .phoneNumber(phoneNumber)
+                .phoneNumber(parsedPhoneNumber)
                 .birthDate(parsedBirthDate)
                 .gender(parsedGender)
                 .attributes(attributes)
@@ -110,8 +109,8 @@ public class OAuthAttributes {
                 .build();
     }
 
-    // toEntity 메소드는 소셜 로그인 후 '추가 정보 입력' 단계에서 사용되므로,
-    // 여기서는 수정하지 않아도 됩니다. (UserService의 socialSignUp이 이 역할을 담당)
+    // toEntity() 메소드는 UserService의 socialSignUp에서 사용자가 직접 입력한 값으로 User를 생성하므로,
+    // 여기서는 수정할 필요가 없습니다. (소셜 로그인 콜백 시점에서는 호출되지 않음)
     public User toEntity() {
         String finalNickname = this.name;
         if (finalNickname == null || finalNickname.isBlank()) {
