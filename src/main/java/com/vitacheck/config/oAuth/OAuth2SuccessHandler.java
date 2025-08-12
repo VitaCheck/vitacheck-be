@@ -31,31 +31,41 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // 1. 어떤 소셜 로그인인지 파악
         OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
         String provider = token.getAuthorizedClientRegistrationId();
 
-        // 2. OAuthAttributes 클래스 사용 -> 사용자 정보 통일
         OAuthAttributes attributes = OAuthAttributes.of(provider, provider, oAuth2User.getAttributes());
 
-        // DB에서 사용자 조회
         User user = userRepository.findByEmail(attributes.getEmail()).orElse(null);
 
         String targetUrl;
 
-        // 사용자가 존재하지 않는 경우
         if (user == null) {
             log.info("신규 사용자입니다. 추가 정보 입력 페이지로 리다이렉션합니다.");
-            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/social-signup")
+
+            // ✅✅✅ 핵심 수정 부분 시작 ✅✅✅
+            UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString("http://localhost:5173/social-signup")
                     .queryParam("email", attributes.getEmail())
                     .queryParam("fullName", attributes.getName())
                     .queryParam("provider", attributes.getProvider())
-                    .queryParam("providerId", attributes.getProviderId())
-                    .build()
+                    .queryParam("providerId", attributes.getProviderId());
+
+            // 네이버에서 받은 추가 정보가 있다면 URL 파라미터에 추가
+            if (attributes.getGender() != null) {
+                urlBuilder.queryParam("gender", attributes.getGender().name());
+            }
+            if (attributes.getBirthDate() != null) {
+                urlBuilder.queryParam("birthDate", attributes.getBirthDate().toString()); // yyyy-MM-dd 형식
+            }
+            if (attributes.getPhoneNumber() != null) {
+                urlBuilder.queryParam("phoneNumber", attributes.getPhoneNumber());
+            }
+
+            targetUrl = urlBuilder.build()
                     .encode(StandardCharsets.UTF_8)
                     .toUriString();
+            // ✅✅✅ 핵심 수정 부분 끝 ✅✅✅
         }
-        // 사용자가 이미 존재
         else {
             log.info("기존 사용자입니다. JWT 발급 후 메인 페이지로 이동합니다.");
             String accessToken = jwtUtil.createAccessToken(user.getEmail());
