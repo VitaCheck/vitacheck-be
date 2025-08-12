@@ -32,6 +32,9 @@ spring:
             scope:
               - name
               - email
+              - gender
+              - birthday
+              - mobile
             client-name: Naver
         provider:
           naver:
