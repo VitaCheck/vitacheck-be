@@ -28,7 +28,4 @@ public class IngredientDosage extends BaseTimeEntity {
     private Integer maxAge;
     private Double recommendedDosage;
     private Double upperLimit;
-
-    @Column(nullable = false, length = 20)
-    private String unit;
 }

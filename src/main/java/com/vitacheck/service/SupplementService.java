@@ -119,15 +119,6 @@ public class SupplementService {
 
         boolean liked = (userId != null) && supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
 
-        // 1. 영양제에 포함된 모든 성분의 ID 목록을 추출합니다.
-        List<Long> ingredientIds = supplement.getSupplementIngredients().stream()
-                .map(si -> si.getIngredient().getId())
-                .toList();
-
-        // 2. 성분 ID 목록으로 모든 Dosage 정보를 한 번의 쿼리로 가져와 Map으로 만듭니다.
-        Map<Long, IngredientDosage> dosageMap = dosageRepository.findGeneralDosageByIngredientIdIn(ingredientIds).stream()
-                .collect(Collectors.toMap(dosage -> dosage.getIngredient().getId(), Function.identity()));
-
         return SupplementDetailResponseDto.builder()
                 .supplementId(supplement.getId())
                 .brandName(supplement.getBrand().getName())
@@ -139,14 +130,15 @@ public class SupplementService {
                 .intakeTime(supplement.getMethod())
                 .ingredients(
                         supplement.getSupplementIngredients().stream()
-                                .map(si -> {
-                                    // 3. Map에서 해당 성분의 Dosage 정보를 찾아 단위를 사용합니다.
-                                    IngredientDosage dosage = dosageMap.get(si.getIngredient().getId());
-                                    String unit = (dosage != null) ? dosage.getUnit() : "";
-                                    String amount = (si.getAmount() != null) ? si.getAmount().toString() : "";
+                                .map(i -> {
+                                    // Ingredient를 통해 unit을 가져오는 것이 아니라,
+                                    // SupplementIngredient 자체의 unit을 사용하도록 수정
+                                    String amount = (i.getAmount() != null) ? i.getAmount().toString() : "";
+                                    // *** SupplementIngredient에 unit이 없으므로 Ingredient에서 가져와야 함 ***
+                                    String unit = i.getIngredient().getUnit() != null ? i.getIngredient().getUnit() : "";
 
                                     return new SupplementDetailResponseDto.IngredientDto(
-                                            si.getIngredient().getName(),
+                                            i.getIngredient().getName(),
                                             amount + unit
                                     );
                                 })
@@ -154,12 +146,15 @@ public class SupplementService {
                 .build();
     }
 
+
     public List<SupplementDto.SimpleResponse> getSupplementsByBrandId(Long brandId) {
+        // 이 메소드는 변경 없음
         return supplementRepository.findAllByBrandId(brandId).stream()
                 .map(SupplementDto.SimpleResponse::from)
                 .toList();
     }
 
+    // 👇👇👇 [수정] getSupplementDetailById 메소드를 원래 로직으로 되돌립니다. 👇👇👇
     public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
         Supplement supplement = supplementRepository.findByIdWithIngredients(id)
                 .orElseThrow(() -> new RuntimeException("해당 영양제를 찾을 수 없습니다."));
@@ -171,10 +166,12 @@ public class SupplementService {
                             IngredientDosage dosage = dosageRepository.findGeneralDosageByIngredientId(ingredient.getId())
                                     .orElseThrow(() -> new RuntimeException("기준 정보 없음: " + ingredient.getName()));
 
-                            double amount = si.getAmount();
-                            // dosage 객체에서 unit 정보를 가져오도록 수정
-                            String unit = dosage.getUnit();
-                            double ul = dosage.getUpperLimit();
+                            double amount = si.getAmount() != null ? si.getAmount() : 0.0;
+                            // dosage가 아닌 ingredient에서 unit을 가져오도록 수정
+                            String unit = ingredient.getUnit() != null ? ingredient.getUnit() : "";
+
+                            Double upperLimitOrNull = dosage.getUpperLimit();
+                            double ul = (upperLimitOrNull != null) ? upperLimitOrNull : 0.0;
 
                             double percent = (ul > 0) ? (amount / ul) * 100.0 : 0.0;
                             percent = Math.min(percent, 999);
