@@ -7,6 +7,7 @@ import com.vitacheck.repository.IntakeRecordRepository;
 import com.vitacheck.repository.NotificationRoutineRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RoutineQueryService {
 
     private final NotificationRoutineRepository notificationRoutineRepository;
@@ -21,7 +23,9 @@ public class RoutineQueryService {
 
     public List<RoutineResponseDto> getMyRoutines(Long userId, LocalDate date) {
         LocalDate targetDate = (date != null) ? date : LocalDate.now();
-        List<NotificationRoutine> routines = notificationRoutineRepository.findAllByUserId(userId);
+
+        // ✅ 커스텀/카탈로그 모두 포함해서 fetch
+        List<NotificationRoutine> routines = notificationRoutineRepository.findAllWithTargetsByUserId(userId);
 
         return routines.stream()
                 .map(routine -> {
@@ -30,28 +34,34 @@ public class RoutineQueryService {
                             .map(IntakeRecord::getIsTaken)
                             .orElse(false);
 
+                    boolean isCustom = routine.isCustom();
 
-                    // 👇👇👇 DTO를 생성하는 builder 부분을 아래 코드로 교체해주세요. 👇👇👇
+                    Long supplementId = isCustom ? null
+                            : (routine.getSupplement() != null ? routine.getSupplement().getId() : null);
+                    String supplementName = isCustom
+                            ? (routine.getCustomSupplement() != null ? routine.getCustomSupplement().getName() : null)
+                            : (routine.getSupplement() != null ? routine.getSupplement().getName() : null);
+                    String supplementImageUrl = isCustom
+                            ? (routine.getCustomSupplement() != null ? routine.getCustomSupplement().getImageUrl() : null)
+                            : (routine.getSupplement() != null ? routine.getSupplement().getImageUrl() : null);
 
-                    // 1. routineDetails 리스트를 ScheduleResponse DTO 리스트로 변환
-                    List<RoutineResponseDto.ScheduleResponse> scheduleResponses = routine.getRoutineDetails().stream()
+                    var scheduleResponses = routine.getRoutineDetails().stream()
                             .map(detail -> RoutineResponseDto.ScheduleResponse.builder()
                                     .dayOfWeek(detail.getDayOfWeek())
                                     .time(detail.getTime())
                                     .build())
-                            .collect(Collectors.toList());
+                            .toList();
 
-                    // 2. 변환된 리스트를 포함하여 최종 DTO 생성
                     return RoutineResponseDto.builder()
                             .notificationRoutineId(routine.getId())
-                            .supplementId(routine.getSupplement().getId())
-                            .supplementName(routine.getSupplement().getName())
-                            .supplementImageUrl(routine.getSupplement().getImageUrl())
-                            .schedules(scheduleResponses) // 수정된 부분
+                            .isCustom(isCustom)                  // 🔹 추가
+                            .supplementId(supplementId)          // 커스텀은 null
+                            .supplementName(supplementName)
+                            .supplementImageUrl(supplementImageUrl)
                             .isTaken(isTaken)
+                            .schedules(scheduleResponses)
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
-
 }

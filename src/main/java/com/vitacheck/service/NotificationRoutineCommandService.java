@@ -7,6 +7,7 @@ import com.vitacheck.dto.RoutineRegisterRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.repository.CustomSupplementRepository;
 import com.vitacheck.repository.NotificationRoutineRepository;
 import com.vitacheck.repository.SupplementRepository;
 import com.vitacheck.repository.UserRepository;
@@ -27,6 +28,7 @@ public class NotificationRoutineCommandService {
     private final NotificationRoutineRepository notificationRoutineRepository;
     private final SupplementRepository supplementRepository;
     private final UserRepository userRepository; // 또는 AuthContext에서 가져오는 방식
+    private final CustomSupplementRepository customSupplementRepository;
 
     public RoutineRegisterResponseDto registerRoutine(Long userId, RoutineRegisterRequestDto request) {
 
@@ -102,15 +104,28 @@ public class NotificationRoutineCommandService {
     }
 
 
+    @Transactional
     public void deleteRoutine(Long userId, Long routineId) {
-        NotificationRoutine routine = notificationRoutineRepository.findById(routineId)
+        NotificationRoutine routine = notificationRoutineRepository.findByIdWithTargets(routineId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
 
-        // 본인 루틴이 아닌 경우
         if (!routine.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.ROUTINE_NOT_FOUND);
         }
 
+        // 커스텀이면 ID 확보
+        Long customId = (routine.isCustom() && routine.getCustomSupplement() != null)
+                ? routine.getCustomSupplement().getId()
+                : null;
+
+        // 먼저 루틴 삭제
         notificationRoutineRepository.delete(routine);
+        // 쿼리 수행 전 flush 보장 (exists 쿼리 전에 삭제 반영)
+        notificationRoutineRepository.flush();
+
+        // 커스텀 참조가 더 이상 없으면 커스텀 영양제도 삭제
+        if (customId != null && !notificationRoutineRepository.existsByCustomSupplementId(customId)) {
+            customSupplementRepository.deleteById(customId);
+        }
     }
 }
