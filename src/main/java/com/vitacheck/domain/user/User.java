@@ -70,4 +70,17 @@ public class User extends BaseTimeEntity {
         this.lastLoginAt = LocalDateTime.now();
         return this;
     }
+
+    public void updateInfo(String nickname, LocalDate birthDate, String phoneNumber) {
+        // 값이 null이 아닌 경우에만 필드를 업데이트합니다.
+        if (nickname != null && !nickname.isBlank()) {
+            this.nickname = nickname;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+        }
+        if (phoneNumber != null && !phoneNumber.isBlank()) {
+            this.phoneNumber = phoneNumber;
+        }
+    }
 }

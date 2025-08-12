@@ -121,7 +121,7 @@ public class UserService {
     public UserDto.InfoResponse updateMyInfo(String email, UserDto.UpdateRequest request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        user.updateNickname(request.getNickname());
+        user.updateInfo(request.getNickname(), request.getBirthDate(), request.getPhoneNumber());
 
         int age = 0; // 기본값
         if (user.getBirthDate() != null) {

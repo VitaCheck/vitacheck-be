@@ -81,6 +81,8 @@ public class UserDto {
     @NoArgsConstructor
     public static class UpdateRequest {
         private String nickname;
+        private LocalDate birthDate;
+        private String phoneNumber;
     }
 
     @Getter

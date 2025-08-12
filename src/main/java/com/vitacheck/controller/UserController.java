@@ -39,7 +39,7 @@ public class UserController {
         return CustomResponse.ok(myInfo);
     }
 
-    @Operation(summary = "내 정보 수정", description = "사용자의 닉네임을 수정합니다.")
+    @Operation(summary = "내 정보 수정", description = "사용자의 닉네임, 생년월일, 휴대폰 번호를 수정합니다.") // 설명 수정
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "수정 성공",
                     content = @Content(schema = @Schema(implementation = UserDto.InfoResponse.class))),
@@ -49,6 +49,19 @@ public class UserController {
     @PutMapping("/me")
     public CustomResponse<UserDto.InfoResponse> updateMyInfo(
             @AuthenticationPrincipal UserDetails userDetails,
+
+            // Swagger 예시를 직접 지정하는 어노테이션 추가
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "변경할 사용자 정보를 전달합니다. 변경을 원하지 않는 필드는 생략 가능합니다.",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = UserDto.UpdateRequest.class),
+                            examples = @ExampleObject(
+                                    name = "사용자 정보 수정 예시",
+                                    value = "{\"nickname\": \"새로운행복쿼카\", \"birthDate\": \"2000-02-20\", \"phoneNumber\": \"010-9876-5432\"}"
+                            )
+                    )
+            )
             @RequestBody UserDto.UpdateRequest request
     ) {
         String email = userDetails.getUsername();
