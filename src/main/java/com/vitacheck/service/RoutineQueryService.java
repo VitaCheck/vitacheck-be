@@ -31,17 +31,23 @@ public class RoutineQueryService {
                             .orElse(false);
 
 
+                    // 👇👇👇 DTO를 생성하는 builder 부분을 아래 코드로 교체해주세요. 👇👇👇
+
+                    // 1. routineDetails 리스트를 ScheduleResponse DTO 리스트로 변환
+                    List<RoutineResponseDto.ScheduleResponse> scheduleResponses = routine.getRoutineDetails().stream()
+                            .map(detail -> RoutineResponseDto.ScheduleResponse.builder()
+                                    .dayOfWeek(detail.getDayOfWeek())
+                                    .time(detail.getTime())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    // 2. 변환된 리스트를 포함하여 최종 DTO 생성
                     return RoutineResponseDto.builder()
                             .notificationRoutineId(routine.getId())
                             .supplementId(routine.getSupplement().getId())
                             .supplementName(routine.getSupplement().getName())
                             .supplementImageUrl(routine.getSupplement().getImageUrl())
-                            .daysOfWeek(routine.getRoutineDays().stream()
-                                    .map(day -> day.getDayOfWeek().name())
-                                    .collect(Collectors.toList()))
-                            .times(routine.getRoutineTimes().stream()
-                                    .map(time -> time.getTime().toString())
-                                    .collect(Collectors.toList()))
+                            .schedules(scheduleResponses) // 수정된 부분
                             .isTaken(isTaken)
                             .build();
                 })

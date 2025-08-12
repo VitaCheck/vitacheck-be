@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,19 +46,22 @@ public class NotificationRoutineCommandService {
                     request.getNotificationRoutineId(), userId
             ).orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
 
-            // 기존 요일/시간 모두 제거
-            routine.getRoutineDays().clear();
-            routine.getRoutineTimes().clear();
+            routine.clearRoutineDetails();
 
         } else {
             // ---------------------- ➕ 등록 로직 ----------------------
             // 중복 등록 검사
-            boolean isDuplicate = notificationRoutineRepository.existsDuplicateRoutine(
-                    userId,
-                    request.getSupplementId(),
-                    request.getDaysOfWeek(),
-                    request.getTimes()
-            );
+            List<RoutineDetail> existingDetails = notificationRoutineRepository
+                    .findRoutineDetailsByUserIdAndSupplementId(userId, request.getSupplementId());
+
+            Set<String> existingSchedules = existingDetails.stream()
+                    .map(detail -> detail.getDayOfWeek().name() + "_" + detail.getTime().toString())
+                    .collect(Collectors.toSet());
+
+            boolean isDuplicate = request.getSchedules().stream()
+                    .map(schedule -> schedule.getDayOfWeek().name() + "_" + schedule.getTime().toString())
+                    .anyMatch(existingSchedules::contains);
+
             if (isDuplicate) {
                 throw new CustomException(ErrorCode.DUPLICATED_ROUTINE);
             }
@@ -66,37 +72,32 @@ public class NotificationRoutineCommandService {
                     .build();
         }
 
-        // 공통: 요일 추가
-        for (RoutineDayOfWeek dayOfWeek : request.getDaysOfWeek()) {
-            RoutineDay day = RoutineDay.builder()
-                    .dayOfWeek(dayOfWeek)
+        for (RoutineRegisterRequestDto.ScheduledRequest schedule : request.getSchedules()) {
+            RoutineDetail detail = RoutineDetail.builder()
+                    .dayOfWeek(schedule.getDayOfWeek())
+                    .time(schedule.getTime())
                     .build();
-            routine.addRoutineDay(day);
-        }
-
-        // 공통: 시간 추가
-        for (LocalTime time : request.getTimes()) {
-            RoutineTime routineTime = RoutineTime.builder()
-                    .time(time)
-                    .build();
-            routine.addRoutineTime(routineTime);
+            routine.addRoutineDetail(detail);
         }
 
         // 저장
-        NotificationRoutine saved = notificationRoutineRepository.save(routine);
+        NotificationRoutine savedRoutine = notificationRoutineRepository.save(routine);
 
         // 응답 DTO 반환
+        List<RoutineRegisterResponseDto.ScheduleResponse> scheduleResponses = savedRoutine.getRoutineDetails().stream()
+                .map(detail -> RoutineRegisterResponseDto.ScheduleResponse.builder()
+                        .dayOfWeek(detail.getDayOfWeek())
+                        .time(detail.getTime())
+                        .build())
+                .toList();
+
+        // 2. 변환된 목록을 포함하여 최종 응답 DTO를 생성하고 반환합니다.
         return RoutineRegisterResponseDto.builder()
-                .notificationRoutineId(saved.getId())
+                .notificationRoutineId(savedRoutine.getId())
                 .supplementId(supplement.getId())
                 .supplementName(supplement.getName())
                 .supplementImageUrl(supplement.getImageUrl())
-                .daysOfWeek(saved.getRoutineDays().stream()
-                        .map(RoutineDay::getDayOfWeek)
-                        .toList())
-                .times(saved.getRoutineTimes().stream()
-                        .map(RoutineTime::getTime)
-                        .toList())
+                .schedules(scheduleResponses)
                 .build();
     }
 

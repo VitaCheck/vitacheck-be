@@ -1,9 +1,8 @@
 package com.vitacheck.domain.notification;
 
 import com.vitacheck.domain.IntakeRecord;
+import com.vitacheck.domain.RoutineDetail;
 import com.vitacheck.domain.common.BaseTimeEntity;
-import com.vitacheck.domain.RoutineDay;
-import com.vitacheck.domain.RoutineTime;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;
@@ -37,10 +36,7 @@ public class NotificationRoutine extends BaseTimeEntity {
     private boolean isEnabled = true;
 
     @OneToMany(mappedBy = "notificationRoutine", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoutineDay> routineDays = new ArrayList<>();
-
-    @OneToMany(mappedBy = "notificationRoutine", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoutineTime> routineTimes = new ArrayList<>();
+    private List<RoutineDetail> routineDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "notificationRoutine", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<IntakeRecord> intakeRecords = new ArrayList<>();
@@ -52,14 +48,13 @@ public class NotificationRoutine extends BaseTimeEntity {
         this.isEnabled = true;
     }
 
-    public void addRoutineDay(RoutineDay day) {
-        this.routineDays.add(day);
-        day.setNotificationRoutine(this);
+    public void addRoutineDetail(RoutineDetail detail) {
+        this.routineDetails.add(detail);
+        detail.setNotificationRoutine(this);
     }
 
-    public void addRoutineTime(RoutineTime time) {
-        this.routineTimes.add(time);
-        time.setNotificationRoutine(this);
+    public void clearRoutineDetails() {
+        this.routineDetails.clear();
     }
 }
 
