@@ -23,7 +23,6 @@ import static com.vitacheck.domain.QBrand.brand;
 import static com.vitacheck.domain.QIngredient.ingredient;
 import static com.vitacheck.domain.QSupplement.supplement;
 import static com.vitacheck.domain.mapping.QSupplementIngredient.supplementIngredient;
-import static com.vitacheck.domain.QAgeGroupSupplementStats.ageGroupSupplementStats;
 
 @Repository
 @RequiredArgsConstructor
@@ -35,18 +34,7 @@ public class SupplementRepositoryImpl implements SupplementRepositoryCustom {
     public Page<Supplement> search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
         Expression<Long> popularityScore;
 
-        if (user!=null) {
-            String ageGroup = DateUtils.calculateAgeGroup(user.getBirthDate());
 
-            popularityScore = JPAExpressions.select(ageGroupSupplementStats.clickCount.coalesce(0L))
-                    .from(ageGroupSupplementStats)
-                    .where(ageGroupSupplementStats.supplement.eq(supplement)
-                            .and(ageGroupSupplementStats.age.eq(ageGroup)));
-        }else {
-            popularityScore = JPAExpressions.select(ageGroupSupplementStats.clickCount.sum().coalesce(0L))
-                    .from(ageGroupSupplementStats)
-                    .where(ageGroupSupplementStats.supplement.eq(supplement));
-        }
 
         List<Supplement> content = queryFactory
                 .select(supplement) // selectFrom(supplement) 대신 select(supplement) 사용
@@ -61,10 +49,6 @@ public class SupplementRepositoryImpl implements SupplementRepositoryCustom {
                 )
                 .distinct()
                 // 4. 동적으로 계산된 인기도 점수와 가나다순으로 정렬
-                .orderBy(
-                        new OrderSpecifier<>(Order.DESC, popularityScore, OrderSpecifier.NullHandling.NullsLast), //1순위: 인기순
-                        supplement.name.asc()               // 2순위: 가나다순
-                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
