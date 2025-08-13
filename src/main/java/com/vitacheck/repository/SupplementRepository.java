@@ -24,4 +24,5 @@ public interface SupplementRepository extends JpaRepository<Supplement, Long>, S
            """)
     Optional<Supplement> findByIdWithIngredients(@Param("id") Long id);
 
+    String existsByName(String name);
 }

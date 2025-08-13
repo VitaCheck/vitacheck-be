@@ -6,6 +6,8 @@ import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.*;
 import com.vitacheck.domain.mapping.QIngredientAlternativeFood;
 import com.vitacheck.domain.mapping.QSupplementIngredient;
+import com.vitacheck.domain.searchLog.Method;
+import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.IngredientResponseDTO;
@@ -34,6 +36,7 @@ public class IngredientService {
     private final IngredientAlternativeFoodRepository ingredientAlternativeFoodRepository;
     private final JPAQueryFactory queryFactory;
     private final IngredientDosageRepository ingredientDosageRepository;
+    private final SearchLogService searchLogService;
 
     public List<IngredientResponseDTO.IngredientName> searchIngredientName(String keyword) {
         //1. 성분 이름으로 검색
@@ -42,6 +45,23 @@ public class IngredientService {
         if (ingredients.isEmpty()) {
             throw new CustomException(ErrorCode.INGREDIENT_NOT_FOUND);
         }
+
+        // 2. 사용자 정보 가져오기 (로그인 여부에 따라 기본값 처리)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            // 🔹 검색 로그 저장(미로그인)
+            searchLogService.logSearch(null, keyword, SearchCategory.INGREDIENT, null,null);
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+            LocalDate birthDate = user.getBirthDate();
+            int age = Period.between(birthDate, LocalDate.now()).getYears();
+            // 🔹 검색 로그 저장(로그인)
+            searchLogService.logSearch(user.getId(), keyword, SearchCategory.INGREDIENT, age, user.getGender());
+        }
+
+
 
         return ingredients.stream()
                 .map(ingredient -> IngredientResponseDTO.IngredientName.builder()
@@ -71,6 +91,8 @@ public class IngredientService {
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
             // 로그인하지 않은 경우 기본값 설정
             dosageErrorCode = ErrorCode.UNAUTHORIZED.name();
+            // 🔹 클릭 로그 저장 (미로그인)
+            searchLogService.logClick(null, ingredient.getName(), SearchCategory.INGREDIENT, null,null);
 
         } else {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -80,6 +102,9 @@ public class IngredientService {
             LocalDate birthDate = user.getBirthDate();
             int age = Period.between(birthDate, LocalDate.now()).getYears();
             ageGroup = (age / 10) * 10;
+
+            // 🔹 클릭 로그 저장 (로그인)
+            searchLogService.logClick(user.getId(), ingredient.getName(), SearchCategory.INGREDIENT, age, gender);
 
         }
 
@@ -104,9 +129,7 @@ public class IngredientService {
             }
         }
 
-//        IngredientDosage dosage = ingredientDosageRepository.findBestDosage(id,gender,ageGroup)
-//                .orElseThrow(() -> new CustomException(ErrorCode.INGREDIENT_USER_DOSAGE_NOT_FOUND));
-//
+
         // 4. 중간 테이블에서 대체 식품 ID 조회
         QIngredientAlternativeFood iaf = QIngredientAlternativeFood.ingredientAlternativeFood;
         List<Long> foodIds = queryFactory
