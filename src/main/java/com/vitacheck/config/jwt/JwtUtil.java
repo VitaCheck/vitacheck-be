@@ -2,8 +2,10 @@ package com.vitacheck.config.jwt;
 
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.dto.OAuthAttributes;
+import com.vitacheck.dto.UserDto;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,25 +59,19 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            // 토큰 파싱 시도
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            // MalformedJwtException: JWT 형식이 잘못되었을 때
-            // SecurityException: 서명이 올바르지 않거나(위조), JWT 구조에 문제가 있을 때
             log.warn("잘못된 JWT 서명입니다. (Invalid JWT signature)");
+        } catch (DecodingException e) { // 👈 [2/2] 이 catch 문을 한 줄 추가하세요!
+            log.warn("잘못된 Base64 인코딩 토큰입니다. (Invalid Base64 token)");
         } catch (ExpiredJwtException e) {
-            // 토큰의 유효기간이 만료되었을 때
-            // 이 로그는 매우 흔하게 발생하므로 ERROR나 WARN 대신 INFO 레벨로 기록하는 것이 좋습니다.
             log.info("만료된 JWT 토큰입니다. (Expired JWT token)");
         } catch (UnsupportedJwtException e) {
-            // 지원되지 않는 형식의 JWT일 때
             log.warn("지원되지 않는 JWT 토큰입니다. (Unsupported JWT token)");
         } catch (IllegalArgumentException e) {
-            // JWT 클레임 문자열이 비어있거나, 토큰 값이 null일 때
             log.warn("JWT 토큰이 잘못되었습니다. (JWT token is malformed or empty)");
         }
-        // 위 예외 중 하나라도 발생하면 유효하지 않은 토큰이므로 false 반환
         return false;
     }
 
@@ -104,6 +100,32 @@ public class JwtUtil {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    public String createPreSignupToken(UserDto.PreSignUpRequest request) {
+        Claims claims = Jwts.claims();
+        claims.put("email", request.getEmail());
+        claims.put("password", request.getPassword());
+        claims.put("nickname", request.getNickname());
+        claims.put("agreedTermIds", request.getAgreedTermIds());
+        claims.put("type", "PRE_SIGNUP"); // 토큰 종류 명시
+
+        long now = System.currentTimeMillis();
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + 10 * 60 * 1000)) // 10분 유효
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Claims getClaimsFromPreSignupToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        if (!"PRE_SIGNUP".equals(claims.get("type", String.class))) {
+            throw new SecurityException("Invalid token type for signup");
+        }
+        return claims;
+    }
+
 
     public OAuthAttributes getSocialAttributesFromToken(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();

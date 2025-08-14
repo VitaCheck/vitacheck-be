@@ -40,27 +40,47 @@ public class TermsService {
     public void agreeToTerms(Long userId, TermsDto.AgreementRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        // 중복 로직을 private 메서드로 호출
+        processAgreements(user, request.getAgreedTermIds());
+    }
 
-        // 1. 사용자가 이미 동의한 약관 ID 목록을 조회
+    @Transactional
+    public void agreeToTerms(User user, List<Long> agreedTermIds) {
+        // 중복 로직을 private 메서드로 호출
+        processAgreements(user, agreedTermIds);
+    }
+
+    private void processAgreements(User user, List<Long> agreedTermIds) {
         Set<Long> alreadyAgreedTermIds = userTermsAgreementRepository.findByUser(user).stream()
                 .map(agreement -> agreement.getTerms().getId())
                 .collect(Collectors.toSet());
 
-        // 2. 요청된 약관 ID 중에서, 아직 동의하지 않은 약관 ID만 필터링
-        List<Long> newTermIdsToAgree = request.getAgreedTermIds().stream()
+        List<Long> newTermIdsToAgree = agreedTermIds.stream()
                 .filter(id -> !alreadyAgreedTermIds.contains(id))
                 .collect(Collectors.toList());
 
-        // 3. 새로 동의할 약관이 없다면 아무것도 하지 않음
         if (newTermIdsToAgree.isEmpty()) {
             return;
         }
 
         List<Terms> termsToAgree = termsRepository.findAllById(newTermIdsToAgree);
+        if (termsToAgree.size() != newTermIdsToAgree.size()) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
 
-        // 4. 마케팅 약관에 새로 동의했는지 확인하고, 알림 설정 ON
+        boolean allRequiredAgreed = termsToAgree.stream()
+                .filter(Terms::isRequired)
+                .count() == termsRepository.findAll().stream().filter(Terms::isRequired).count();
+
+        long requiredTermsCountInRequest = termsToAgree.stream().filter(Terms::isRequired).count();
+        long totalRequiredTerms = termsRepository.findAll().stream().filter(Terms::isRequired).count();
+
+        if (requiredTermsCountInRequest != totalRequiredTerms) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+
         boolean marketingAgreed = termsToAgree.stream()
-                .anyMatch(term -> "마케팅 목적의 개인정보 수집 및 이용에 대한 동의".equals(term.getTitle()));
+                .anyMatch(term -> !term.isRequired() && "마케팅 목적의 개인정보 수집 및 이용에 대한 동의".equals(term.getTitle()));
 
         if (marketingAgreed) {
             updateMarketingSettings(user, true);

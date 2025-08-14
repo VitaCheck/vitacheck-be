@@ -35,7 +35,8 @@ public class SecurityConfig {
             // Swagger UI v3
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            // login, signup
+            // login, signup,
+            "/api/v1/auth/pre-signup",
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/api/v1/auth/social-signup",
