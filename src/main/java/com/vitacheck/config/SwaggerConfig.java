@@ -1,5 +1,7 @@
 package com.vitacheck.config;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -14,6 +16,7 @@ import org.springframework.web.method.HandlerMethod;
 import java.util.Arrays;
 import java.util.Optional;
 
+@OpenAPIDefinition(servers = {@Server(url = "https://vita-check.com", description = "Production Server")})
 @Configuration
 public class SwaggerConfig {
 
