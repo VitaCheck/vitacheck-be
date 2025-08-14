@@ -2,6 +2,7 @@ package com.vitacheck.config.jwt;
 
 import com.vitacheck.domain.user.User;
 import com.vitacheck.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,33 +28,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. 헤더에서 토큰 추출 (기존과 동일)
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request,response);
+            filterChain.doFilter(request, response);
             return;
         }
         String token = authorizationHeader.substring(7);
 
-        // 2. 토큰 검증 (기존과 동일)
         if (jwtUtil.validateToken(token)) {
-            // 3. 토큰 유효 -> 사용자 정보 추출
-            String email = jwtUtil.getEmailFromToken(token);
+            Claims claims = jwtUtil.getClaims(token);
+            String email = claims.get("email", String.class);
 
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new SecurityException("User not found with email: " + email));
+            // 'provider' 클레임이 없으면 일반 Access Token으로 간주하고 사용자 조회
+            if (claims.get("provider") == null) {
+                User user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new SecurityException("User not found with email: " + email));
 
-            // CustomUserDetails 클래스를 만들어 사용하는 것이 일반적입니다.
-            UserDetails userDetails = new CustomUserDetails(user);
+                UserDetails userDetails = new CustomUserDetails(user);
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, // 👈 Principal로 User 엔티티 객체를 사용
-                    "",
-                    userDetails.getAuthorities());
+                Authentication authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        "",
+                        userDetails.getAuthorities());
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+            // 'provider' 클레임이 있으면 임시 소셜 토큰이므로, DB 조회 없이 통과시킵니다.
+            // 어차피 이후 socialSignUp API에서 해당 토큰을 다시 검증하고 사용자를 생성하게 됩니다.
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }
