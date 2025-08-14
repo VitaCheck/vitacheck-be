@@ -107,4 +107,18 @@ public class UserController {
         userService.updateFcmToken(userDetails.getUsername(), request.getFcmToken());
         return CustomResponse.ok("FCM 토큰이 업데이트되었습니다.");
     }
+
+    @Operation(summary = "내 프로필 사진 URL 조회", description = "인증된 사용자의 프로필 사진 URL을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(schema = @Schema(type = "string", example = "https://your-s3-bucket/path/to/image.jpg"))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
+    })
+    @GetMapping("/me/profile-image")
+    public CustomResponse<String> getMyProfileImageUrl(@AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        String profileImageUrl = userService.getProfileImageUrlByEmail(email);
+        return CustomResponse.ok(profileImageUrl);
+    }
 }
