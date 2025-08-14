@@ -237,6 +237,7 @@ public class SupplementService {
 
         return SupplementDto.DetailResponse.builder()
                 .supplementId(supplement.getId())
+                .brandId(supplement.getBrand().getId())
                 .ingredients(ingredients)
                 .build();
     }
