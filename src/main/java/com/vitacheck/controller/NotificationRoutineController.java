@@ -150,4 +150,20 @@ public class NotificationRoutineController {
         notificationRoutineCommandService.deleteRoutine(userId, routineId);
         return ResponseEntity.ok(CustomResponse.ok(null));
     }
+
+    @PatchMapping("/routines/{notificationRoutineId}/toggle")
+    @Operation(summary = "복용 루틴 알림 ON/OFF 토글", description = "특정 복용 루틴의 알림 활성화 상태(isEnabled)를 토글합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "토글 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "루틴을 찾을 수 없음")
+    })
+    public CustomResponse<RoutineResponseDto> toggleRoutineStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable("notificationRoutineId") Long routineId
+    ) {
+        Long userId = userService.findIdByEmail(userDetails.getUsername());
+        RoutineResponseDto response = notificationRoutineCommandService.toggleRoutine(userId, routineId);
+        return CustomResponse.ok(response);
+    }
 }

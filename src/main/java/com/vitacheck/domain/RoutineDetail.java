@@ -33,4 +33,6 @@ public class RoutineDetail extends BaseTimeEntity {
     public void setNotificationRoutine(NotificationRoutine routine) {
         this.notificationRoutine = routine;
     }
+
+
 }
