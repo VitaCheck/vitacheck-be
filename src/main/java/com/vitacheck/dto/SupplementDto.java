@@ -86,7 +86,16 @@ public class SupplementDto {
     @Builder
     public static class DetailResponse {
         private Long supplementId;
+        private Long brandId;
         private List<IngredientDetail> ingredients;
+
+        public static DetailResponse from(Supplement supplement, List<IngredientDetail> ingredientDetails) {
+            return DetailResponse.builder()
+                    .supplementId(supplement.getId())
+                    .brandId(supplement.getBrand().getId())
+                    .ingredients(ingredientDetails)
+                    .build();
+        }
 
         @Getter
         @Builder

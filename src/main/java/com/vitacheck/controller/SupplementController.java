@@ -83,6 +83,7 @@ public class SupplementController {
 
     // 특정 브랜드 다른 영양제 목록 반환 API
     @GetMapping("/brand")
+    @Operation(summary = "특정 브랜드의 다른 영양제 목록 반환", description = "특정 브랜드의 다른 영양제 목록을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
