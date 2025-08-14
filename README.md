@@ -153,9 +153,9 @@ vitacheck-be/
 ---
 
 **🚀 이나영 (Backend Developer)**
-- **GitHub**: [@park-rama](https://github.com/park-rama)
-- **Portfolio**: [rama-portfolio.com](https://rama-portfolio.com)
-- **한 줄 소개**: 대용량 데이터 처리와 성능 최적화에 관심이 많습니다.
+- **GitHub**: [@bewheneverwhatiwant](https://github.com/bewheneverwhatiwant)
+-  **Email**: lny021102@hufs.ac.kr
+- **한 줄 소개**: 클라이언트가 필요한 데이터를 정확하고 빠르게 전달하기 위해 노력합니다.
 
 ---
 
