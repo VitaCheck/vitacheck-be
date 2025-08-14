@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PurposeCategory extends BaseTimeEntity {
+public class PurposeCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +25,6 @@ public class PurposeCategory extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)
     private AllPurpose name;
-
-    private String imageUrl;
-
-    private Integer displayOrder; // 정렬 순서
 
     @ManyToMany
     @JoinTable(
