@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -23,7 +24,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IngredientController {
     private final IngredientService ingredientService;
-    private final IngredientRepository ingredientRepository;
 
 
     @Operation(
@@ -89,11 +89,14 @@ public class IngredientController {
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
     })
     public CustomResponse<List<PopularIngredientDto>> getPopularIngredients(
-            @RequestParam(defaultValue = "5") int limit
+            @Parameter(description = "조회할 연령대", required = true, example = "20대",
+                    schema = @Schema(type = "string", allowableValues = {"10대", "20대", "30대", "40대", "50대", "60대 이상", "전체"}))
+            @RequestParam String ageGroup,
+
+            @Parameter(description = "상위 몇 개까지 조회할지", example = "10")
+            @RequestParam(defaultValue = "10") int limit
     ) {
-        List<PopularIngredientDto> result = ingredientService.findPopularIngredients(limit);
+        List<PopularIngredientDto> result = ingredientService.findPopularIngredients(ageGroup, limit);
         return CustomResponse.ok(result);
     }
-
-
 }

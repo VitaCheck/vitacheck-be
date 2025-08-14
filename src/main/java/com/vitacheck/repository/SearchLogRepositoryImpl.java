@@ -21,24 +21,26 @@ public class SearchLogRepositoryImpl implements SearchLogRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Tuple> findPopularIngredients(int limit) { // 반환 타입을 List<Tuple>로 변경
+    public List<Tuple> findPopularIngredientsByAgeGroup(Integer startAge, Integer endAge, int limit) {
         QSearchLog searchLog = QSearchLog.searchLog;
 
         return queryFactory
-                // 👇 DTO 대신 조회할 컬럼들을 직접 나열합니다.
                 .select(
                         searchLog.keyword,
                         searchLog.keyword.count()
                 )
                 .from(searchLog)
                 .where(
-                        searchLog.category.eq(SearchCategory.INGREDIENT)
+                        searchLog.category.eq(SearchCategory.INGREDIENT),
+                        ageCondition(startAge, endAge) // ✅ 동적 연령대 필터링 조건 추가
                 )
                 .groupBy(searchLog.keyword)
                 .orderBy(searchLog.keyword.count().desc())
                 .limit(limit)
                 .fetch();
     }
+
+
 
 
     @Override

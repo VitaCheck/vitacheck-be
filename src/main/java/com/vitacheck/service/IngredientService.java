@@ -210,15 +210,38 @@ public class IngredientService {
         }
 
 
-    public List<PopularIngredientDto> findPopularIngredients(int limit) {
-        List<Tuple> results = searchLogRepository.findPopularIngredients(limit);
+    public List<PopularIngredientDto> findPopularIngredients(String ageGroup, int limit) {
+        // 1. 연령대 문자열을 숫자 범위로 변환 (인기 영양제 로직과 동일)
+        Integer startAge = null;
+        Integer endAge = null;
 
-        // 👇 Tuple 리스트를 DTO 리스트로 변환하는 로직
+        if (!"전체".equals(ageGroup)) {
+            if (ageGroup.equals("60대 이상")) {
+                startAge = 60;
+                endAge = 150;
+            } else if (ageGroup.contains("대")) {
+                try {
+                    int decade = Integer.parseInt(ageGroup.replace("대", ""));
+                    startAge = decade;
+                    endAge = decade + 9;
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("올바른 연령대 형식이 아닙니다.");
+                }
+            } else {
+                throw new IllegalArgumentException("지원하지 않는 연령대입니다.");
+            }
+        }
+
+        // 2. Repository 호출하여 Tuple 리스트를 받음
+        List<Tuple> results = searchLogRepository.findPopularIngredientsByAgeGroup(startAge, endAge, limit);
+
+        // 3. Tuple 리스트를 DTO 리스트로 변환
         return results.stream()
-                .map(tuple -> new PopularIngredientDto(
-                        tuple.get(searchLog.keyword), // 첫 번째 값 (키워드)
-                        tuple.get(searchLog.keyword.count())      // 두 번째 값 (카운트)
-                ))
+                .map(tuple -> {
+                    String ingredientName = tuple.get(QSearchLog.searchLog.keyword);
+                    long searchCount = tuple.get(QSearchLog.searchLog.keyword.count());
+                    return new PopularIngredientDto(ingredientName, searchCount);
+                })
                 .collect(Collectors.toList());
     }
 
