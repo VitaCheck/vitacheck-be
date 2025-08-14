@@ -165,4 +165,14 @@ public class UserService {
         OAuthAttributes attributes = jwtUtil.getSocialAttributesFromToken(tempToken);
         return new UserDto.SocialSignUpRequest(attributes);
     }
+    @Transactional
+    public String updateProfileImageUrl(String email, String newProfileUrl) {
+        // email을 기반으로 User 엔티티를 먼저 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        user.changeProfileUrl(newProfileUrl);
+        return user.getProfileUrl();
+    }
+
 }

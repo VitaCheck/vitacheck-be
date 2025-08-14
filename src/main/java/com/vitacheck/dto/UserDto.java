@@ -2,6 +2,7 @@ package com.vitacheck.dto;
 
 import com.vitacheck.domain.user.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -111,5 +112,20 @@ public class UserDto {
     @NoArgsConstructor
     public static class UpdateFcmTokenRequest {
         private String fcmToken;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    public static class ProfileUpdateRequest {
+
+        @NotBlank(message="프로필 이미지 URL은 비워둘 수 없습니다.")
+        private String profileImageUrl;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ProfileUpdateResponse {
+
+        private String profileImageUrl;
     }
 }

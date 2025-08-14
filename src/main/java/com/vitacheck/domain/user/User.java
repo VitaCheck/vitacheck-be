@@ -57,6 +57,12 @@ public class User extends BaseTimeEntity {
     @Column(name = "fcm_token", columnDefinition = "TEXT")
     private String fcmToken;
 
+    private String profileUrl;
+
+    public void changeProfileUrl(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
+
     public void updateNickname(String nickname) {
         this.nickname = nickname;
     }
