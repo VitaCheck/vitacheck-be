@@ -32,6 +32,8 @@ public class RoutineResponseDto {
 
     private List<ScheduleResponse> schedules;
 
+    private boolean isEnabled;
+
     @Getter
     @Builder
     public static class ScheduleResponse {

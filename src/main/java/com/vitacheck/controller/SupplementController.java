@@ -56,6 +56,9 @@ public class SupplementController {
 
     @PostMapping("/by-purposes")
     @Operation(summary = "목적별 영양소 및 영양제 조회", description = "선택한 목적에 맞는 성분 및 관련 영양제를 반환합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
     public CustomResponse<Map<String, SupplementByPurposeResponse>> getSupplementsByPurposes(
             @RequestBody SupplementPurposeRequest request
     ) {
@@ -64,16 +67,21 @@ public class SupplementController {
     }
 
 
+
     // 특정 영양제 상세 정보 반환 API
     @GetMapping
     @Operation(summary = "영양제 상세 조회", description = "supplementId로 상세 정보를 조회합니다.")
-    public SupplementDetailResponseDto getSupplement(@RequestParam Long id,
-                                                     @RequestHeader(name = "X-User-Id", required = false) Long userId) {
+    public SupplementDetailResponseDto getSupplement(
+            @RequestParam Long id,
+            @RequestHeader(name = "X-User-Id", required = false) Long userId) {
         return supplementService.getSupplementDetail(id, userId);
     }
 
     // 특정 브랜드 다른 영양제 목록 반환 API
     @GetMapping("/brand")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
     public Map<String, List<SupplementDto.SimpleResponse>> getByBrandId(@RequestParam Long id) {
         List<SupplementDto.SimpleResponse> list = supplementService.getSupplementsByBrandId(id);
         return Map.of("supplements", list);

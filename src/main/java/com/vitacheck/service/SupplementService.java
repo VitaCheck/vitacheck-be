@@ -10,6 +10,8 @@ import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
+import com.vitacheck.global.apiPayload.CustomException;
+import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -137,7 +139,7 @@ public class SupplementService {
     @Transactional(readOnly = true)
     public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
         Supplement supplement = supplementRepository.findById(supplementId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 영양제를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.SUPPLEMENT_NOT_FOUND));
 
         boolean liked = (userId != null) && supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
 

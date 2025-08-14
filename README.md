@@ -31,22 +31,51 @@
 ```mermaid
 graph TD
     subgraph "인터넷"
-        User[사용자]
+        User[💻 사용자]
+    end
+
+    subgraph "CI/CD"
+      GitHubActions[🐙 GitHub Actions]
     end
 
     subgraph "AWS Cloud"
-        subgraph "Application"
-            Nginx[Nginx <br> Reverse Proxy] --> SpringBoot[Spring Boot 서버 <br> EC2]
+        subgraph "VPC (Virtual Private Cloud)"
+            subgraph "Public Subnet"
+                ALB["🌐 Application Load Balancer <br> (HTTPS Termination)"]
+            end
+
+            subgraph "Private Subnet"
+                EC2["📄 EC2 Instance <br> Spring Boot App"]
+
+                subgraph "Data Stores"
+                    RDS["🗃️ RDS <br> (MySQL)"]
+                    Redis["⚡️ ElastiCache <br> (Redis)"]
+                end
+
+                subgraph "Security"
+                    SecretsManager["🔑 Secrets Manager"]
+                end
+            end
         end
-        subgraph "Data"
-            SpringBoot --> RDS[MySQL <br> RDS]
-            SpringBoot --> Redis[Redis <br> ElastiCache]
-        end
-        User --> Nginx
     end
 
+    %% Flow
+    User -- HTTPS --> ALB
+    ALB -- HTTP --> EC2
+    
+    EC2 <--> RDS
+    EC2 <--> Redis
+    EC2 --> SecretsManager
+
+    GitHubActions -- Deploy --> EC2
+
+    %% Styling
     style User fill:#f9f,stroke:#333,stroke-width:2px
-    style Nginx fill:#9f9,stroke:#333,stroke-width:2px
+    style ALB fill:#9f9,stroke:#333,stroke-width:2px
+    style RDS fill:#f9b,stroke:#333,stroke-width:2px
+    style Redis fill:#f9b,stroke:#333,stroke-width:2px
+    style SecretsManager fill:#f9b,stroke:#333,stroke-width:2px
+    style GitHubActions fill:#c9f,stroke:#333,stroke-width:2px
 ```
 
 ### 🌿 브랜치 전략 및 협업 규칙
@@ -108,8 +137,10 @@ vitacheck-be/
 <br>
 
 **🚀 김태우 (Backend Developer)**
-- **GitHub**: [@kim-gana](https://github.com/kim-gana)
-- **Blog**: [velog.io/kim-gana](https://velog.io/kim-gana)
+- **GitHub**: [@TAEW00KIM](http://github.com/TAEW00KIM)
+- **Portfolio**: [taewoo-portfolio.com](https://ash-ceder-77b.notion.site/1ffe1dfb86ef80d798d5c3f46af2199a)
+- **Email**: twkk0819@gmail.com
+- **Instagram**: [taeoowkm](https://www.instagram.com/taeoowkm/)
 - **한 줄 소개**: 비타체크의 안정적인 백엔드 시스템을 구축합니다.
 
 ---
