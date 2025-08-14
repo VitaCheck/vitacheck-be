@@ -4,7 +4,6 @@ import com.vitacheck.domain.searchLog.Method;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.searchLog.SearchLog;
 import com.vitacheck.domain.user.Gender;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.repository.BrandRepository;
 import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.repository.SearchLogRepository;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 

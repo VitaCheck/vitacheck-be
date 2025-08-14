@@ -63,19 +63,6 @@ public class SupplementController {
         return CustomResponse.ok(response);
     }
 
-    @PostMapping("/{supplementId}/log-click")
-    @Operation(summary = "영양제 클릭 기록", description = "사용자가 특정 영양제를 클릭했음을 기록하고 통계를 업데이트합니다.")
-    public CustomResponse<String> logSupplementClick(
-            @AuthenticationPrincipal User user,
-            @PathVariable Long supplementId
-    ) {
-        if (user != null) {
-            statisticsService.incrementSupplementClickCount(user, supplementId);
-        }else {
-            log.info("유저없음");
-        }
-        return CustomResponse.ok("클릭이 기록되었습니다.");
-    }
 
     // 특정 영양제 상세 정보 반환 API
     @GetMapping
