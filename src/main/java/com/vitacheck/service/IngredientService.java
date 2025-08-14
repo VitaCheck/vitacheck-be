@@ -10,18 +10,22 @@ import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.IngredientResponseDTO;
+import com.vitacheck.dto.PopularIngredientDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.IngredientAlternativeFoodRepository;
 import com.vitacheck.repository.IngredientDosageRepository;
 import com.vitacheck.repository.IngredientRepository;
+import com.vitacheck.repository.SearchLogRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.vitacheck.domain.searchLog.QSearchLog;
+import com.querydsl.core.Tuple;
+
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -29,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.vitacheck.domain.searchLog.QSearchLog.searchLog;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +46,8 @@ public class IngredientService {
     private final IngredientDosageRepository ingredientDosageRepository;
     private final SearchLogService searchLogService;
     private final RedisTemplate<Object, Object> redisTemplate;
+    private final SearchLogRepository searchLogRepository;
+
 
     public List<IngredientResponseDTO.IngredientName> searchIngredientName(String keyword) {
         //1. 성분 이름으로 검색
@@ -200,5 +208,41 @@ public class IngredientService {
                     .build();
 
         }
+
+
+    public List<PopularIngredientDto> findPopularIngredients(String ageGroup, int limit) {
+        // 1. 연령대 문자열을 숫자 범위로 변환 (인기 영양제 로직과 동일)
+        Integer startAge = null;
+        Integer endAge = null;
+
+        if (!"전체".equals(ageGroup)) {
+            if (ageGroup.equals("60대 이상")) {
+                startAge = 60;
+                endAge = 150;
+            } else if (ageGroup.contains("대")) {
+                try {
+                    int decade = Integer.parseInt(ageGroup.replace("대", ""));
+                    startAge = decade;
+                    endAge = decade + 9;
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("올바른 연령대 형식이 아닙니다.");
+                }
+            } else {
+                throw new IllegalArgumentException("지원하지 않는 연령대입니다.");
+            }
+        }
+
+        // 2. Repository 호출하여 Tuple 리스트를 받음
+        List<Tuple> results = searchLogRepository.findPopularIngredientsByAgeGroup(startAge, endAge, limit);
+
+        // 3. Tuple 리스트를 DTO 리스트로 변환
+        return results.stream()
+                .map(tuple -> {
+                    String ingredientName = tuple.get(QSearchLog.searchLog.keyword);
+                    long searchCount = tuple.get(QSearchLog.searchLog.keyword.count());
+                    return new PopularIngredientDto(ingredientName, searchCount);
+                })
+                .collect(Collectors.toList());
+    }
 
     }
