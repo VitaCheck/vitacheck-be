@@ -10,14 +10,18 @@ import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.repository.SearchLogRepository;
 import com.vitacheck.repository.SupplementRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class SearchLogService {
     private final IngredientRepository ingredientRepository;
     private final SupplementRepository supplementRepository;
     private final BrandRepository brandRepository;
+    private final StringRedisTemplate redisTemplate; // 추가
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -80,7 +85,7 @@ public class SearchLogService {
         Objects.requireNonNull(category, "category is required");
 
         // ---- 정규화 ----
-        final String normalizedKeyword = keyword.trim();
+        final String normalizedKeyword = keyword.replaceAll("\\s+", "");
         final Gender normalizedGender = (gender != null) ? gender : Gender.NONE;
 
         String found = "false";
@@ -113,6 +118,26 @@ public class SearchLogService {
         }
 
         record(userId, normalizedKeyword, category, Method.SEARCH, age, normalizedGender);
+
+        // Redis에 카운트 증가 (ZSET 사용)
+//        String key = "search:" + category.name().toLowerCase();
+
+        String key = "search";
+        if (Boolean.FALSE.equals(redisTemplate.hasKey(key))) {
+            // 1. Redis에 key가 없을 때 (처음 생성되는 순간)
+            redisTemplate.opsForZSet().incrementScore(key, normalizedKeyword, 1.0); // 점수 1 증가
+            redisTemplate.expire(key, Duration.ofDays(1)); // TTL 1일 설정
+        } else {
+            // 2. Redis에 key가 이미 존재할 때
+            redisTemplate.opsForZSet().incrementScore(key, normalizedKeyword, 1.0); // 점수만 1 증가
+        }
+
+
+        // Redis 결과 조회
+        Set<ZSetOperations.TypedTuple<String>> result =
+                redisTemplate.opsForZSet().reverseRangeWithScores("search", 0, 9);
+        System.out.println(result);
+
     }
 
     /** 클릭 로그: 어떤 카테고리의 무엇을 클릭했는지 명확히 전달 */

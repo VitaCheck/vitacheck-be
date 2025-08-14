@@ -6,7 +6,6 @@ import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.*;
 import com.vitacheck.domain.mapping.QIngredientAlternativeFood;
 import com.vitacheck.domain.mapping.QSupplementIngredient;
-import com.vitacheck.domain.searchLog.Method;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
@@ -18,6 +17,8 @@ import com.vitacheck.repository.IngredientDosageRepository;
 import com.vitacheck.repository.IngredientRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +39,7 @@ public class IngredientService {
     private final JPAQueryFactory queryFactory;
     private final IngredientDosageRepository ingredientDosageRepository;
     private final SearchLogService searchLogService;
+    private final RedisTemplate<Object, Object> redisTemplate;
 
     public List<IngredientResponseDTO.IngredientName> searchIngredientName(String keyword) {
         //1. 성분 이름으로 검색
@@ -60,7 +63,6 @@ public class IngredientService {
             // 🔹 검색 로그 저장(로그인)
             searchLogService.logSearch(user.getId(), keyword, SearchCategory.INGREDIENT, age, user.getGender());
         }
-
 
 
         return ingredients.stream()
@@ -157,9 +159,6 @@ public class IngredientService {
             } else {
                 foodErrorCode = ErrorCode.INGREDIENT_FOOD_NOT_FOUND.name();
             }
-//        if (foodIds.isEmpty()) {
-//            throw new CustomException(ErrorCode.INGREDIENT_FOOD_NOT_FOUND);
-//        }
 
             // 7. 관련 영양제 조회
             QSupplementIngredient si = QSupplementIngredient.supplementIngredient;
