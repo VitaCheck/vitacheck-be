@@ -10,18 +10,22 @@ import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.IngredientResponseDTO;
+import com.vitacheck.dto.PopularIngredientDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.IngredientAlternativeFoodRepository;
 import com.vitacheck.repository.IngredientDosageRepository;
 import com.vitacheck.repository.IngredientRepository;
+import com.vitacheck.repository.SearchLogRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.vitacheck.domain.searchLog.QSearchLog;
+import com.querydsl.core.Tuple;
+
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -29,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.vitacheck.domain.searchLog.QSearchLog.searchLog;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +46,8 @@ public class IngredientService {
     private final IngredientDosageRepository ingredientDosageRepository;
     private final SearchLogService searchLogService;
     private final RedisTemplate<Object, Object> redisTemplate;
+    private final SearchLogRepository searchLogRepository;
+
 
     public List<IngredientResponseDTO.IngredientName> searchIngredientName(String keyword) {
         //1. 성분 이름으로 검색
@@ -200,5 +208,18 @@ public class IngredientService {
                     .build();
 
         }
+
+
+    public List<PopularIngredientDto> findPopularIngredients(int limit) {
+        List<Tuple> results = searchLogRepository.findPopularIngredients(limit);
+
+        // 👇 Tuple 리스트를 DTO 리스트로 변환하는 로직
+        return results.stream()
+                .map(tuple -> new PopularIngredientDto(
+                        tuple.get(searchLog.keyword), // 첫 번째 값 (키워드)
+                        tuple.get(searchLog.keyword.count())      // 두 번째 값 (카운트)
+                ))
+                .collect(Collectors.toList());
+    }
 
     }

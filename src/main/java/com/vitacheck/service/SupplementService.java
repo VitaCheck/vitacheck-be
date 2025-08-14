@@ -1,5 +1,6 @@
 package com.vitacheck.service;
 
+import com.querydsl.core.Tuple;
 import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.IngredientDosage;
@@ -238,5 +239,40 @@ public class SupplementService {
                 .supplementId(supplement.getId())
                 .ingredients(ingredients)
                 .build();
+    }
+
+    private final SearchLogRepository searchLogRepository;
+
+    public Page<PopularSupplementDto> findPopularSupplements(String ageGroup, Pageable pageable) {
+        // 1. 연령대 문자열을 숫자 범위로 변환
+        Integer startAge = null;
+        Integer endAge = null;
+
+        if (!"전체".equals(ageGroup)) {
+            if (ageGroup.equals("60대 이상")) {
+                startAge = 60;
+                endAge = 150; // 매우 넓은 범위로 설정
+            } else if (ageGroup.contains("대")) {
+                try {
+                    int decade = Integer.parseInt(ageGroup.replace("대", ""));
+                    startAge = decade;
+                    endAge = decade + 9;
+                } catch (NumberFormatException e) {
+                    throw new CustomException(ErrorCode.AGEGROUP_NOT_FOUND);
+                }
+            } else {
+                throw new CustomException(ErrorCode.AGEGROUP_NOT_MATCHED);
+            }
+        }
+
+        // 2. Repository 호출하여 Tuple 페이지를 받음
+        Page<Tuple> resultPage = searchLogRepository.findPopularSupplements(startAge, endAge, pageable);
+
+        // 3. Tuple 페이지를 DTO 페이지로 변환
+        return resultPage.map(tuple -> {
+            Supplement supplement = tuple.get(0, Supplement.class);
+            long searchCount = tuple.get(1, Long.class);
+            return PopularSupplementDto.from(supplement, searchCount);
+        });
     }
 }

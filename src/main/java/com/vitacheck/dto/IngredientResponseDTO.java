@@ -1,5 +1,6 @@
 package com.vitacheck.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import com.vitacheck.domain.user.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -70,7 +71,6 @@ public class IngredientResponseDTO {
         private Long id;
         private String name;
     }
-
 
 }
 

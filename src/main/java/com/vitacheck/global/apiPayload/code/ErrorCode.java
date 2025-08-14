@@ -42,7 +42,10 @@ public enum ErrorCode implements BaseErrorCode {
     INGREDIENT_FOOD_NOT_FOUND("INGREDIENT404_1","대체 식품이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
     INGREDIENT_DOSAGE_NOT_FOUND("INGREDIENT404_2","상한 및 하한 값이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
     INGREDIENT_DOSAGE_HAVE_NULL("INGREDIENT404_3","상한과 하한 중 하나의 값이 존재하지 않습니다.",HttpStatus.NOT_FOUND),
-    INGREDIENT_SUPPLEMENT_NOT_FOUND("INGREDIENT404_4","성분과 관련된 영양제가 존재하지 않습니다.",HttpStatus.NOT_FOUND);
+    INGREDIENT_SUPPLEMENT_NOT_FOUND("INGREDIENT404_4","성분과 관련된 영양제가 존재하지 않습니다.",HttpStatus.NOT_FOUND),
+
+    AGEGROUP_NOT_MATCHED("AGEGROUP400_0","연령대를 잘 입력해주세요",HttpStatus.BAD_REQUEST),
+    AGEGROUP_NOT_FOUND("AGEGROUP 400_1", "올바른 연령대 형식이 아닙니다",HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

@@ -2,11 +2,16 @@ package com.vitacheck.controller;
 
 import com.vitacheck.domain.Ingredient;
 import com.vitacheck.dto.IngredientResponseDTO;
+import com.vitacheck.dto.PopularIngredientDto;
 import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -72,6 +77,23 @@ public class IngredientController {
         return CustomResponse.ok(responseDto);
     }
 
+
+    @Operation(summary = "인기 검색 성분 조회", description = "가장 많이 검색된 성분을 순서대로 조회합니다.")
+    @GetMapping("/popular-ingredients")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "인기 검색 성분 조회",
+                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공적으로 요청을 수행했습니다.\",\"result\":\"FCM 토큰이 업데이트되었습니다.\"}"))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0001\",\"message\":\"로그인이 필요합니다.\",\"result\":null}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
+    })
+    public CustomResponse<List<PopularIngredientDto>> getPopularIngredients(
+            @RequestParam(defaultValue = "5") int limit
+    ) {
+        List<PopularIngredientDto> result = ingredientService.findPopularIngredients(limit);
+        return CustomResponse.ok(result);
+    }
 
 
 }
