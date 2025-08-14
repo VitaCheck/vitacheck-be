@@ -59,6 +59,7 @@ public class RoutineQueryService {
                             .supplementName(supplementName)
                             .supplementImageUrl(supplementImageUrl)
                             .isTaken(isTaken)
+                            .isEnabled(routine.isEnabled())
                             .schedules(scheduleResponses)
                             .build();
                 })
