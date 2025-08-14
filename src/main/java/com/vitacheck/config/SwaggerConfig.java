@@ -16,7 +16,10 @@ import org.springframework.web.method.HandlerMethod;
 import java.util.Arrays;
 import java.util.Optional;
 
-@OpenAPIDefinition(servers = {@Server(url = "https://vita-check.com", description = "Production Server")})
+@OpenAPIDefinition(servers = {
+        @Server(url = "http://localhost:8080", description = "Local Development Server"),
+        @Server(url = "https://vita-check.com", description = "Production Server")
+})
 @Configuration
 public class SwaggerConfig {
 

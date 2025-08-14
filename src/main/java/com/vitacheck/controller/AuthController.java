@@ -10,10 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "사용자 인증 API (자체/소셜)")
 @RestController
@@ -46,15 +43,20 @@ public class AuthController {
         return CustomResponse.ok(tokenResponse);
     }
 
-    @Operation(summary = "소셜 회원가입", description = "소셜 로그인 후 추가 정보를 받아 최종 회원가입을 처리하고 JWT를 발급합니다.")
+    @Operation(summary = "소셜 회원가입", description = "소셜 로그인 후 임시 토큰과 추가 정보를 받아 최종 회원가입을 처리하고 JWT를 발급합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "소셜 회원가입 및 로그인 성공",
                     content = @Content(schema = @Schema(implementation = CustomResponse.class))),
-            @ApiResponse(responseCode = "400", description = "이미 가입된 회원이거나 필수 입력값이 누락된 경우", content = @Content)
+            @ApiResponse(responseCode = "400", description = "이미 가입된 회원이거나 필수 입력값이 누락된 경우", content = @Content),
+            @ApiResponse(responseCode = "401", description = "임시 토큰이 유효하지 않거나 만료된 경우", content = @Content) // 401 응답 설명 추가
     })
     @PostMapping("/social-signup")
-    public CustomResponse<UserDto.TokenResponse> socialSignUp(@RequestBody UserDto.SocialSignUpRequest request) {
-        UserDto.TokenResponse tokenResponse = userService.socialSignUp(request);
+    public CustomResponse<UserDto.TokenResponse> socialSignUp(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody UserDto.SocialSignUpRequest request
+    ) {
+        String tempToken = authorizationHeader.substring(7);
+        UserDto.TokenResponse tokenResponse = userService.socialSignUp(tempToken, request);
         return CustomResponse.ok(tokenResponse);
     }
 }

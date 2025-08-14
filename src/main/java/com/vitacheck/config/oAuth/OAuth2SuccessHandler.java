@@ -43,28 +43,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if (user == null) {
             log.info("신규 사용자입니다. 추가 정보 입력 페이지로 리다이렉션합니다.");
 
-            // ✅✅✅ 핵심 수정 부분 시작 ✅✅✅
-            UriComponentsBuilder urlBuilder = UriComponentsBuilder.fromUriString("http://localhost:5173/social-signup")
-                    .queryParam("email", attributes.getEmail())
-                    .queryParam("fullName", attributes.getName())
-                    .queryParam("provider", attributes.getProvider())
-                    .queryParam("providerId", attributes.getProviderId());
-
-            // 네이버에서 받은 추가 정보가 있다면 URL 파라미터에 추가
-            if (attributes.getGender() != null) {
-                urlBuilder.queryParam("gender", attributes.getGender().name());
-            }
-            if (attributes.getBirthDate() != null) {
-                urlBuilder.queryParam("birthDate", attributes.getBirthDate().toString()); // yyyy-MM-dd 형식
-            }
-            if (attributes.getPhoneNumber() != null) {
-                urlBuilder.queryParam("phoneNumber", attributes.getPhoneNumber());
-            }
-
-            targetUrl = urlBuilder.build()
-                    .encode(StandardCharsets.UTF_8)
+            String tempToken = jwtUtil.createTempSocialToken(attributes);
+            targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/social-signup")
+                    .queryParam("tempToken", tempToken)
+                    .build()
                     .toUriString();
-            // ✅✅✅ 핵심 수정 부분 끝 ✅✅✅
         }
         else {
             log.info("기존 사용자입니다. JWT 발급 후 메인 페이지로 이동합니다.");

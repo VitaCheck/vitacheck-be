@@ -1,5 +1,7 @@
 package com.vitacheck.config.jwt;
 
+import com.vitacheck.domain.user.Gender;
+import com.vitacheck.dto.OAuthAttributes;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Component
@@ -74,5 +77,45 @@ public class JwtUtil {
         }
         // 위 예외 중 하나라도 발생하면 유효하지 않은 토큰이므로 false 반환
         return false;
+    }
+
+    public String createTempSocialToken(OAuthAttributes attributes) {
+        Claims claims = Jwts.claims();
+        claims.put("email", attributes.getEmail());
+        claims.put("name", attributes.getName());
+        claims.put("provider", attributes.getProvider());
+        claims.put("providerId", attributes.getProviderId());
+
+        // LocalDate, Gender 등 복잡한 객체는 문자열로 변환하여 저장
+        if (attributes.getBirthDate() != null) {
+            claims.put("birthDate", attributes.getBirthDate().toString());
+        }
+        if (attributes.getGender() != null) {
+            claims.put("gender", attributes.getGender().name());
+        }
+        if (attributes.getPhoneNumber() != null) {
+            claims.put("phoneNumber", attributes.getPhoneNumber());
+        }
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000)) // ✅ 10분 유효
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public OAuthAttributes getSocialAttributesFromToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+
+        return OAuthAttributes.builder()
+                .email(claims.get("email", String.class))
+                .name(claims.get("name", String.class))
+                .provider(claims.get("provider", String.class))
+                .providerId(claims.get("providerId", String.class))
+                .birthDate(claims.containsKey("birthDate") ? LocalDate.parse(claims.get("birthDate", String.class)) : null)
+                .gender(claims.containsKey("gender") ? Gender.valueOf(claims.get("gender", String.class)) : null)
+                .phoneNumber(claims.get("phoneNumber", String.class))
+                .build();
     }
 }
