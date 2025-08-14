@@ -9,6 +9,7 @@ import com.vitacheck.dto.UserDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,27 +30,54 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final NotificationSettingsService notificationSettingsService;
+    private final TermsService termsService;
 
-    @Transactional
-    public void signUp(UserDto.SignUpRequest request) {
+    public String preSignUp(UserDto.PreSignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
+        // 필수 약관 동의 여부 검증 로직 추가 가능
+        return jwtUtil.createPreSignupToken(request);
+    }
 
+    @Transactional
+    public void signUp(String preSignupToken, UserDto.SignUpRequest finalRequest) {
+        Claims claims = jwtUtil.getClaimsFromPreSignupToken(preSignupToken);
+        String email = claims.get("email", String.class);
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
+        }
+
+        // 1단계와 2단계 정보를 합쳐서 User 엔티티 생성
         User newUser = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword())) // 비밀번호는 반드시 암호화하여 저장
-                .fullName(request.getFullName())
-                .nickname(request.getNickname())
-                .gender(request.getGender())
-                .birthDate(request.getBirthDate())
-                .phoneNumber(request.getPhoneNumber())
+                .email(email)
+                .password(passwordEncoder.encode(claims.get("password", String.class)))
+                .nickname(claims.get("nickname", String.class))
+                .fullName(finalRequest.getFullName()) // 2단계에서 받은 정보
+                .gender(finalRequest.getGender()) // 2단계에서 받은 정보
+                .birthDate(finalRequest.getBirthDate()) // 2단계에서 받은 정보
+                .phoneNumber(finalRequest.getPhoneNumber()) // 2단계에서 받은 정보
                 .role(Role.USER)
                 .status(UserStatus.ACTIVE)
-                .provider("vitacheck") // 자체 회원가입 사용자를 명시
+                .provider("vitacheck")
                 .lastLoginAt(LocalDateTime.now())
                 .build();
-        userRepository.save(newUser);
+
+        userRepository.saveAndFlush(newUser);
+
+        List<?> rawList = claims.get("agreedTermIds", List.class);
+
+        // rawList가 null인 경우를 방지하고, 비어있는 경우 예외 처리
+        if (rawList == null || rawList.isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+
+        List<Long> agreedTermIds = rawList.stream()
+                .map(n -> Long.valueOf(n.toString()))
+                .collect(Collectors.toList());
+
+        termsService.agreeToTerms(newUser, agreedTermIds);
 
         notificationSettingsService.createDefaultSettingsForUser(newUser);
     }

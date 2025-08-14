@@ -16,18 +16,35 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-@Component // ✅ 3. 스프링 빈으로 등록
+@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
+    // ▼ [신규 추가] 필터가 무시해야 할 경로 목록 ▼
+    private static final List<String> EXCLUDE_PATHS = Arrays.asList(
+            "/api/v1/auth/signup",
+            "/api/v1/auth/social-signup",
+            "/api/v1/auth/pre-signup"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        // ▼ [신규 추가] 현재 요청 경로가 무시 목록에 포함되면, 필터 로직을 건너뜀 ▼
+        String path = request.getRequestURI();
+        if (EXCLUDE_PATHS.contains(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // ▼ 기존 필터 로직 ▼
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -39,7 +56,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.getClaims(token);
             String email = claims.get("email", String.class);
 
-            // 'provider' 클레임이 없으면 일반 Access Token으로 간주하고 사용자 조회
             if (claims.get("provider") == null) {
                 User user = userRepository.findByEmail(email)
                         .orElseThrow(() -> new SecurityException("User not found with email: " + email));
@@ -53,8 +69,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-            // 'provider' 클레임이 있으면 임시 소셜 토큰이므로, DB 조회 없이 통과시킵니다.
-            // 어차피 이후 socialSignUp API에서 해당 토큰을 다시 검증하고 사용자를 생성하게 됩니다.
         }
 
         filterChain.doFilter(request, response);
