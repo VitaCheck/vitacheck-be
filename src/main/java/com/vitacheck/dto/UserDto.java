@@ -63,6 +63,16 @@ public class UserDto {
         private Gender gender;
         private LocalDate birthDate;
         private String phoneNumber;
+
+        public SocialSignUpRequest(OAuthAttributes attributes) {
+            this.email = attributes.getEmail();
+            this.fullName = attributes.getName();
+            this.provider = attributes.getProvider();
+            this.providerId = attributes.getProviderId();
+            this.gender = attributes.getGender();
+            this.birthDate = attributes.getBirthDate();
+            this.phoneNumber = attributes.getPhoneNumber();
+        }
     }
 
     // JWT 토큰 응답 DTO

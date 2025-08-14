@@ -4,6 +4,7 @@ import com.vitacheck.config.jwt.JwtUtil;
 import com.vitacheck.domain.user.Role;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.domain.user.UserStatus;
+import com.vitacheck.dto.OAuthAttributes;
 import com.vitacheck.dto.UserDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
@@ -68,28 +69,32 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto.TokenResponse socialSignUp(UserDto.SocialSignUpRequest request) {
+    public UserDto.TokenResponse socialSignUp(String tempToken, UserDto.SocialSignUpRequest request) {
+        if (!jwtUtil.validateToken(tempToken)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
 
+        OAuthAttributes attributes = jwtUtil.getSocialAttributesFromToken(tempToken);
+
         User newUser = User.builder()
-                .email(request.getEmail())
-                // 소셜 로그인은 비밀번호가 없으므로 password 필드는 null
-                .fullName(request.getFullName())
-                .nickname(request.getNickname())
+                .email(attributes.getEmail())
+                .fullName(attributes.getName())
+                .nickname(request.getNickname()) // 사용자가 직접 입력한 값
                 .gender(request.getGender())
                 .birthDate(request.getBirthDate())
                 .phoneNumber(request.getPhoneNumber())
-                .provider(request.getProvider())
-                .providerId(request.getProviderId())
+                .provider(attributes.getProvider())
+                .providerId(attributes.getProviderId())
                 .role(Role.USER)
                 .status(UserStatus.ACTIVE)
                 .lastLoginAt(LocalDateTime.now())
                 .build();
 
         userRepository.save(newUser);
-
         notificationSettingsService.createDefaultSettingsForUser(newUser);
 
         String accessToken = jwtUtil.createAccessToken(newUser.getEmail());
@@ -150,5 +155,14 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updateFcmToken(fcmToken);
+    }
+
+    public UserDto.SocialSignUpRequest getSocialInfoFromTempToken(String tempToken) {
+        if (!jwtUtil.validateToken(tempToken)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+        // 토큰에서 OAuthAttributes 객체를 직접 추출
+        OAuthAttributes attributes = jwtUtil.getSocialAttributesFromToken(tempToken);
+        return new UserDto.SocialSignUpRequest(attributes);
     }
 }
