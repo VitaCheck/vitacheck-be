@@ -1,21 +1,27 @@
 package com.vitacheck.service;
 
+import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.mapping.SupplementIngredient;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
+import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
 import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -40,12 +46,31 @@ public class SupplementService {
         Page<Supplement> supplementsPage = supplementRepository.search(keyword, brandName, ingredientName, pageable);
         Page<SupplementDto.SearchResponse> supplementDtos = supplementsPage.map(SupplementDto.SearchResponse::from);
 
-        if (user != null) {
-            searchLogService.logSearch(user, keyword, brandName, ingredientName);
-            if (StringUtils.hasText(ingredientName)) {
-                statisticsService.updateIngredientSearchStats(user, ingredientName);
-            }
+
+        if (StringUtils.hasText(keyword)) {
+            keyword=keyword;
         }
+        else if (StringUtils.hasText(ingredientName)) {
+            keyword=ingredientName;
+        }
+        else if (StringUtils.hasText(brandName)) {
+            keyword=brandName;
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            // 🔹 검색 로그 저장(미로그인)
+            searchLogService.logSearch(null, keyword, SearchCategory.KEYWORD, null,null);
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            user = userDetails.getUser();
+            LocalDate birthDate = user.getBirthDate();
+            int age = Period.between(birthDate, LocalDate.now()).getYears();
+            // 🔹 검색 로그 저장(로그인)
+            searchLogService.logSearch(user.getId(), keyword, SearchCategory.KEYWORD, age, user.getGender());
+        }
+
 
         return SearchDto.UnifiedSearchResponse.builder()
                 .matchedIngredients(matchedIngredients)
@@ -193,6 +218,22 @@ public class SupplementService {
                                     .build();
                         })
                         .toList();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            // 🔹 클릭 로그 저장 (미로그인)
+            searchLogService.logClick(null, supplement.getName(), SearchCategory.SUPPLEMENT, null,null);
+
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+            LocalDate birthDate = user.getBirthDate();
+            int age = Period.between(birthDate, LocalDate.now()).getYears();
+
+            // 🔹 클릭 로그 저장 (로그인)
+            searchLogService.logClick(user.getId(), supplement.getName(), SearchCategory.SUPPLEMENT, age, user.getGender());
+        }
 
         return SupplementDto.DetailResponse.builder()
                 .supplementId(supplement.getId())
