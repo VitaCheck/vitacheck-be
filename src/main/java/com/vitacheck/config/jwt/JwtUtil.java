@@ -118,4 +118,8 @@ public class JwtUtil {
                 .phoneNumber(claims.get("phoneNumber", String.class))
                 .build();
     }
+
+    public Claims getClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+    }
 }
