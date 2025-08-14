@@ -205,4 +205,10 @@ public class UserService {
         return user.getProfileUrl();
     }
 
+    public String getProfileImageUrlByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        return user.getProfileUrl();
+    }
+
 }
