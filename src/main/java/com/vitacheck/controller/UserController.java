@@ -1,5 +1,6 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.UserDto;
 import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.service.UserService;
@@ -11,8 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -67,6 +68,25 @@ public class UserController {
         String email = userDetails.getUsername();
         UserDto.InfoResponse updatedInfo = userService.updateMyInfo(email, request);
         return CustomResponse.ok(updatedInfo);
+    }
+
+    @Operation(summary = "프로필 사진 URL 업데이트", description = "사용자 본인의 프로필 사진을 변경합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로필 URL 업데이트 성공",
+                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공적으로 요청을 수행했습니다.\",\"result\":\"FCM 토큰이 업데이트되었습니다.\"}"))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0001\",\"message\":\"로그인이 필요합니다.\",\"result\":null}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
+    })
+    @PatchMapping("/me/profile-image")
+    public CustomResponse<String> updateProfileImage(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UserDto.ProfileUpdateRequest request
+    ){
+        String newImageUrl = userService.updateProfileImageUrl(userDetails.getUsername(), request.getProfileImageUrl());
+
+        return CustomResponse.ok(newImageUrl);
     }
 
     @Operation(summary = "FCM 토큰 업데이트", description = "클라이언트(앱/웹)의 푸시 알림을 위한 FCM 디바이스 토큰을 등록 또는 갱신합니다.")

@@ -151,4 +151,13 @@ public class UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updateFcmToken(fcmToken);
     }
+
+    @Transactional
+    public String updateProfileImageUrl(String email, String newProfileUrl) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        user.changeProfileUrl(newProfileUrl);
+        return user.getProfileUrl();
+    }
 }
