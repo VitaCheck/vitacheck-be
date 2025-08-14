@@ -14,6 +14,7 @@ spring:
     url: jdbc:mysql://${PROD_DB_ENDPOINT}:3306/vitacheck?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     username: ${PROD_DB_USERNAME}
     password: ${PROD_DB_PASSWORD}
+
   security:
     oauth2:
       client:
@@ -45,6 +46,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+      
+  data:
+    redis:
+      host: localhost     # EC2 내부 Redis
+      port: 6379
+      password: ${REDIS_PASSWORD}  # 환경변수 또는 Secrets Manager 값
 
 jwt:
   secret: ${JWT_SECRET}
@@ -58,8 +65,3 @@ open-api:
 # Firebase 키 설정을 위한 부분 (Secrets Manager에서 값을 가져옴)
 firebase:
   key-json: ${firebase.key-json}
-
-redis:
-  host: localhost   # Redis가 같은 EC2에 설치된 경우
-  port: 6379
-  password: ${REDIS_PASSWORD}
