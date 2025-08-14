@@ -38,6 +38,7 @@ public class SecurityConfig {
             // login, signup
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
+            "/api/v1/auth/social-signup",
             // OAuth2
             "/",
             "/login/**",

@@ -97,5 +97,9 @@ public class NotificationRoutine extends BaseTimeEntity {
         r.customSupplement = null;
         return r;
     }
+
+    public void toggleEnabled() {
+        this.isEnabled = !this.isEnabled;
+    }
 }
 

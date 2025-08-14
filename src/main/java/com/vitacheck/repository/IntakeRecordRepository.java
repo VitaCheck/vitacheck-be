@@ -18,4 +18,5 @@ public interface IntakeRecordRepository extends JpaRepository<IntakeRecord, Long
 
     boolean existsByNotificationRoutineIdAndUserIdAndDate(Long routineId, Long userId, LocalDate date);
 
+    boolean existsByNotificationRoutineAndUserAndDateAndIsTaken(NotificationRoutine routine, User user, LocalDate date, boolean isTaken);
 }

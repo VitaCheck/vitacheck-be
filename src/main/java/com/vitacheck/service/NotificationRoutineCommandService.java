@@ -5,9 +5,11 @@ import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.RoutineRegisterRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
+import com.vitacheck.dto.RoutineResponseDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.CustomSupplementRepository;
+import com.vitacheck.repository.IntakeRecordRepository;
 import com.vitacheck.repository.NotificationRoutineRepository;
 import com.vitacheck.repository.SupplementRepository;
 import com.vitacheck.repository.UserRepository;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +32,7 @@ public class NotificationRoutineCommandService {
     private final SupplementRepository supplementRepository;
     private final UserRepository userRepository; // 또는 AuthContext에서 가져오는 방식
     private final CustomSupplementRepository customSupplementRepository;
+    private final IntakeRecordRepository intakeRecordRepository;
 
     public RoutineRegisterResponseDto registerRoutine(Long userId, RoutineRegisterRequestDto request) {
 
@@ -127,5 +131,39 @@ public class NotificationRoutineCommandService {
         if (customId != null && !notificationRoutineRepository.existsByCustomSupplementId(customId)) {
             customSupplementRepository.deleteById(customId);
         }
+    }
+
+    public RoutineResponseDto toggleRoutine(Long userId, Long routineId) {
+        NotificationRoutine routine = notificationRoutineRepository.findByIdAndUserId(routineId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
+
+        routine.toggleEnabled();
+
+        boolean isTaken = intakeRecordRepository.existsByNotificationRoutineAndUserAndDateAndIsTaken(
+                routine, routine.getUser(), LocalDate.now(), true
+        );
+
+        boolean isCustom = routine.isCustom();
+
+        Long supplementId = isCustom ? null : (routine.getSupplement() != null ? routine.getSupplement().getId() : null);
+        String supplementName = isCustom ? routine.getCustomSupplement().getName() : routine.getSupplement().getName();
+        String supplementImageUrl = isCustom ? routine.getCustomSupplement().getImageUrl() : routine.getSupplement().getImageUrl();
+
+        var scheduleResponses = routine.getRoutineDetails().stream()
+                .map(detail -> RoutineResponseDto.ScheduleResponse.builder()
+                        .dayOfWeek(detail.getDayOfWeek())
+                        .time(detail.getTime())
+                        .build())
+                .toList();
+
+        return RoutineResponseDto.builder()
+                .notificationRoutineId(routine.getId())
+                .isCustom(isCustom)
+                .supplementId(supplementId)
+                .supplementName(supplementName)
+                .supplementImageUrl(supplementImageUrl)
+                .isTaken(isTaken)
+                .schedules(scheduleResponses)
+                .build();
     }
 }
