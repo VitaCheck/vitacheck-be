@@ -39,19 +39,9 @@ public class IngredientResponseDTO {
     public static class IngredientSupplement{
         private Long id;
         private String name;
-        private String ImageUrl;
+        private String coupangUrl;
     }
-
-//    @Getter
-//    @AllArgsConstructor
-//    @NoArgsConstructor
-//    @Builder
-//    public static class IngredientFood{
-//        private Long id;
-//        private String name;
-//        @Builder.Default
-//        private List<SubIngredient> subIngredients = new ArrayList<>();
-//    }
+    
 
     @Getter
     @AllArgsConstructor

@@ -169,7 +169,7 @@ public class IngredientService {
                             IngredientResponseDTO.IngredientSupplement.class,
                             s.id.as("id"),
                             s.name.as("name"),
-                            s.imageUrl.as("imageUrl")
+                            s.coupangUrl.as("coupangUrl")
                     ))
                     .from(si)
                     .join(s).on(si.supplement.id.eq(s.id))
