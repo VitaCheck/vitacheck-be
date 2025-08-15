@@ -167,6 +167,7 @@ vitacheck-be/
 ---
 
 **🚀 김민범 (Backend Developer)**
-- **GitHub**: [[@park-rama](https://github.com/park-rama)](https://github.com/minHorang)
-- **Portfolio**: 
-- **한 줄 소개**: 
+- **GitHub**: [@minHorang](https://github.com/minHorang)
+- **Portfolio**: https://icy-aluminum-ea9.notion.site/portfolio-minbeom?source=copy_link
+- **Email**: orum1223@dgu.ac.kr
+- **한 줄 소개**: 개발자가 되고 싶은 감자입니다.
