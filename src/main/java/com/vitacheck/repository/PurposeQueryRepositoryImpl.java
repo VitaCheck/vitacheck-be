@@ -3,6 +3,7 @@ package com.vitacheck.repository;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.dto.PurposeIngredientSupplementRow;
@@ -28,24 +29,34 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
     @Override
     public Page<PurposeIngredientSupplementRow> findByPurposes(List<AllPurpose> purposes, Pageable pageable) {
 
-        var purposeFilter = (purposes == null || purposes.isEmpty())
+        BooleanExpression purposeFilter = (purposes == null || purposes.isEmpty())
                 ? null
                 : purposeCategory.name.in(purposes);
 
-        // 1) (purpose, ingredient) 키를 DISTINCT로 페이징
-        //    ✅ 보충제 연결 존재 조건을 포함시켜야 함
+        // ✦ 1) supplement 연결 '존재'만 보장 (행 폭증 방지)
+        var hasAnySupplement = JPAExpressions.selectOne()
+                .from(supplementIngredient)
+                .where(supplementIngredient.ingredient.eq(ingredient))
+                .exists();
+
+        // ✦ 2) (purpose, ingredient) 키를 결정적으로 페이징
         var keys = queryFactory
-                .select(purposeCategory.name.stringValue(), ingredient.id)
+                .select(purposeCategory.name.stringValue(), ingredient.id, ingredient.name)
                 .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
-                .join(ingredient.supplementIngredients, supplementIngredient)
-                .where(purposeFilter)
+                .where(purposeFilter, hasAnySupplement)
                 .distinct()
-                .orderBy(purposeCategory.name.asc(), ingredient.name.asc())
+                // ▼ 결정성 있는 정렬: name → ingredient.name → ingredient.id(타이브레이커)
+                .orderBy(
+                        purposeCategory.name.asc(),
+                        ingredient.name.asc(),
+                        ingredient.id.asc()
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
+        // 페이지 범위를 벗어난 경우: 총합만 계산하고 빈 페이지 반환
         if (keys.isEmpty()) {
             Long total0 = queryFactory
                     .select(Expressions.numberTemplate(Long.class,
@@ -53,26 +64,24 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                             purposeCategory.name.stringValue(), ingredient.id))
                     .from(ingredient)
                     .join(ingredient.purposeCategories, purposeCategory)
-                    .join(ingredient.supplementIngredients, supplementIngredient)
-                    .where(purposeFilter)
+                    .where(purposeFilter, hasAnySupplement)
                     .fetchOne();
             return new PageImpl<>(List.of(), pageable, total0 == null ? 0 : total0);
         }
 
-        // total도 동일 기준으로 계산
+        // ✦ total(전체 (purpose, ingredient) 쌍 개수)
         Long total = queryFactory
                 .select(Expressions.numberTemplate(Long.class,
                         "count(distinct concat({0},'-',{1}))",
                         purposeCategory.name.stringValue(), ingredient.id))
                 .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
-                .join(ingredient.supplementIngredients, supplementIngredient)
-                .where(purposeFilter)
+                .where(purposeFilter, hasAnySupplement)
                 .fetchOne();
 
-        // 2) 현재 페이지의 (purpose, ingredient) "쌍"만 본문에서 가져오도록 정확히 제한
+        // ✦ 3) 현재 페이지 쌍만 본문에서 가져오기
         List<String> pairKeys = keys.stream()
-                .map(t -> t.get(0, String.class) + "-" + t.get(1, Long.class))     // "EYE-123"
+                .map(t -> t.get(0, String.class) + "-" + t.get(1, Long.class)) // "EYE-123"
                 .toList();
 
         var pairExpr = Expressions.stringTemplate(
@@ -97,7 +106,13 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                         purposeFilter,
                         pairExpr.in(pairKeys)
                 )
-                .orderBy(purposeCategory.name.asc(), ingredient.name.asc(), supplement.name.asc())
+                // 본문 정렬도 키 정렬 + supplement.name으로 고정
+                .orderBy(
+                        purposeCategory.name.asc(),
+                        ingredient.name.asc(),
+                        ingredient.id.asc(),
+                        supplement.name.asc()
+                )
                 .fetch();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
