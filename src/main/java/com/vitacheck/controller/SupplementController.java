@@ -58,15 +58,16 @@ public class SupplementController {
         return CustomResponse.ok(response);
     }
 
+    // [수정] Map -> Page로 반환 타입 변경
     @PostMapping("/by-purposes")
     @Operation(summary = "목적별 영양소 및 영양제 조회", description = "선택한 목적에 맞는 성분 및 관련 영양제를 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    public CustomResponse<Map<String, SupplementByPurposeResponse>> getSupplementsByPurposes(
-            @RequestBody SupplementPurposeRequest request
+    public CustomResponse<Page<SupplementByPurposeResponse>> getSupplementsByPurposes(
+            @RequestBody SupplementPurposeRequest request, @ParameterObject Pageable pageable
     ) {
-        Map<String, SupplementByPurposeResponse> response = supplementService.getSupplementsByPurposes(request);
+        Page<SupplementByPurposeResponse> response = supplementService.getSupplementsByPurposes(request, pageable);
         return CustomResponse.ok(response);
     }
 
@@ -81,15 +82,18 @@ public class SupplementController {
         return supplementService.getSupplementDetail(id, userId);
     }
 
-    // 특정 브랜드 다른 영양제 목록 반환 API
+    // [수정] Map -> CustomResponse<Page>로 반환 타입 변경
     @GetMapping("/brand")
     @Operation(summary = "특정 브랜드의 다른 영양제 목록 반환", description = "특정 브랜드의 다른 영양제 목록을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    public Map<String, List<SupplementDto.SimpleResponse>> getByBrandId(@RequestParam Long id) {
-        List<SupplementDto.SimpleResponse> list = supplementService.getSupplementsByBrandId(id);
-        return Map.of("supplements", list);
+    public CustomResponse<Page<SupplementDto.SimpleResponse>> getByBrandId(
+            @RequestParam Long id,
+            @ParameterObject Pageable pageable
+    ) {
+        Page<SupplementDto.SimpleResponse> list = supplementService.getSupplementsByBrandId(id, pageable);
+        return CustomResponse.ok(list);
     }
 
     // 특정 영양제의 상세정보 반환 API DTO
