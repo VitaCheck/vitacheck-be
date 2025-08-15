@@ -143,7 +143,7 @@ public class SupplementService {
     @Transactional(readOnly = true)
     public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request, Pageable pageable) {
 
-        // 1) 요청 enum 파싱 (콤마 문자열 방어 포함하면 더 좋음)
+        // 1) 요청 enum 파싱
         List<AllPurpose> purposes = request.getPurposeNames().stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -152,9 +152,9 @@ public class SupplementService {
                 .toList();
 
         Page<PurposeIngredientSupplementRow> rowsPage =
-                purposeQueryRepository.findByPurposes(purposes, pageable);
+                purposeQueryRepository.findByPurposesPagedByIngredient(purposes, pageable);
 
-        // 2) (purpose, ingredientId) 쌍으로 그룹핑
+        // 2) ingredientId 기준으로 그룹핑
         record Key(Long ingredientId, String ingredientName) {}
         Map<Key, List<PurposeIngredientSupplementRow>> grouped =
                 rowsPage.getContent().stream()
@@ -163,16 +163,17 @@ public class SupplementService {
                                 LinkedHashMap::new, Collectors.toList()
                         ));
 
-        // 3) 각 그룹 → 아이템으로 변환 (purpose는 단일 항목으로 표시)
+        // 3) 각 그룹 → 응답 변환
         List<IngredientPurposeBucket> items = grouped.entrySet().stream()
                 .map(e -> {
                     Key k = e.getKey();
                     List<PurposeIngredientSupplementRow> list = e.getValue();
 
+                    // supplements 중복 제거
                     List<SupplementByPurposeResponse.SupplementBrief> supplements =
-                            new ArrayList<>(
-                                    list.stream().collect(Collectors.toMap(
-                                            PurposeIngredientSupplementRow::supplementId,     // 키: id
+                            new ArrayList<>(list.stream()
+                                    .collect(Collectors.toMap(
+                                            PurposeIngredientSupplementRow::supplementId,
                                             r -> SupplementByPurposeResponse.SupplementBrief.builder()
                                                     .id(r.supplementId())
                                                     .name(r.supplementName())
@@ -180,9 +181,11 @@ public class SupplementService {
                                                     .build(),
                                             (a, b) -> a,
                                             LinkedHashMap::new
-                                    )).values()
+                                    ))
+                                    .values()
                             );
 
+                    // 목적 설명을 리스트로 수집
                     Set<String> purposeSet = list.stream()
                             .map(r -> AllPurpose.valueOf(r.purposeDesc()).getDescription())
                             .collect(Collectors.toCollection(LinkedHashSet::new)); // 순서 유지
@@ -191,7 +194,7 @@ public class SupplementService {
                             .ingredientName(k.ingredientName())
                             .data(SupplementByPurposeResponse.builder()
                                     .id(k.ingredientId())
-                                    .purposes(new ArrayList<>(purposeSet)) // ✅ 여러 목적 리스트로 반환
+                                    .purposes(new ArrayList<>(purposeSet))
                                     .supplements(supplements)
                                     .build())
                             .build();
@@ -200,6 +203,7 @@ public class SupplementService {
 
         return new PageImpl<>(items, rowsPage.getPageable(), rowsPage.getTotalElements());
     }
+
 
 
 
