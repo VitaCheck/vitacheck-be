@@ -100,45 +100,45 @@ public class SupplementService {
         return Collections.emptyList();
     }
 
-    @Transactional(readOnly = true)
-    public Map<String, SupplementByPurposeResponse> getSupplementsByPurposes(SupplementPurposeRequest request) {
-        List<AllPurpose> allPurposes = request.getPurposeNames().stream()
-                .map(AllPurpose::valueOf)
-                .toList();
-
-        // 1. 목적(Purpose)으로 PurposeCategory 엔티티를 조회합니다.
-        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
-
-        // 결과를 담을 Map을 생성합니다.
-        Map<String, SupplementByPurposeResponse> result = new HashMap<>();
-
-        // 2. 각 PurposeCategory를 순회합니다.
-        for (PurposeCategory category : categories) {
-
-            // 3. category.getIngredients()를 통해 직접 성분(Ingredient) 목록에 접근합니다.
-            for (Ingredient ingredient : category.getIngredients()) {
-
-                // 4. 각 성분에 연결된 영양제 정보를 가져옵니다.
-                List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
-                        .map(si -> si.getSupplement())
-                        .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
-                        .toList();
-
-                // 5. 목적(Purpose) 목록을 가져옵니다.
-                List<String> purposes = ingredient.getPurposeCategories().stream()
-                        .map(pc -> pc.getName().getDescription())
-                        .toList();
-
-                // 6. 최종 결과 Map에 담습니다.
-                result.put(ingredient.getName(),
-                        SupplementByPurposeResponse.builder()
-                                .purposes(purposes)
-                                .supplements(supplementInfo)
-                                .build());
-            }
-        }
-        return result;
-    }
+//    @Transactional(readOnly = true)
+//    public Map<String, SupplementByPurposeResponse> getSupplementsByPurposes(SupplementPurposeRequest request) {
+//        List<AllPurpose> allPurposes = request.getPurposeNames().stream()
+//                .map(AllPurpose::valueOf)
+//                .toList();
+//
+//        // 1. 목적(Purpose)으로 PurposeCategory 엔티티를 조회합니다.
+//        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
+//
+//        // 결과를 담을 Map을 생성합니다.
+//        Map<String, SupplementByPurposeResponse> result = new HashMap<>();
+//
+//        // 2. 각 PurposeCategory를 순회합니다.
+//        for (PurposeCategory category : categories) {
+//
+//            // 3. category.getIngredients()를 통해 직접 성분(Ingredient) 목록에 접근합니다.
+//            for (Ingredient ingredient : category.getIngredients()) {
+//
+//                // 4. 각 성분에 연결된 영양제 정보를 가져옵니다.
+//                List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
+//                        .map(si -> si.getSupplement())
+//                        .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
+//                        .toList();
+//
+//                // 5. 목적(Purpose) 목록을 가져옵니다.
+//                List<String> purposes = ingredient.getPurposeCategories().stream()
+//                        .map(pc -> pc.getName().getDescription())
+//                        .toList();
+//
+//                // 6. 최종 결과 Map에 담습니다.
+//                result.put(ingredient.getName(),
+//                        SupplementByPurposeResponse.builder()
+//                                .purposes(purposes)
+//                                .supplements(supplementInfo)
+//                                .build());
+//            }
+//        }
+//        return result;
+//    }
 
     @Transactional(readOnly = true)
     public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request, Pageable pageable) {
