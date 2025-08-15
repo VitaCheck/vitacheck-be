@@ -32,8 +32,8 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 ? null
                 : purposeCategory.name.in(purposes);
 
-        // 1) (purpose, ingredientId) 쌍을 DISTINCT로 페이징
-        //    ※ 보충제 연결이 있는 성분만 포함하도록 supplementIngredients 조인 추가
+        // 1) (purpose, ingredient) 키를 DISTINCT로 페이징
+        //    ✅ 보충제 연결 존재 조건을 포함시켜야 함
         var keys = queryFactory
                 .select(purposeCategory.name.stringValue(), ingredient.id)
                 .from(ingredient)
@@ -59,7 +59,7 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
             return new PageImpl<>(List.of(), pageable, total0 == null ? 0 : total0);
         }
 
-        // 1-1) 총 개수(동일 기준)  ※ concat distinct이 느리면 서브쿼리로 대체 가능
+        // total도 동일 기준으로 계산
         Long total = queryFactory
                 .select(Expressions.numberTemplate(Long.class,
                         "count(distinct concat({0},'-',{1}))",
@@ -70,18 +70,21 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 .where(purposeFilter)
                 .fetchOne();
 
-        // 2) OR 폭탄 제거: ingredientIds만 추려서, 요청 목적과 함께 단순 조건으로 본문 조회
-        List<Long> ingredientIds = keys.stream()
-                .map(t -> t.get(1, Long.class))
-                .distinct()
+        // 2) 현재 페이지의 (purpose, ingredient) "쌍"만 본문에서 가져오도록 정확히 제한
+        List<String> pairKeys = keys.stream()
+                .map(t -> t.get(0, String.class) + "-" + t.get(1, Long.class))     // "EYE-123"
                 .toList();
+
+        var pairExpr = Expressions.stringTemplate(
+                "concat({0},'-',{1})",
+                purposeCategory.name.stringValue(), ingredient.id);
 
         List<PurposeIngredientSupplementRow> content = queryFactory
                 .select(Projections.constructor(
                         PurposeIngredientSupplementRow.class,
                         ingredient.id,
                         ingredient.name,
-                        purposeCategory.name.stringValue(),   // "EYE"/"SKIN" 등
+                        purposeCategory.name.stringValue(),
                         supplement.id,
                         supplement.name,
                         supplement.imageUrl
@@ -91,8 +94,8 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 .join(ingredient.supplementIngredients, supplementIngredient)
                 .join(supplementIngredient.supplement, supplement)
                 .where(
-                        ingredient.id.in(ingredientIds),
-                        purposeFilter
+                        purposeFilter,
+                        pairExpr.in(pairKeys)
                 )
                 .orderBy(purposeCategory.name.asc(), ingredient.name.asc(), supplement.name.asc())
                 .fetch();
