@@ -9,4 +9,7 @@ import java.util.List;
 
 public interface PurposeQueryRepository {
     Page<PurposeIngredientSupplementRow> findByPurposes(List<AllPurpose> purposes, Pageable pageable);
+
+    Page<PurposeIngredientSupplementRow> findByPurposesPagedByIngredient(List<AllPurpose> purposes, Pageable pageable);
+
 }

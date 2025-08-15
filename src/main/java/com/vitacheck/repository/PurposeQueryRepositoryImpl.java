@@ -25,6 +25,75 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
+    public Page<PurposeIngredientSupplementRow> findByPurposesPagedByIngredient(List<AllPurpose> purposes, Pageable pageable) {
+        BooleanExpression purposeFilter = (purposes == null || purposes.isEmpty())
+                ? null
+                : purposeCategory.name.in(purposes);
+
+        // 성분 ID 기준 키 페이징
+        var ingredientIds = queryFactory
+                .select(ingredient.id)
+                .from(ingredient)
+                .join(ingredient.purposeCategories, purposeCategory)
+                .where(purposeFilter,
+                        JPAExpressions.selectOne()
+                                .from(supplementIngredient)
+                                .where(supplementIngredient.ingredient.eq(ingredient))
+                                .exists()
+                )
+                .distinct()
+                .orderBy(ingredient.name.asc(), ingredient.id.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (ingredientIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        Long total = queryFactory
+                .select(ingredient.id.countDistinct())
+                .from(ingredient)
+                .join(ingredient.purposeCategories, purposeCategory)
+                .where(purposeFilter,
+                        JPAExpressions.selectOne()
+                                .from(supplementIngredient)
+                                .where(supplementIngredient.ingredient.eq(ingredient))
+                                .exists()
+                )
+                .fetchOne();
+
+        List<PurposeIngredientSupplementRow> content = queryFactory
+                .select(Projections.constructor(
+                        PurposeIngredientSupplementRow.class,
+                        ingredient.id,
+                        ingredient.name,
+                        purposeCategory.name.stringValue(),
+                        supplement.id,
+                        supplement.name,
+                        supplement.imageUrl
+                ))
+                .from(ingredient)
+                .join(ingredient.purposeCategories, purposeCategory)
+                .join(ingredient.supplementIngredients, supplementIngredient)
+                .join(supplementIngredient.supplement, supplement)
+                .where(
+                        purposeFilter,
+                        ingredient.id.in(ingredientIds)
+                )
+                .orderBy(
+                        ingredient.name.asc(),
+                        ingredient.id.asc(),
+                        purposeCategory.name.asc(),
+                        supplement.name.asc()
+                )
+                .fetch();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
+
+    @Override
     public Page<PurposeIngredientSupplementRow> findByPurposes(List<AllPurpose> purposes, Pageable pageable) {
 
         BooleanExpression purposeFilter = (purposes == null || purposes.isEmpty())
