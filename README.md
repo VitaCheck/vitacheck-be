@@ -28,55 +28,8 @@
 
 ## 🏗️ 서버 아키텍처
 비타체크 백엔드 서버는 AWS 클라우드 환경에 배포되며, 안정성과 확장성을 고려하여 설계되었습니다. 사용자의 요청은 Nginx를 통해 Spring Boot 애플리케이션으로 전달되며, 데이터는 RDS와 Redis에 저장 및 관리됩니다.
-```mermaid
-graph TD
-    subgraph "인터넷"
-        User[💻 사용자]
-    end
 
-    subgraph "CI/CD"
-      GitHubActions[🐙 GitHub Actions]
-    end
-
-    subgraph "AWS Cloud"
-        subgraph "VPC (Virtual Private Cloud)"
-            subgraph "Public Subnet"
-                ALB["🌐 Application Load Balancer <br> (HTTPS Termination)"]
-            end
-
-            subgraph "Private Subnet"
-                EC2["📄 EC2 Instance <br> Spring Boot App"]
-
-                subgraph "Data Stores"
-                    RDS["🗃️ RDS <br> (MySQL)"]
-                    Redis["⚡️ ElastiCache <br> (Redis)"]
-                end
-
-                subgraph "Security"
-                    SecretsManager["🔑 Secrets Manager"]
-                end
-            end
-        end
-    end
-
-    %% Flow
-    User -- HTTPS --> ALB
-    ALB -- HTTP --> EC2
-    
-    EC2 <--> RDS
-    EC2 <--> Redis
-    EC2 --> SecretsManager
-
-    GitHubActions -- Deploy --> EC2
-
-    %% Styling
-    style User fill:#f9f,stroke:#333,stroke-width:2px
-    style ALB fill:#9f9,stroke:#333,stroke-width:2px
-    style RDS fill:#f9b,stroke:#333,stroke-width:2px
-    style Redis fill:#f9b,stroke:#333,stroke-width:2px
-    style SecretsManager fill:#f9b,stroke:#333,stroke-width:2px
-    style GitHubActions fill:#c9f,stroke:#333,stroke-width:2px
-```
+<img width="1390" height="962" alt="Image" src="https://github.com/user-attachments/assets/c53dca3d-4df6-47ca-a2bf-bf83fe119a48" />
 
 ### 🌿 브랜치 전략 및 협업 규칙
 
