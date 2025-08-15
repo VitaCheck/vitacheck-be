@@ -48,7 +48,7 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
         // total: 성분 기준으로 distinct 카운트(가벼운 편)
         Long total = queryFactory
                 .select(ingredient.countDistinct())
-                .from(purposeCategory)
+                .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
                 .where(purposeCategory.name.in(purposes))
                 .fetchOne();
