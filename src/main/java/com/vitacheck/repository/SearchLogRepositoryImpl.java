@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.domain.QSupplement;
 import com.vitacheck.domain.searchLog.QSearchLog;
 import com.vitacheck.domain.searchLog.SearchCategory;
+import com.vitacheck.domain.user.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,7 +45,7 @@ public class SearchLogRepositoryImpl implements SearchLogRepositoryCustom {
 
 
     @Override
-    public Page<Tuple> findPopularSupplements(Integer startAge, Integer endAge, Pageable pageable) {
+    public Page<Tuple> findPopularSupplements(Integer startAge, Integer endAge, Gender gender, Pageable pageable) {
         QSearchLog searchLog = QSearchLog.searchLog;
         QSupplement supplement = QSupplement.supplement;
 
@@ -58,7 +59,8 @@ public class SearchLogRepositoryImpl implements SearchLogRepositoryCustom {
                 .join(supplement).on(searchLog.keyword.eq(supplement.name)) // 로그의 키워드와 영양제 이름을 조인
                 .where(
                         searchLog.category.eq(SearchCategory.SUPPLEMENT), // 영양제 검색 로그만 필터링
-                        ageCondition(startAge, endAge)                   // 동적 연령대 필터링
+                        ageCondition(startAge, endAge),
+                        genderCondition(gender)
                 )
                 .groupBy(supplement) // 영양제 객체로 그룹화
                 .orderBy(searchLog.keyword.count().desc()) // 검색 횟수가 많은 순으로 정렬
@@ -73,7 +75,9 @@ public class SearchLogRepositoryImpl implements SearchLogRepositoryCustom {
                 .join(supplement).on(searchLog.keyword.eq(supplement.name))
                 .where(
                         searchLog.category.eq(SearchCategory.SUPPLEMENT),
-                        ageCondition(startAge, endAge)
+                        ageCondition(startAge, endAge),
+                        genderCondition(gender)
+
                 );
 
         return new PageImpl<>(content, pageable, countQuery.fetchOne());
@@ -85,5 +89,9 @@ public class SearchLogRepositoryImpl implements SearchLogRepositoryCustom {
             return null; // "전체" 연령대일 경우 조건을 적용하지 않음
         }
         return QSearchLog.searchLog.age.between(startAge, endAge);
+    }
+    private BooleanExpression genderCondition(Gender gender) {
+        // '전체' 성별일 경우(NONE) 조건을 적용하지 않음
+        return (gender == null || gender == Gender.NONE) ? null : QSearchLog.searchLog.gender.eq(gender);
     }
 }
