@@ -1,5 +1,6 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.CombinationDTO;
 import com.vitacheck.global.apiPayload.CustomException;
@@ -11,7 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name="combination", description = "조합 관련 API")
@@ -28,8 +31,15 @@ public class CombinationController {
     })
     @PostMapping("/analyze") //
     public CustomResponse<CombinationDTO.AnalysisResponse> analyzeSupplementCombinations(
-            @AuthenticationPrincipal User user,
             @RequestBody CombinationDTO.AnalysisRequest request){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = null;
+
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            user = userDetails.getUser(); // User 객체를 꺼냅니다.
+        }
 
         if (request.getSupplementIds() == null || request.getSupplementIds().isEmpty()) {
             throw new CustomException(ErrorCode.SUPPLEMENT_LIST_EMPTY);
