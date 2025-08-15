@@ -3,6 +3,7 @@ package com.vitacheck.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -10,7 +11,18 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class SupplementByPurposeResponse {
-    private List<String> purposes; // 해당 성분이 속한 목적들
-    private List<List<String>> supplements; // [영양제 이름, 이미지 URL]
+
+    private Long id; // (선택) 이건 ingredientId 등 명확한 의미로 쓰세요
+
+    private List<String> purposes;
+
+    private List<SupplementBrief> supplements;
+
+    @Getter @Builder @AllArgsConstructor @NoArgsConstructor
+    public static class SupplementBrief {
+        private Long id;
+        private String name;
+        private String imageUrl;
+    }
 }
 

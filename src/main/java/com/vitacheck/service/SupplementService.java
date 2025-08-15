@@ -142,57 +142,63 @@ public class SupplementService {
 
     @Transactional(readOnly = true)
     public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request, Pageable pageable) {
-        // 1) 요청 enum 변환
+
+        // 1) 요청 enum 파싱 (콤마 문자열 방어 포함하면 더 좋음)
         List<AllPurpose> purposes = request.getPurposeNames().stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
                 .map(AllPurpose::valueOf)
+                .distinct()
                 .toList();
 
-        // 2) 평평한 행으로 페이지 조회
         Page<PurposeIngredientSupplementRow> rowsPage =
                 purposeQueryRepository.findByPurposes(purposes, pageable);
 
-        // 3) 같은 ingredientName 기준으로 그룹핑
-        //    purposeDesc는 rowsPage에선 Enum 이름(String)이므로 description으로 변환 필요
-        Map<String, List<PurposeIngredientSupplementRow>> grouped = rowsPage.getContent().stream()
-                .collect(Collectors.groupingBy(PurposeIngredientSupplementRow::ingredientName, LinkedHashMap::new, Collectors.toList()));
+        // 2) (purpose, ingredientId) 쌍으로 그룹핑
+        record Key(String purposeName, Long ingredientId, String ingredientName) {}
+        Map<Key, List<PurposeIngredientSupplementRow>> grouped =
+                rowsPage.getContent().stream()
+                        .collect(Collectors.groupingBy(
+                                r -> new Key(r.purposeDesc(), r.ingredientId(), r.ingredientName()),
+                                LinkedHashMap::new, Collectors.toList()
+                        ));
 
-        // 4) 각 그룹을 기존 응답 형태로 변환
+        // 3) 각 그룹 → 아이템으로 변환 (purpose는 단일 항목으로 표시)
         List<IngredientPurposeBucket> items = grouped.entrySet().stream()
-                .map(entry -> {
-                    String ingredientName = entry.getKey();
-                    List<PurposeIngredientSupplementRow> list = entry.getValue();
+                .map(e -> {
+                    Key k = e.getKey();
+                    List<PurposeIngredientSupplementRow> list = e.getValue();
 
-                    // 목적 목록(중복 제거 + description으로 변환)
-                    List<String> purposeList = list.stream()
-                            .map(PurposeIngredientSupplementRow::purposeDesc)           // Enum 이름(String)
-                            .distinct()
-                            .map(name -> {
-                                try {
-                                    return AllPurpose.valueOf(name).getDescription();   // description으로 치환
-                                } catch (IllegalArgumentException e) {
-                                    return name; // 혹시 매칭 실패하면 이름 그대로
-                                }
-                            })
-                            .toList();
+                    List<SupplementByPurposeResponse.SupplementBrief> supplements =
+                            new ArrayList<>(
+                                    list.stream().collect(Collectors.toMap(
+                                            PurposeIngredientSupplementRow::supplementId,     // 키: id
+                                            r -> SupplementByPurposeResponse.SupplementBrief.builder()
+                                                    .id(r.supplementId())
+                                                    .name(r.supplementName())
+                                                    .imageUrl(r.supplementImageUrl())
+                                                    .build(),
+                                            (a, b) -> a,
+                                            LinkedHashMap::new
+                                    )).values()
+                            );
 
-                    // 영양제 목록 [[name, imageUrl], ...]
-                    List<List<String>> supplements = list.stream()
-                            .map(r -> List.of(r.supplementName(), r.supplementImageUrl()))
-                            .toList();
+                    String purposeKo = AllPurpose.valueOf(k.purposeName()).getDescription();
 
                     return IngredientPurposeBucket.builder()
-                            .ingredientName(ingredientName)
+                            .ingredientName(k.ingredientName())
                             .data(SupplementByPurposeResponse.builder()
-                                    .purposes(purposeList)
+                                    .id(k.ingredientId())
+                                    .purposes(List.of(purposeKo))
                                     .supplements(supplements)
                                     .build())
                             .build();
                 })
                 .toList();
 
-        // 5) Page로 감싸서 반환(전체 total은 rowsPage의 total 그대로 사용)
         return new PageImpl<>(items, rowsPage.getPageable(), rowsPage.getTotalElements());
     }
+
 
 
     @Transactional(readOnly = true)
