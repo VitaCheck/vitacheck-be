@@ -9,6 +9,7 @@ import com.vitacheck.domain.mapping.SupplementIngredient;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.searchLog.SearchCategory;
+import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
 import com.vitacheck.global.apiPayload.CustomException;
@@ -244,7 +245,7 @@ public class SupplementService {
 
     private final SearchLogRepository searchLogRepository;
 
-    public Page<PopularSupplementDto> findPopularSupplements(String ageGroup, Pageable pageable) {
+    public Page<PopularSupplementDto> findPopularSupplements(String ageGroup, Gender gender, Pageable pageable) {
         // 1. 연령대 문자열을 숫자 범위로 변환
         Integer startAge = null;
         Integer endAge = null;
@@ -267,7 +268,7 @@ public class SupplementService {
         }
 
         // 2. Repository 호출하여 Tuple 페이지를 받음
-        Page<Tuple> resultPage = searchLogRepository.findPopularSupplements(startAge, endAge, pageable);
+        Page<Tuple> resultPage = searchLogRepository.findPopularSupplements(startAge, endAge,gender, pageable);
 
         // 3. Tuple 페이지를 DTO 페이지로 변환
         return resultPage.map(tuple -> {

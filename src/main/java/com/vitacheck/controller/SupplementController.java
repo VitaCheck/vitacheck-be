@@ -1,5 +1,6 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
 import com.vitacheck.global.apiPayload.CustomException;
@@ -99,7 +100,7 @@ public class SupplementController {
         return supplementService.getSupplementDetailById(id);
     }
 
-    @Operation(summary = "연령대별 인기 영양제 조회", description = "검색 횟수를 기준으로 연령대별 인기 영양제 순위를 조회합니다.")
+    @Operation(summary = "연령대/성별별 인기 영양제 조회", description = "검색 횟수를 기준으로 연령대별 인기 영양제 순위를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "연령대별 인기 영양제 조회 성공",
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공적으로 요청을 수행했습니다.\",\"result\":\"FCM 토큰이 업데이트되었습니다.\"}"))),
@@ -111,19 +112,23 @@ public class SupplementController {
 
     })
     @Parameters({
-            @Parameter(name = "ageGroup", description = "조회할 연령대", required = true, example = "20대",
-                    // 'ageGroup'에 들어올 수 있는 값들을 명시하여 드롭다운 형태로 보여줍니다.
+            @Parameter(name = "ageGroup", description = "조회할 연령대", example = "20대",
                     schema = @Schema(type = "string", allowableValues = {"10대", "20대", "30대", "40대", "50대", "60대 이상", "전체"})),
+            @Parameter(name = "gender", description = "조회할 성별", example = "MALE",
+                    schema = @Schema(type = "string", allowableValues = {"MALE", "FEMALE", "전체"})), // ✅ Gender 파라미터 명세 추가
             @Parameter(name = "page", description = "페이지 번호 (0부터 시작)", example = "0"),
             @Parameter(name = "size", description = "한 페이지에 보여줄 아이템 수", example = "10"),
-            @Parameter(name = "sort", hidden = true) // 이 API는 인기순으로 정렬이 고정되므로 sort 파라미터는 숨김 처리합니다.
+            @Parameter(name = "sort", hidden = true)
     })
     @GetMapping("/popular-supplements")
     public CustomResponse<Page<PopularSupplementDto>> getPopularSupplements(
-            @RequestParam String ageGroup,
-            @Parameter(hidden = true)Pageable pageable
+            @RequestParam(defaultValue = "전체") String ageGroup,
+            @RequestParam(defaultValue = "전체") String gender,
+            @Parameter(hidden = true) Pageable pageable
     ) {
-        Page<PopularSupplementDto> result = supplementService.findPopularSupplements(ageGroup, pageable);
+        Gender genderEnum = "전체".equalsIgnoreCase(gender) ? Gender.NONE : Gender.valueOf(gender.toUpperCase());
+
+        Page<PopularSupplementDto> result = supplementService.findPopularSupplements(ageGroup, genderEnum, pageable);
         return CustomResponse.ok(result);
     }
 }
