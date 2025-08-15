@@ -11,7 +11,6 @@ import com.vitacheck.dto.CombinationDTO;
 import com.vitacheck.repository.CombinationRepository;
 import com.vitacheck.repository.SupplementRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CombinationService {
@@ -42,7 +40,6 @@ public class CombinationService {
             }
         }
 
-        log.info(user.toString());
 
         Map<Long, IngredientDosage> dosageMap; // 기본값은 빈 Map
         if (user != null) {
