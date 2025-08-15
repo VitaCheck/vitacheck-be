@@ -169,21 +169,26 @@ public class SupplementService {
                     Key k = e.getKey();
                     List<PurposeIngredientSupplementRow> list = e.getValue();
 
-                    // 영양제 중복 제거(같은 보충제가 여러 목적/행으로 중복될 수 있음)
-                    List<List<String>> supplements = new ArrayList<>(
-                            list.stream().collect(Collectors.toMap(
-                                    PurposeIngredientSupplementRow::supplementId,
-                                    r -> List.of(r.supplementName(), r.supplementImageUrl()),
-                                    (a, b) -> a,
-                                    LinkedHashMap::new
-                            )).values()
-                    );
+                    List<SupplementByPurposeResponse.SupplementBrief> supplements =
+                            new ArrayList<>(
+                                    list.stream().collect(Collectors.toMap(
+                                            PurposeIngredientSupplementRow::supplementId,     // 키: id
+                                            r -> SupplementByPurposeResponse.SupplementBrief.builder()
+                                                    .id(r.supplementId())
+                                                    .name(r.supplementName())
+                                                    .imageUrl(r.supplementImageUrl())
+                                                    .build(),
+                                            (a, b) -> a,
+                                            LinkedHashMap::new
+                                    )).values()
+                            );
 
                     String purposeKo = AllPurpose.valueOf(k.purposeName()).getDescription();
 
                     return IngredientPurposeBucket.builder()
                             .ingredientName(k.ingredientName())
                             .data(SupplementByPurposeResponse.builder()
+                                    .id(k.ingredientId())
                                     .purposes(List.of(purposeKo))
                                     .supplements(supplements)
                                     .build())
