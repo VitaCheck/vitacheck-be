@@ -114,7 +114,7 @@ public class SupplementService {
                 .toList();
 
         // 2. 페이징된 성분 목록을 조회
-        Page<Ingredient> ingredientPage = ingredientRepository.findByIdIn(ingredientIds, pageable);
+        Page<Ingredient> ingredientPage = ingredientRepository.findByPurposeNames(allPurposes, pageable);
 
         // 3. 페이징된 성분을 기반으로 결과 DTO 매핑
         List<SupplementByPurposeResponse> responses = ingredientPage.getContent().stream()
