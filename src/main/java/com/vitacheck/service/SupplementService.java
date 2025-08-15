@@ -16,7 +16,6 @@ import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +26,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,16 +98,43 @@ public class SupplementService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SupplementDto.SearchResponse> getSupplementsByPurposes(SupplementPurposeRequest request, Pageable pageable) {
+    public Map<String, SupplementByPurposeResponse> getSupplementsByPurposes(SupplementPurposeRequest request) {
         List<AllPurpose> allPurposes = request.getPurposeNames().stream()
                 .map(AllPurpose::valueOf)
                 .toList();
 
-        // (변경) Querydsl을 사용해 DB에서 직접 목적별 영양제 목록을 페이징하여 조회
-        Page<Supplement> supplementPage = supplementRepository.findByPurposeNames(allPurposes, pageable);
+        // 1. 목적(Purpose)으로 PurposeCategory 엔티티를 조회합니다.
+        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
 
-        // Page<Supplement>를 Page<SupplementDto.SearchResponse>로 변환하여 반환
-        return supplementPage.map(SupplementDto.SearchResponse::from);
+        // 결과를 담을 Map을 생성합니다.
+        Map<String, SupplementByPurposeResponse> result = new HashMap<>();
+
+        // 2. 각 PurposeCategory를 순회합니다.
+        for (PurposeCategory category : categories) {
+
+            // 3. category.getIngredients()를 통해 직접 성분(Ingredient) 목록에 접근합니다.
+            for (Ingredient ingredient : category.getIngredients()) {
+
+                // 4. 각 성분에 연결된 영양제 정보를 가져옵니다.
+                List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
+                        .map(si -> si.getSupplement())
+                        .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
+                        .toList();
+
+                // 5. 목적(Purpose) 목록을 가져옵니다.
+                List<String> purposes = ingredient.getPurposeCategories().stream()
+                        .map(pc -> pc.getName().getDescription())
+                        .toList();
+
+                // 6. 최종 결과 Map에 담습니다.
+                result.put(ingredient.getName(),
+                        SupplementByPurposeResponse.builder()
+                                .purposes(purposes)
+                                .supplements(supplementInfo)
+                                .build());
+            }
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -145,14 +172,11 @@ public class SupplementService {
     }
 
 
-    // [수정] List<SupplementDto.SimpleResponse> -> Page<SupplementDto.SimpleResponse>로 반환 타입 변경
-    // [수정] Pageable 파라미터 추가
-    public Page<SupplementDto.SimpleResponse> getSupplementsByBrandId(Long brandId, Pageable pageable) {
-        // [수정] Pageable 객체를 전달하여 페이징된 결과를 받음
-        Page<Supplement> supplementsPage = supplementRepository.findAllByBrandId(brandId, pageable);
-
-        // [수정] Page<Entity>를 Page<DTO>로 변환하여 반환
-        return supplementsPage.map(SupplementDto.SimpleResponse::from);
+    public List<SupplementDto.SimpleResponse> getSupplementsByBrandId(Long brandId) {
+        // 이 메소드는 변경 없음
+        return supplementRepository.findAllByBrandId(brandId).stream()
+                .map(SupplementDto.SimpleResponse::from)
+                .toList();
     }
 
     // 👇👇👇 [수정] getSupplementDetailById 메소드를 원래 로직으로 되돌립니다. 👇👇👇

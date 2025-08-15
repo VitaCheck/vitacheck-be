@@ -17,7 +17,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
-import com.vitacheck.domain.purposes.AllPurpose;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,8 +26,6 @@ import static com.vitacheck.domain.QIngredient.ingredient;
 import static com.vitacheck.domain.QSupplement.supplement;
 import static com.vitacheck.domain.mapping.QSupplementIngredient.supplementIngredient;
 import static com.vitacheck.domain.searchLog.QSearchLog.searchLog;
-import static com.vitacheck.domain.purposes.QPurposeCategory.purposeCategory;
-
 
 @Repository
 @RequiredArgsConstructor
@@ -145,49 +142,5 @@ public class SupplementRepositoryImpl implements SupplementRepositoryCustom {
 
     private BooleanExpression hasIngredientName(String ingredientName) {
         return StringUtils.hasText(ingredientName) ? ingredient.name.eq(ingredientName) : null;
-    }
-
-    // [신규 구현] 목적별 영양제를 페이징하여 조회하는 Querydsl 메서드
-    @Override
-    public Page<Supplement> findByPurposeNames(List<AllPurpose> purposeNames, Pageable pageable) {
-
-        // 1단계: 현재 페이지에 해당하는 영양제의 ID 목록만 조회
-        List<Long> ids = queryFactory
-                .select(supplement.id)
-                .from(supplement)
-                .leftJoin(supplement.supplementIngredients, supplementIngredient)
-                .leftJoin(supplementIngredient.ingredient, ingredient)
-                .leftJoin(ingredient.purposeCategories, purposeCategory)
-                .where(purposeCategory.name.in(purposeNames))
-                .distinct()
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        if (ids.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        // 2단계: 조회된 ID 목록을 기반으로 전체 영양제 데이터와 연관 엔티티를 fetch join으로 조회
-        List<Supplement> content = queryFactory
-                .selectFrom(supplement)
-                .join(supplement.brand, brand).fetchJoin()
-                .join(supplement.supplementIngredients, supplementIngredient).fetchJoin()
-                .join(supplementIngredient.ingredient, ingredient).fetchJoin()
-                .where(supplement.id.in(ids))
-                .distinct()
-                .fetch();
-
-        // 총 카운트 쿼리
-        long total = queryFactory
-                .select(supplement.countDistinct())
-                .from(supplement)
-                .leftJoin(supplement.supplementIngredients, supplementIngredient)
-                .leftJoin(supplementIngredient.ingredient, ingredient)
-                .leftJoin(ingredient.purposeCategories, purposeCategory)
-                .where(purposeCategory.name.in(purposeNames))
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total);
     }
 }
