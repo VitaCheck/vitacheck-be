@@ -60,14 +60,14 @@ public class SupplementController {
 
     // [수정] Map -> Page로 반환 타입 변경
     @PostMapping("/by-purposes")
-    @Operation(summary = "목적별 영양제 조회", description = "선택한 목적에 맞는 영양제 목록을 페이징하여 반환합니다.")
+    @Operation(summary = "목적별 영양소 및 영양제 조회", description = "선택한 목적에 맞는 성분 및 관련 영양제를 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    public CustomResponse<Page<SupplementDto.SearchResponse>> getSupplementsByPurposes(
+    public CustomResponse<Page<SupplementByPurposeResponse>> getSupplementsByPurposes(
             @RequestBody SupplementPurposeRequest request, @ParameterObject Pageable pageable
     ) {
-        Page<SupplementDto.SearchResponse> response = supplementService.getSupplementsByPurposes(request, pageable);
+        Page<SupplementByPurposeResponse> response = supplementService.getSupplementsByPurposes(request, pageable);
         return CustomResponse.ok(response);
     }
 
@@ -82,6 +82,7 @@ public class SupplementController {
         return supplementService.getSupplementDetail(id, userId);
     }
 
+    // [수정] Map -> CustomResponse<Page>로 반환 타입 변경
     @GetMapping("/brand")
     @Operation(summary = "특정 브랜드의 다른 영양제 목록 반환", description = "특정 브랜드의 다른 영양제 목록을 반환합니다.")
     @ApiResponses({

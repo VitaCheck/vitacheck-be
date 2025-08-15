@@ -97,17 +97,45 @@ public class SupplementService {
         return Collections.emptyList();
     }
 
+    // [수정] Map<String, SupplementByPurposeResponse> -> Page<SupplementByPurposeResponse>로 반환 타입 변경
+    // [수정] Pageable 파라미터 추가
     @Transactional(readOnly = true)
-    public Page<SupplementDto.SearchResponse> getSupplementsByPurposes(SupplementPurposeRequest request, Pageable pageable) {
+    public Page<SupplementByPurposeResponse> getSupplementsByPurposes(SupplementPurposeRequest request, Pageable pageable) {
         List<AllPurpose> allPurposes = request.getPurposeNames().stream()
                 .map(AllPurpose::valueOf)
                 .toList();
 
-        // (변경) Querydsl을 사용해 DB에서 직접 목적별 영양제 목록을 페이징하여 조회
-        Page<Supplement> supplementPage = supplementRepository.findByPurposeNames(allPurposes, pageable);
+        // 1. 목적(Purpose)으로 PurposeCategory 엔티티를 조회합니다.
+        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
+        List<Long> ingredientIds = categories.stream()
+                .flatMap(category -> category.getIngredients().stream())
+                .map(Ingredient::getId)
+                .distinct()
+                .toList();
 
-        // Page<Supplement>를 Page<SupplementDto.SearchResponse>로 변환하여 반환
-        return supplementPage.map(SupplementDto.SearchResponse::from);
+        // 2. 페이징된 성분 목록을 조회
+        Page<Ingredient> ingredientPage = ingredientRepository.findByPurposeNames(allPurposes, pageable);
+
+        // 3. 페이징된 성분을 기반으로 결과 DTO 매핑
+        List<SupplementByPurposeResponse> responses = ingredientPage.getContent().stream()
+                .map(ingredient -> {
+                    List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
+                            .map(si -> si.getSupplement())
+                            .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
+                            .toList();
+
+                    List<String> purposes = ingredient.getPurposeCategories().stream()
+                            .map(pc -> pc.getName().getDescription())
+                            .toList();
+
+                    return SupplementByPurposeResponse.builder()
+                            .purposes(purposes)
+                            .supplements(supplementInfo)
+                            .build();
+                })
+                .toList();
+
+        return new PageImpl<>(responses, pageable, ingredientPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)
