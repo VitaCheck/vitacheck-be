@@ -28,4 +28,14 @@ public interface SupplementRepository extends JpaRepository<Supplement, Long>, S
 
     List<Supplement> findAllByNameIn(List<String> names);
 
+    @Query("""
+    SELECT s
+    FROM Supplement s
+    JOIN FETCH s.brand b
+    LEFT JOIN FETCH s.supplementIngredients si
+    LEFT JOIN FETCH si.ingredient i
+    WHERE s.id = :id
+""")
+    Optional<Supplement> findByIdWithBrandAndIngredients(@Param("id") Long id);
+
 }

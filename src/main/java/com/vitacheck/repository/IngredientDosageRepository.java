@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,11 +43,11 @@ public interface IngredientDosageRepository extends JpaRepository<IngredientDosa
     }
 
     @Query("""
-        SELECT d FROM IngredientDosage d
-        WHERE d.ingredient.id = :ingredientId AND d.gender = 'ALL'
+        select d
+        from IngredientDosage d
+        where d.ingredient.id in :ingredientIds
+          and (d.gender is null or d.gender = com.vitacheck.domain.user.Gender.ALL)
+          and (d.minAge is null and d.maxAge is null)
     """)
-    Optional<IngredientDosage> findGeneralDosageByIngredientId(@Param("ingredientId") Long ingredientId);
-
-    @Query("SELECT d FROM IngredientDosage d WHERE d.ingredient.id IN :ingredientIds AND d.gender = 'ALL'")
-    List<IngredientDosage> findGeneralDosageByIngredientIdIn(@Param("ingredientIds") List<Long> ingredientIds);
+    List<IngredientDosage> findGeneralDosagesByIngredientIds(@Param("ingredientIds") Collection<Long> ingredientIds);
 }
