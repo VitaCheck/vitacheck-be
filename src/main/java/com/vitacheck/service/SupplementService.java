@@ -17,6 +17,7 @@ import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,6 +43,7 @@ public class SupplementService {
     private final StatisticsService statisticsService;
     private final SupplementLikeRepository supplementLikeRepository;
     private final IngredientDosageRepository dosageRepository;
+    private final PurposeQueryRepository purposeQueryRepository;
 
     public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
@@ -139,6 +141,61 @@ public class SupplementService {
     }
 
     @Transactional(readOnly = true)
+    public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request, Pageable pageable) {
+        // 1) 요청 enum 변환
+        List<AllPurpose> purposes = request.getPurposeNames().stream()
+                .map(AllPurpose::valueOf)
+                .toList();
+
+        // 2) 평평한 행으로 페이지 조회
+        Page<PurposeIngredientSupplementRow> rowsPage =
+                purposeQueryRepository.findByPurposes(purposes, pageable);
+
+        // 3) 같은 ingredientName 기준으로 그룹핑
+        //    purposeDesc는 rowsPage에선 Enum 이름(String)이므로 description으로 변환 필요
+        Map<String, List<PurposeIngredientSupplementRow>> grouped = rowsPage.getContent().stream()
+                .collect(Collectors.groupingBy(PurposeIngredientSupplementRow::ingredientName, LinkedHashMap::new, Collectors.toList()));
+
+        // 4) 각 그룹을 기존 응답 형태로 변환
+        List<IngredientPurposeBucket> items = grouped.entrySet().stream()
+                .map(entry -> {
+                    String ingredientName = entry.getKey();
+                    List<PurposeIngredientSupplementRow> list = entry.getValue();
+
+                    // 목적 목록(중복 제거 + description으로 변환)
+                    List<String> purposeList = list.stream()
+                            .map(PurposeIngredientSupplementRow::purposeDesc)           // Enum 이름(String)
+                            .distinct()
+                            .map(name -> {
+                                try {
+                                    return AllPurpose.valueOf(name).getDescription();   // description으로 치환
+                                } catch (IllegalArgumentException e) {
+                                    return name; // 혹시 매칭 실패하면 이름 그대로
+                                }
+                            })
+                            .toList();
+
+                    // 영양제 목록 [[name, imageUrl], ...]
+                    List<List<String>> supplements = list.stream()
+                            .map(r -> List.of(r.supplementName(), r.supplementImageUrl()))
+                            .toList();
+
+                    return IngredientPurposeBucket.builder()
+                            .ingredientName(ingredientName)
+                            .data(SupplementByPurposeResponse.builder()
+                                    .purposes(purposeList)
+                                    .supplements(supplements)
+                                    .build())
+                            .build();
+                })
+                .toList();
+
+        // 5) Page로 감싸서 반환(전체 total은 rowsPage의 total 그대로 사용)
+        return new PageImpl<>(items, rowsPage.getPageable(), rowsPage.getTotalElements());
+    }
+
+
+    @Transactional(readOnly = true)
     public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
         Supplement supplement = supplementRepository.findById(supplementId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SUPPLEMENT_NOT_FOUND));
@@ -182,33 +239,41 @@ public class SupplementService {
 
     // 👇👇👇 [수정] getSupplementDetailById 메소드를 원래 로직으로 되돌립니다. 👇👇👇
     public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
-        Supplement supplement = supplementRepository.findByIdWithIngredients(id)
+        // 1) 상세 엔티티는 brand/ingredients까지 한방에 가져오는 메서드로 (아래 3-2에서 추가)
+        Supplement supplement = supplementRepository.findByIdWithBrandAndIngredients(id)
                 .orElseThrow(() -> new RuntimeException("해당 영양제를 찾을 수 없습니다."));
 
+        // 2) 성분 ID 모으기
+        Set<Long> ingredientIds = supplement.getSupplementIngredients().stream()
+                .map(si -> si.getIngredient().getId())
+                .collect(Collectors.toSet());
+
+        // 3) 권장량/UL 벌크 로딩 후 맵으로
+        Map<Long, IngredientDosage> dosageByIngredientId = dosageRepository
+                .findGeneralDosagesByIngredientIds(ingredientIds).stream()
+                .collect(Collectors.toMap(d -> d.getIngredient().getId(), d -> d));
+
+        // 4) 매핑 시 DB 추가 접근 없음
         List<SupplementDto.DetailResponse.IngredientDetail> ingredients =
                 supplement.getSupplementIngredients().stream()
                         .map(si -> {
-                            Ingredient ingredient = si.getIngredient();
-                            IngredientDosage dosage = dosageRepository.findGeneralDosageByIngredientId(ingredient.getId())
-                                    .orElseThrow(() -> new RuntimeException("기준 정보 없음: " + ingredient.getName()));
+                            var ing = si.getIngredient();
+                            var dosage = dosageByIngredientId.get(ing.getId());
 
                             double amount = si.getAmount() != null ? si.getAmount() : 0.0;
-                            // dosage가 아닌 ingredient에서 unit을 가져오도록 수정
-                            String unit = ingredient.getUnit() != null ? ingredient.getUnit() : "";
+                            String unit = ing.getUnit() != null ? ing.getUnit() : "";
 
-                            Double upperLimitOrNull = dosage.getUpperLimit();
-                            double ul = (upperLimitOrNull != null) ? upperLimitOrNull : 0.0;
-
+                            double ul = (dosage != null && dosage.getUpperLimit() != null) ? dosage.getUpperLimit() : 0.0;
                             double percent = (ul > 0) ? (amount / ul) * 100.0 : 0.0;
-                            percent = Math.min(percent, 999);
+                            percent = Math.min(percent, 999.0);
 
                             String status = percent < 30.0 ? "deficient"
                                     : percent <= 70.0 ? "in_range"
                                     : "excessive";
 
                             return SupplementDto.DetailResponse.IngredientDetail.builder()
-                                    .id(ingredient.getId())
-                                    .name(ingredient.getName())
+                                    .id(ing.getId())
+                                    .name(ing.getName())
                                     .amount(amount + unit)
                                     .status(status)
                                     .visualization(SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
