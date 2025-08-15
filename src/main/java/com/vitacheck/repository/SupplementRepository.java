@@ -1,8 +1,6 @@
 package com.vitacheck.repository;
 
 import com.vitacheck.domain.Supplement;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +16,7 @@ public interface SupplementRepository extends JpaRepository<Supplement, Long>, S
     @EntityGraph(attributePaths = {"brand", "supplementIngredients", "supplementIngredients.ingredient"})
     Optional<Supplement> findById(Long id);
 
-    Page<Supplement> findAllByBrandId(Long brandId, Pageable pageable);
+    List<Supplement> findAllByBrandId(Long brandId);
 
     @Query("""
            SELECT s FROM Supplement s JOIN FETCH s.supplementIngredients si
