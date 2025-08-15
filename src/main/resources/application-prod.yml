@@ -65,3 +65,7 @@ open-api:
 # Firebase 키 설정을 위한 부분 (Secrets Manager에서 값을 가져옴)
 firebase:
   key-json: ${firebase.key-json}
+
+oauth2:
+  redirect:
+    frontend-url: https://vitachecking.com
