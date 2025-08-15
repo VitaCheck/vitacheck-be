@@ -9,7 +9,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface SearchLogRepository extends JpaRepository<SearchLog, Long>, SearchLogRepositoryCustom {
-    @Query("SELECT s.keyword FROM SearchLog s WHERE s.userId = :userId GROUP BY s.keyword ORDER BY MAX(s.createdAt) DESC")
+
+
+    @Query("SELECT s.keyword FROM SearchLog s " +
+            "WHERE s.userId = :userId " +
+            "AND s.method = com.vitacheck.domain.searchLog.Method.SEARCH " +
+            "GROUP BY s.keyword " +
+            "ORDER BY MAX(s.createdAt) DESC")
     List<String> findRecentKeywordsByUserId(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT s.keyword FROM SearchLog s " +
