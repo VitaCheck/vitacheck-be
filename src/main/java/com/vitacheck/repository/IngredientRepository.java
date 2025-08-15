@@ -1,6 +1,8 @@
 package com.vitacheck.repository;
 
 import com.vitacheck.domain.Ingredient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,4 +13,6 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     List<Ingredient> findByNameContainingIgnoreCase(String keyword);
 
     String existsByName(String name);
+
+    Page<Ingredient> findByIdIn(List<Long> ids, Pageable pageable);
 }
