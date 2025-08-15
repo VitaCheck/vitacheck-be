@@ -1,14 +1,19 @@
 package com.vitacheck.service;
 
+import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.searchLog.Method;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.searchLog.SearchLog;
 import com.vitacheck.domain.user.Gender;
+import com.vitacheck.domain.user.User;
+import com.vitacheck.dto.SupplementDto;
 import com.vitacheck.repository.BrandRepository;
 import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.repository.SearchLogRepository;
 import com.vitacheck.repository.SupplementRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Async;
@@ -18,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -149,5 +154,35 @@ public class SearchLogService {
 
         // 클릭은 method가 고정이므로 내부에서 지정
         record(userId, clickedText, category, Method.CLICK, age, gender);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> findRecentSearches(User user, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        return searchLogRepository.findRecentKeywordsByUserId(user.getId(), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SupplementDto.SimpleResponse> findRecentProducts(User user, int limit) {
+        // 1. 최신순으로 정렬된, 중복 없는 상품 이름 목록을 가져옵니다.
+        Pageable pageable = PageRequest.of(0, limit);
+        List<String> supplementNames = searchLogRepository.findRecentViewedSupplementNamesByUserId(user.getId(), pageable);
+
+        if (supplementNames.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 2. 이름 목록으로 Supplement 엔티티들을 한 번에 조회합니다.
+        List<Supplement> supplements = supplementRepository.findAllByNameIn(supplementNames);
+
+        // 3. 1번에서 가져온 최신순으로 다시 정렬하며 DTO로 변환합니다.
+        Map<String, Supplement> supplementMap = supplements.stream()
+                .collect(Collectors.toMap(Supplement::getName, s -> s));
+
+        return supplementNames.stream()
+                .map(supplementMap::get)
+                .filter(Objects::nonNull)
+                .map(SupplementDto.SimpleResponse::from)
+                .collect(Collectors.toList());
     }
 }
