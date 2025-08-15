@@ -11,14 +11,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.vitacheck.domain.QSupplement.supplement;
 import static com.vitacheck.domain.QIngredient.ingredient;
 import static com.vitacheck.domain.mapping.QSupplementIngredient.supplementIngredient;
 import static com.vitacheck.domain.purposes.QPurposeCategory.purposeCategory;
-// import static com.vitacheck.domain.mapping.QIngredientCategory.ingredientCategory;
 
 @Repository
 @RequiredArgsConstructor
@@ -46,7 +44,6 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 .join(ingredient.purposeCategories, purposeCategory)
                 .where(purposeFilter, hasAnySupplement)
                 .distinct()
-                // ▼ 결정성 있는 정렬: name → ingredient.name → ingredient.id(타이브레이커)
                 .orderBy(
                         purposeCategory.name.asc(),
                         ingredient.name.asc(),
@@ -106,13 +103,13 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                         purposeFilter,
                         pairExpr.in(pairKeys)
                 )
-                // 본문 정렬도 키 정렬 + supplement.name으로 고정
                 .orderBy(
                         purposeCategory.name.asc(),
                         ingredient.name.asc(),
                         ingredient.id.asc(),
                         supplement.name.asc()
                 )
+                .limit(300) // ✅ Swagger 오류 방지용 안전 제한
                 .fetch();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);

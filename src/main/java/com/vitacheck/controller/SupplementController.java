@@ -83,7 +83,12 @@ public class SupplementController {
             @RequestBody SupplementPurposeRequest request,
             @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
+        // ① 요청 들어온 순간 Pageable 값 확인
+        log.info("[Controller] page={}, size={}, sort={}",
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
         Page<IngredientPurposeBucket> page = supplementService.getSupplementsByPurposesPaged(request, pageable);
+        log.info("[Controller] returned content.size={}, totalElements={}, totalPages={}",
+                page.getContent().size(), page.getTotalElements(), page.getTotalPages());
         return CustomResponse.ok(page);
     }
 
