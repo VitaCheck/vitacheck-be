@@ -152,7 +152,7 @@ public class SupplementService {
                 .toList();
 
         Page<PurposeIngredientSupplementRow> rowsPage =
-                purposeQueryRepository.findByPurposesPagedByIngredient(purposes, pageable);
+                purposeQueryRepository.findByPurposes(purposes, pageable);
 
         // 2) ingredientId 기준으로 그룹핑
         record Key(Long ingredientId, String ingredientName) {}
@@ -160,10 +160,11 @@ public class SupplementService {
                 rowsPage.getContent().stream()
                         .collect(Collectors.groupingBy(
                                 r -> new Key(r.ingredientId(), r.ingredientName()),
-                                LinkedHashMap::new, Collectors.toList()
+                                LinkedHashMap::new,
+                                Collectors.toList()
                         ));
 
-        // 3) 각 그룹 → 응답 변환
+        // 3) 각 그룹을 IngredientPurposeBucket 으로 변환
         List<IngredientPurposeBucket> items = grouped.entrySet().stream()
                 .map(e -> {
                     Key k = e.getKey();
@@ -185,7 +186,7 @@ public class SupplementService {
                                     .values()
                             );
 
-                    // 목적 설명을 리스트로 수집
+                    // 여러 목적 수집
                     Set<String> purposeSet = list.stream()
                             .map(r -> AllPurpose.valueOf(r.purposeDesc()).getDescription())
                             .collect(Collectors.toCollection(LinkedHashSet::new)); // 순서 유지
@@ -194,7 +195,7 @@ public class SupplementService {
                             .ingredientName(k.ingredientName())
                             .data(SupplementByPurposeResponse.builder()
                                     .id(k.ingredientId())
-                                    .purposes(new ArrayList<>(purposeSet))
+                                    .purposes(new ArrayList<>(purposeSet)) // 여러 목적 리스트
                                     .supplements(supplements)
                                     .build())
                             .build();
@@ -203,9 +204,6 @@ public class SupplementService {
 
         return new PageImpl<>(items, rowsPage.getPageable(), rowsPage.getTotalElements());
     }
-
-
-
 
     @Transactional(readOnly = true)
     public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
