@@ -155,11 +155,11 @@ public class SupplementService {
                 purposeQueryRepository.findByPurposes(purposes, pageable);
 
         // 2) (purpose, ingredientId) 쌍으로 그룹핑
-        record Key(String purposeName, Long ingredientId, String ingredientName) {}
+        record Key(Long ingredientId, String ingredientName) {}
         Map<Key, List<PurposeIngredientSupplementRow>> grouped =
                 rowsPage.getContent().stream()
                         .collect(Collectors.groupingBy(
-                                r -> new Key(r.purposeDesc(), r.ingredientId(), r.ingredientName()),
+                                r -> new Key(r.ingredientId(), r.ingredientName()),
                                 LinkedHashMap::new, Collectors.toList()
                         ));
 
@@ -183,13 +183,15 @@ public class SupplementService {
                                     )).values()
                             );
 
-                    String purposeKo = AllPurpose.valueOf(k.purposeName()).getDescription();
+                    Set<String> purposeSet = list.stream()
+                            .map(r -> AllPurpose.valueOf(r.purposeDesc()).getDescription())
+                            .collect(Collectors.toCollection(LinkedHashSet::new)); // 순서 유지
 
                     return IngredientPurposeBucket.builder()
                             .ingredientName(k.ingredientName())
                             .data(SupplementByPurposeResponse.builder()
                                     .id(k.ingredientId())
-                                    .purposes(List.of(purposeKo))
+                                    .purposes(new ArrayList<>(purposeSet)) // ✅ 여러 목적 리스트로 반환
                                     .supplements(supplements)
                                     .build())
                             .build();
