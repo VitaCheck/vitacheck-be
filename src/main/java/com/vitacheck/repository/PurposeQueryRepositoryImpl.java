@@ -32,12 +32,13 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 ? null
                 : purposeCategory.name.in(purposes);
 
-        // 1) (purpose, ingredientId) 쌍을 distinct로 페이지 자르기
-        //    결과: keys = [[purposeName(String), ingredientId(Long)], ...]
+        // 1) (purpose, ingredientId) 쌍을 DISTINCT로 페이징
+        //    ※ 보충제 연결이 있는 성분만 포함하도록 supplementIngredients 조인 추가
         var keys = queryFactory
                 .select(purposeCategory.name.stringValue(), ingredient.id)
                 .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
+                .join(ingredient.supplementIngredients, supplementIngredient)
                 .where(purposeFilter)
                 .distinct()
                 .orderBy(purposeCategory.name.asc(), ingredient.name.asc())
@@ -52,37 +53,35 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                             purposeCategory.name.stringValue(), ingredient.id))
                     .from(ingredient)
                     .join(ingredient.purposeCategories, purposeCategory)
+                    .join(ingredient.supplementIngredients, supplementIngredient)
                     .where(purposeFilter)
                     .fetchOne();
             return new PageImpl<>(List.of(), pageable, total0 == null ? 0 : total0);
         }
 
-        // total: (purpose, ingredientId) 쌍 개수
+        // 1-1) 총 개수(동일 기준)  ※ concat distinct이 느리면 서브쿼리로 대체 가능
         Long total = queryFactory
                 .select(Expressions.numberTemplate(Long.class,
                         "count(distinct concat({0},'-',{1}))",
                         purposeCategory.name.stringValue(), ingredient.id))
                 .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
+                .join(ingredient.supplementIngredients, supplementIngredient)
                 .where(purposeFilter)
                 .fetchOne();
 
-        // keys → (purpose=..., ingredientId=...) 조건의 OR 묶음
-        List<BooleanExpression> ors = new ArrayList<>(keys.size());
-        for (var t : keys) {
-            String p = t.get(0, String.class);
-            Long ingId = t.get(1, Long.class);
-            ors.add(purposeCategory.name.stringValue().eq(p).and(ingredient.id.eq(ingId)));
-        }
-        BooleanExpression pairPredicate = ors.stream().reduce(BooleanExpression::or).orElse(null);
+        // 2) OR 폭탄 제거: ingredientIds만 추려서, 요청 목적과 함께 단순 조건으로 본문 조회
+        List<Long> ingredientIds = keys.stream()
+                .map(t -> t.get(1, Long.class))
+                .distinct()
+                .toList();
 
-        // 2) 방금 자른 (purpose, ingredient) 쌍들에 한해 평평한 행 전량 조회 (여기선 limit 없음)
         List<PurposeIngredientSupplementRow> content = queryFactory
                 .select(Projections.constructor(
                         PurposeIngredientSupplementRow.class,
                         ingredient.id,
                         ingredient.name,
-                        purposeCategory.name.stringValue(),   // "EYE"/"SKIN"
+                        purposeCategory.name.stringValue(),   // "EYE"/"SKIN" 등
                         supplement.id,
                         supplement.name,
                         supplement.imageUrl
@@ -91,7 +90,10 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 .join(ingredient.purposeCategories, purposeCategory)
                 .join(ingredient.supplementIngredients, supplementIngredient)
                 .join(supplementIngredient.supplement, supplement)
-                .where(pairPredicate)
+                .where(
+                        ingredient.id.in(ingredientIds),
+                        purposeFilter
+                )
                 .orderBy(purposeCategory.name.asc(), ingredient.name.asc(), supplement.name.asc())
                 .fetch();
 
