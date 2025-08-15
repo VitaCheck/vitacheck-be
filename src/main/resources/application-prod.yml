@@ -69,3 +69,6 @@ firebase:
 oauth2:
   redirect:
     frontend-url: https://vitachecking.com
+
+server:
+  forward-headers-strategy: framework
