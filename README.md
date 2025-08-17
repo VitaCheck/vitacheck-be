@@ -31,6 +31,7 @@
 
 <img width="1390" height="962" alt="Image" src="https://github.com/user-attachments/assets/c53dca3d-4df6-47ca-a2bf-bf83fe119a48" />
 
+
 ### 🌿 브랜치 전략 및 협업 규칙
 
 저희 프로젝트는 ```Forking Workflow```를 기반으로 한 브랜치 전략을 사용합니다. ```중앙 원격 저장소(upstream)```의 ```develop``` 브랜치를 보호하고, 코드 리뷰를 통해 안정적인 코드 통합을 지향합니다.
@@ -99,8 +100,9 @@ vitacheck-be/
 ---
 
 **🚀 박지영 (Backend Developer)**
-- **GitHub**: [@lee-nada](https://github.com/lee-nada)
-- **Email**: lee-nada@example.com
+- **GitHub**: [@ParkJiYeoung8297](https://github.com/ParkJiYeoung8297)
+- **Portfolio**:[jiyeong-portfolio.com](https://iodized-chartreuse-9ca.notion.site/UMC-2020b06a0742808ab4afe5c53bbf6afa)
+- **Email**: wldud8297@gmail.com
 - **한 줄 소개**: 사용자를 위한 빠르고 정확한 API를 만듭니다.
 
 ---
