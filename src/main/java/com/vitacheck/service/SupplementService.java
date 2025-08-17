@@ -2,6 +2,7 @@ package com.vitacheck.service;
 
 import com.querydsl.core.Tuple;
 import com.vitacheck.config.jwt.CustomUserDetails;
+import com.vitacheck.domain.Brand;
 import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
@@ -44,6 +45,7 @@ public class SupplementService {
     private final SupplementLikeRepository supplementLikeRepository;
     private final IngredientDosageRepository dosageRepository;
     private final PurposeQueryRepository purposeQueryRepository;
+    private final BrandRepository brandRepository;
 
     public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
@@ -210,10 +212,13 @@ public class SupplementService {
         Supplement supplement = supplementRepository.findById(supplementId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SUPPLEMENT_NOT_FOUND));
 
+        Brand brand = supplement.getBrand();
+
         boolean liked = (userId != null) && supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
 
         return SupplementDetailResponseDto.builder()
                 .supplementId(supplement.getId())
+                .brandId(brand != null ? brand.getId() : null)
                 .brandName(supplement.getBrand().getName())
                 .brandImageUrl(supplement.getBrand().getImageUrl())
                 .supplementName(supplement.getName())

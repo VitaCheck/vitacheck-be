@@ -13,6 +13,7 @@ import java.util.List;
 public class SupplementDetailResponseDto {
 
     private Long supplementId;
+    private Long brandId; // 브랜드 아이디 추가
     private String brandName;
     private String brandImageUrl;
     private String supplementName;
