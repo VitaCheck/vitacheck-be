@@ -6,6 +6,7 @@ import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.*;
 import com.vitacheck.domain.mapping.QIngredientAlternativeFood;
 import com.vitacheck.domain.mapping.QSupplementIngredient;
+import com.vitacheck.domain.searchLog.QSearchLog;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
@@ -23,7 +24,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.vitacheck.domain.searchLog.QSearchLog;
 import com.querydsl.core.Tuple;
 
 
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.vitacheck.domain.searchLog.QSearchLog.searchLog;
 
 @Service
 @RequiredArgsConstructor
@@ -197,8 +196,6 @@ public class IngredientService {
                     .caution(ingredient.getCaution())
                     .age(ageGroup)
                     .gender(gender)
-//                .recommendedDosage(dosage.getRecommendedDosage())
-//                .upperLimit(dosage.getUpperLimit())
                     .recommendedDosage(recommendedDosage)
                     .upperLimit(upperLimit)
                     .subIngredients(foodDTOs)

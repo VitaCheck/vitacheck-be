@@ -26,12 +26,16 @@ public class PurposeCategory {
     @Column(nullable = false, unique = true)
     private AllPurpose name;
 
-    @ManyToMany
-    @JoinTable(
-            name = "purpose_ingredient", // 생성될 매핑 테이블의 이름
-            joinColumns = @JoinColumn(name = "purpose_category_id"),
-            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
-    )
+    @OneToMany(mappedBy = "purposeCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Ingredient> ingredients = new ArrayList<>();
+    private List<PurposeIngredient> purposeIngredients = new ArrayList<>();
+
+//    @ManyToMany
+//    @JoinTable(
+//            name = "purpose_ingredient", // 생성될 매핑 테이블의 이름
+//            joinColumns = @JoinColumn(name = "purpose_category_id"),
+//            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
+//    )
+//    @Builder.Default
+//    private List<Ingredient> ingredients = new ArrayList<>();
 }

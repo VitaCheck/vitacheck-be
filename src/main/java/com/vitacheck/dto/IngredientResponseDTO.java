@@ -63,6 +63,16 @@ public class IngredientResponseDTO {
         private String name;
     }
 
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class IngredientWithSupplement {
+        private Long ingredientId;                 // 성분 ID
+        private String ingredientName;             // 성분 이름
+        private List<IngredientSupplement> supplements; // 관련 영양제
+    }
+
 }
 
 
