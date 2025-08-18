@@ -114,11 +114,10 @@ public class SupplementService {
         // 2) 얇은 페이지: 성분 ID만
         Slice<Long> ingredientSlice = purposeQueryRepository.findIngredientIdPageByPurposes(purposes, pageable);
         List<Long> ingredientIds = ingredientSlice.getContent();
-        if (ingredientIds.isEmpty()) {
-            // Slice는 전체 요소 개수를 모르므로 0 대신 ingredientSlice.getTotalElements() 사용 불가
-            return new PageImpl<>(List.of(), pageable, 0);
-        }
 
+        if (ingredientIds.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), pageable, false);
+        }
 
         // 3) 목적과 보충제는 각각 가볍게 조회
         Map<Long, List<AllPurpose>> purposeMap =
