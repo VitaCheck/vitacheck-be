@@ -3,6 +3,7 @@ package com.vitacheck.repository;
 import com.vitacheck.domain.purposes.AllPurpose;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -16,7 +17,7 @@ public interface PurposeQueryRepository {
      * 영양소(ingredient)들 중에서, 성분 ID만 얇게 페이지네이션하여 반환
      * 정렬 기준: ingredient.name ASC, ingredient.id ASC
      */
-    Page<Long> findIngredientIdPageByPurposes(List<AllPurpose> purposes, Pageable pageable);
+    Slice<Long> findIngredientIdPageByPurposes(List<AllPurpose> purposes, Pageable pageable);
 
     /**
      * 주어진 성분 ID 집합에 대해, (옵션) 목적 필터를 적용하여

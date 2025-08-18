@@ -31,26 +31,11 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
 
     // 1. 성분 아이디만 페이지네이션
     @Override
-    public Page<Long> findIngredientIdPageByPurposes(List<AllPurpose> purposes, Pageable pageable) {
+    public Slice<Long> findIngredientIdPageByPurposes(List<AllPurpose> purposes, Pageable pageable) {
         BooleanExpression purposeFilter = (purposes == null || purposes.isEmpty())
                 ? null
                 : purposeCategory.name.in(purposes);
 
-        // 전체 카운트 (성분 기준)
-        Long total = queryFactory
-                .select(ingredient.id.countDistinct())
-                .from(ingredient)
-                .join(ingredient.purposeCategories, purposeCategory)
-                .where(
-                        purposeFilter,
-                        JPAExpressions.selectOne()
-                                .from(supplementIngredient)
-                                .where(supplementIngredient.ingredient.eq(ingredient))
-                                .exists()
-                )
-                .fetchOne();
-
-        // 얇은 페이지: 성분 ID만
         List<Long> ingredientIds = queryFactory
                 .select(ingredient.id)
                 .from(ingredient)
@@ -65,10 +50,17 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 .distinct()
                 .orderBy(ingredient.name.asc(), ingredient.id.asc())
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .limit(pageable.getPageSize() + 1) // <--- 핵심 변경점
                 .fetch();
 
-        return new PageImpl<>(ingredientIds, pageable, total == null ? 0 : total);
+        // 얇은 페이지: 성분 ID만
+        boolean hasNext = false;
+        if (ingredientIds.size() > pageable.getPageSize()) {
+            ingredientIds.remove(pageable.getPageSize()); // 마지막 데이터(다음 페이지 확인용)는 제거
+            hasNext = true;
+        }
+
+        return new SliceImpl<>(ingredientIds, pageable, hasNext);
     }
 
     // 2. 목적을 기준으로 영양소 필터링
