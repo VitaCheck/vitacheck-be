@@ -80,15 +80,14 @@ public class SupplementController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    public CustomResponse<Slice<IngredientPurposeBucket>> getSupplementsByPurposes(
+    public Slice<IngredientPurposeBucket> getSupplementsByPurposes(
             @RequestBody SupplementPurposeRequest request,
             @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
         // ① 요청 들어온 순간 Pageable 값 확인
         log.info("[Controller] page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        Slice<IngredientPurposeBucket> slice = supplementService.getSupplementsByPurposesPaged(request, pageable);
-        return CustomResponse.ok(slice);
+        return supplementService.getSupplementsByPurposesPaged(request, pageable);
     }
 
 
