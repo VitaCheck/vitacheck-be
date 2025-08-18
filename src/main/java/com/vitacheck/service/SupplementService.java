@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -103,8 +104,8 @@ public class SupplementService {
     }
 
     @Transactional(readOnly = true)
-    public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request,
-                                                                       Pageable pageable) {
+    public Slice<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request,
+                                                                        Pageable pageable) {
         // 1) 요청 enum 파싱
         List<AllPurpose> purposes = request.getPurposeNames().stream()
                 .map(String::trim)
@@ -114,11 +115,13 @@ public class SupplementService {
                 .toList();
 
         // 2) 얇은 페이지: 성분 ID만
-        Page<Long> ingredientPage = purposeQueryRepository.findIngredientIdPageByPurposes(purposes, pageable);
-        List<Long> ingredientIds = ingredientPage.getContent();
+        Slice<Long> ingredientSlice = purposeQueryRepository.findIngredientIdPageByPurposes(purposes, pageable);
+        List<Long> ingredientIds = ingredientSlice.getContent();
         if (ingredientIds.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, ingredientPage.getTotalElements());
+            // Slice는 전체 요소 개수를 모르므로 0 대신 ingredientSlice.getTotalElements() 사용 불가
+            return new PageImpl<>(List.of(), pageable, 0);
         }
+
 
         // 3) 목적과 보충제는 각각 가볍게 조회
         Map<Long, List<AllPurpose>> purposeMap =
@@ -163,7 +166,7 @@ public class SupplementService {
                     .build());
         }
 
-        return new PageImpl<>(items, pageable, ingredientPage.getTotalElements());
+        return new PageImpl<>(items, pageable, ingredientSlice.hasNext() ? pageable.getOffset() + items.size() + 1 : pageable.getOffset() + items.size());
     }
 
 

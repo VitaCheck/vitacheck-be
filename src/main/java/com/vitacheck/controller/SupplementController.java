@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -79,17 +80,15 @@ public class SupplementController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    public CustomResponse<Page<IngredientPurposeBucket>> getSupplementsByPurposes(
+    public CustomResponse<Slice<IngredientPurposeBucket>> getSupplementsByPurposes(
             @RequestBody SupplementPurposeRequest request,
             @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
         // ① 요청 들어온 순간 Pageable 값 확인
         log.info("[Controller] page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        Page<IngredientPurposeBucket> page = supplementService.getSupplementsByPurposesPaged(request, pageable);
-        log.info("[Controller] returned content.size={}, totalElements={}, totalPages={}",
-                page.getContent().size(), page.getTotalElements(), page.getTotalPages());
-        return CustomResponse.ok(page);
+        Slice<IngredientPurposeBucket> slice = supplementService.getSupplementsByPurposesPaged(request, pageable);
+        return CustomResponse.ok(slice);
     }
 
 
