@@ -80,14 +80,18 @@ public class SupplementController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    public Slice<IngredientPurposeBucket> getSupplementsByPurposes(
+    // ⭐️ 반환 타입을 SliceResponseDto 로 변경합니다.
+    public SliceResponseDto<IngredientPurposeBucket> getSupplementsByPurposes(
             @RequestBody SupplementPurposeRequest request,
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable
+            @ParameterObject Pageable pageable
     ) {
-        // ① 요청 들어온 순간 Pageable 값 확인
         log.info("[Controller] page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-        return supplementService.getSupplementsByPurposesPaged(request, pageable);
+
+        Slice<IngredientPurposeBucket> sliceData = supplementService.getSupplementsByPurposesPaged(request, pageable);
+
+        // ⭐️ 서비스에서 받은 Slice 데이터를 DTO로 감싸서 반환합니다.
+        return new SliceResponseDto<>(sliceData);
     }
 
 
