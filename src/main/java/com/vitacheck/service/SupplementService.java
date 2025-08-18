@@ -17,10 +17,7 @@ import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -166,7 +163,7 @@ public class SupplementService {
                     .build());
         }
 
-        return new PageImpl<>(items, pageable, ingredientSlice.hasNext() ? pageable.getOffset() + items.size() + 1 : pageable.getOffset() + items.size());
+        return new SliceImpl<>(items, pageable, ingredientSlice.hasNext());
     }
 
 
