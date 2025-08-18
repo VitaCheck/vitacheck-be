@@ -1,5 +1,6 @@
 package com.vitacheck.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.config.jwt.CustomUserDetails;
@@ -83,7 +84,6 @@ public class IngredientService {
     public IngredientResponseDTO.IngredientDetails getIngredientDetails(Long id) {
         String dosageErrorCode = null;
         String foodErrorCode = null;
-        String supplementErrorCode = null;
 
 
         // 1. 성분 가져오기
@@ -167,27 +167,6 @@ public class IngredientService {
                 foodErrorCode = ErrorCode.INGREDIENT_FOOD_NOT_FOUND.name();
             }
 
-            // 7. 관련 영양제 조회
-            QSupplementIngredient si = QSupplementIngredient.supplementIngredient;
-            QSupplement s = QSupplement.supplement;
-
-            List<IngredientResponseDTO.IngredientSupplement> supplements = queryFactory
-                    .select(Projections.fields(
-                            IngredientResponseDTO.IngredientSupplement.class,
-                            s.id.as("id"),
-                            s.name.as("name"),
-                            s.coupangUrl.as("coupangUrl"),
-                            s.imageUrl.as("imageUrl")
-                    ))
-                    .from(si)
-                    .join(s).on(si.supplement.id.eq(s.id))
-                    .where(si.ingredient.id.eq(id))
-                    .fetch();
-
-            supplementErrorCode = supplements.isEmpty()
-                    ? ErrorCode.INGREDIENT_SUPPLEMENT_NOT_FOUND.name()
-                    : null;
-
             return IngredientResponseDTO.IngredientDetails.builder()
                     .id(ingredient.getId())
                     .name(ingredient.getName())
@@ -199,13 +178,60 @@ public class IngredientService {
                     .recommendedDosage(recommendedDosage)
                     .upperLimit(upperLimit)
                     .subIngredients(foodDTOs)
-                    .supplements(supplements)
                     .DosageErrorCode(dosageErrorCode)
                     .FoodErrorCode(foodErrorCode)
-                    .SupplementErrorCode(supplementErrorCode)
                     .build();
 
         }
+
+
+    public IngredientResponseDTO.IngredientSupplementBasedCursor getIngredientSupplementBasedCursor(Long id, Long cursor, int size) {
+
+
+    //1. 성분 이름으로 검색
+        Ingredient ingredient = ingredientRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.INGREDIENT_NOT_FOUND));
+
+        // 2. 관련 영양제 조회
+        QSupplementIngredient si = QSupplementIngredient.supplementIngredient;
+        QSupplement s = QSupplement.supplement;
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        //필수 조건
+        builder.and(si.ingredient.id.eq(ingredient.getId()));
+        //옵션
+        if (cursor != null) {
+            builder.and(s.id.gt(cursor));  // cursor가 있을 때만 조건 추가
+        }
+
+            List<IngredientResponseDTO.IngredientSupplement> supplements = queryFactory
+                    .select(Projections.fields(
+                            IngredientResponseDTO.IngredientSupplement.class,
+                            s.id.as("id"),
+                            s.name.as("name"),
+                            s.coupangUrl.as("coupangUrl"),
+                            s.imageUrl.as("imageUrl")
+                    ))
+                    .from(si)
+                    .join(s).on(si.supplement.id.eq(s.id))
+                    .where(builder)
+                    .orderBy(s.id.asc())   // id 순서대로 정렬
+                    .limit(size + 1)       // 다음 페이지가 있는지 확인하려고 size+1 가져오기
+                    .fetch();
+
+        // 다음 cursor 계산
+        Long nextCursor = null;
+        if (supplements.size() > size) {
+            IngredientResponseDTO.IngredientSupplement last = supplements.remove(supplements.size() - 1);
+            nextCursor = last.getId();
+        }
+
+        return IngredientResponseDTO.IngredientSupplementBasedCursor.builder()
+                .supplements(supplements)
+                .nextCursor(nextCursor)
+                .build();
+    }
 
 
     public List<PopularIngredientDto> findPopularIngredients(String ageGroup, int limit) {

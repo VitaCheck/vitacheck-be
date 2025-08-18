@@ -60,12 +60,7 @@ public class IngredientController {
         2. foodErrorCode
         
         **`INGREDIENT_FOOD_NOT_FOUND` :** 해당 성분의 대체 식품 없음
-        
-        3. supplementErrorCode
-        
-        **`INGREDIENT_SUPPLEMENT_NOT_FOUND` :** 해당 성분 관련 영양제 없음
-        
-        
+       
         """
 
     )
@@ -74,6 +69,26 @@ public class IngredientController {
             @Parameter(name = "id", description = "성분 ID", example = "1")
             @PathVariable Long id) {
         IngredientResponseDTO.IngredientDetails responseDto = ingredientService.getIngredientDetails(id);
+        return CustomResponse.ok(responseDto);
+    }
+
+    @Operation(
+            summary = "성분 관련 영양제 조회 (cursor 기반) API By 박지영",
+            description = """
+        성분 관련 영양제를 cursor기반으로 반환합니다..
+        """
+
+    )
+    @GetMapping("/api/v1/ingredients/{id}/supplements")
+    public CustomResponse<IngredientResponseDTO.IngredientSupplementBasedCursor> getIngredientSupplementBasedCursor(
+            @Parameter(name = "id", description = "성분 ID", example = "1")
+            @PathVariable Long id,
+            @Parameter(name = "cursor", description = "이전 페이지 마지막 supplement ID", example = "1")
+            @RequestParam(required = false) Long cursor,
+            @Parameter(name = "size", description = "가져올 데이터 개수", example = "40")
+            @RequestParam(defaultValue = "40") int size) {
+        IngredientResponseDTO.IngredientSupplementBasedCursor responseDto =
+                ingredientService.getIngredientSupplementBasedCursor(id, cursor, size);
         return CustomResponse.ok(responseDto);
     }
 
