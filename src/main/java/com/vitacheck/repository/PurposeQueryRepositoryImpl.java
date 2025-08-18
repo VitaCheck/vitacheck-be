@@ -1,5 +1,6 @@
 package com.vitacheck.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -7,11 +8,15 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.dto.PurposeIngredientSupplementRow;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.vitacheck.domain.QSupplement.supplement;
 import static com.vitacheck.domain.QIngredient.ingredient;
@@ -24,18 +29,34 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
+    // 1. 성분 아이디만 페이지네이션
     @Override
-    public Page<PurposeIngredientSupplementRow> findByPurposesPagedByIngredient(List<AllPurpose> purposes, Pageable pageable) {
+    public Page<Long> findIngredientIdPageByPurposes(List<AllPurpose> purposes, Pageable pageable) {
         BooleanExpression purposeFilter = (purposes == null || purposes.isEmpty())
                 ? null
                 : purposeCategory.name.in(purposes);
 
-        // 성분 ID 기준 키 페이징
-        var ingredientIds = queryFactory
+        // 전체 카운트 (성분 기준)
+        Long total = queryFactory
+                .select(ingredient.id.countDistinct())
+                .from(ingredient)
+                .join(ingredient.purposeCategories, purposeCategory)
+                .where(
+                        purposeFilter,
+                        JPAExpressions.selectOne()
+                                .from(supplementIngredient)
+                                .where(supplementIngredient.ingredient.eq(ingredient))
+                                .exists()
+                )
+                .fetchOne();
+
+        // 얇은 페이지: 성분 ID만
+        List<Long> ingredientIds = queryFactory
                 .select(ingredient.id)
                 .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
-                .where(purposeFilter,
+                .where(
+                        purposeFilter,
                         JPAExpressions.selectOne()
                                 .from(supplementIngredient)
                                 .where(supplementIngredient.ingredient.eq(ingredient))
@@ -47,140 +68,81 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        if (ingredientIds.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
-        }
-
-        Long total = queryFactory
-                .select(ingredient.id.countDistinct())
-                .from(ingredient)
-                .join(ingredient.purposeCategories, purposeCategory)
-                .where(purposeFilter,
-                        JPAExpressions.selectOne()
-                                .from(supplementIngredient)
-                                .where(supplementIngredient.ingredient.eq(ingredient))
-                                .exists()
-                )
-                .fetchOne();
-
-        List<PurposeIngredientSupplementRow> content = queryFactory
-                .select(Projections.constructor(
-                        PurposeIngredientSupplementRow.class,
-                        ingredient.id,
-                        ingredient.name,
-                        purposeCategory.name.stringValue(),
-                        supplement.id,
-                        supplement.name,
-                        supplement.imageUrl
-                ))
-                .from(ingredient)
-                .join(ingredient.purposeCategories, purposeCategory)
-                .join(ingredient.supplementIngredients, supplementIngredient)
-                .join(supplementIngredient.supplement, supplement)
-                .where(
-                        purposeFilter,
-                        ingredient.id.in(ingredientIds)
-                )
-                .orderBy(
-                        ingredient.name.asc(),
-                        ingredient.id.asc(),
-                        purposeCategory.name.asc(),
-                        supplement.name.asc()
-                )
-                .fetch();
-
-        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+        return new PageImpl<>(ingredientIds, pageable, total == null ? 0 : total);
     }
 
-
+    // 2. 목적을 기준으로 영양소 필터링
     @Override
-    public Page<PurposeIngredientSupplementRow> findByPurposes(List<AllPurpose> purposes, Pageable pageable) {
+    public Map<Long, List<AllPurpose>> findPurposesByIngredientIds(Collection<Long> ingredientIds,
+                                                                   @Nullable List<AllPurpose> filterPurposes) {
+        if (ingredientIds.isEmpty()) return Map.of();
 
-        BooleanExpression purposeFilter = (purposes == null || purposes.isEmpty())
+        BooleanExpression filter = (filterPurposes == null || filterPurposes.isEmpty())
                 ? null
-                : purposeCategory.name.in(purposes);
+                : purposeCategory.name.in(filterPurposes);
 
-        // ✦ 1) supplement 연결 '존재'만 보장 (행 폭증 방지)
-        var hasAnySupplement = JPAExpressions.selectOne()
-                .from(supplementIngredient)
-                .where(supplementIngredient.ingredient.eq(ingredient))
-                .exists();
-
-        // ✦ 2) (purpose, ingredient) 키를 결정적으로 페이징
-        var keys = queryFactory
-                .select(purposeCategory.name.stringValue(), ingredient.id, ingredient.name)
+        List<Tuple> rows = queryFactory
+                .select(ingredient.id, purposeCategory.name)
                 .from(ingredient)
                 .join(ingredient.purposeCategories, purposeCategory)
-                .where(purposeFilter, hasAnySupplement)
-                .distinct()
-                .orderBy(
-                        purposeCategory.name.asc(),
-                        ingredient.name.asc(),
-                        ingredient.id.asc()
-                )
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .where(ingredient.id.in(ingredientIds), filter)
                 .fetch();
 
-        // 페이지 범위를 벗어난 경우: 총합만 계산하고 빈 페이지 반환
-        if (keys.isEmpty()) {
-            Long total0 = queryFactory
-                    .select(Expressions.numberTemplate(Long.class,
-                            "count(distinct concat({0},'-',{1}))",
-                            purposeCategory.name.stringValue(), ingredient.id))
-                    .from(ingredient)
-                    .join(ingredient.purposeCategories, purposeCategory)
-                    .where(purposeFilter, hasAnySupplement)
-                    .fetchOne();
-            return new PageImpl<>(List.of(), pageable, total0 == null ? 0 : total0);
-        }
+        return rows.stream().collect(Collectors.groupingBy(
+                t -> t.get(ingredient.id),
+                LinkedHashMap::new,
+                Collectors.mapping(t -> t.get(purposeCategory.name), Collectors.toList())
+        ));
+    }
 
-        // ✦ total(전체 (purpose, ingredient) 쌍 개수)
-        Long total = queryFactory
-                .select(Expressions.numberTemplate(Long.class,
-                        "count(distinct concat({0},'-',{1}))",
-                        purposeCategory.name.stringValue(), ingredient.id))
-                .from(ingredient)
-                .join(ingredient.purposeCategories, purposeCategory)
-                .where(purposeFilter, hasAnySupplement)
-                .fetchOne();
+    // 3. 영양소로 영양제 필터링 
+    @Getter
+    @AllArgsConstructor
+    public static class SupplementBriefRow {
+        private Long ingredientId;
+        private Long supplementId;
+        private String supplementName;
+        private String supplementImageUrl;
+    }
 
-        // ✦ 3) 현재 페이지 쌍만 본문에서 가져오기
-        List<String> pairKeys = keys.stream()
-                .map(t -> t.get(0, String.class) + "-" + t.get(1, Long.class)) // "EYE-123"
-                .toList();
+    public Map<Long, List<SupplementBriefRow>> findSupplementsByIngredientIds(Collection<Long> ingredientIds) {
+        if (ingredientIds.isEmpty()) return Map.of();
 
-        var pairExpr = Expressions.stringTemplate(
-                "concat({0},'-',{1})",
-                purposeCategory.name.stringValue(), ingredient.id);
-
-        List<PurposeIngredientSupplementRow> content = queryFactory
+        // 목적 조인 없이 성분-보충제만
+        List<SupplementBriefRow> rows = queryFactory
                 .select(Projections.constructor(
-                        PurposeIngredientSupplementRow.class,
+                        SupplementBriefRow.class,
                         ingredient.id,
-                        ingredient.name,
-                        purposeCategory.name.stringValue(),
                         supplement.id,
                         supplement.name,
                         supplement.imageUrl
                 ))
-                .from(ingredient)
-                .join(ingredient.purposeCategories, purposeCategory)
-                .join(ingredient.supplementIngredients, supplementIngredient)
+                .from(supplementIngredient)
+                .join(supplementIngredient.ingredient, ingredient)
                 .join(supplementIngredient.supplement, supplement)
-                .where(
-                        purposeFilter,
-                        pairExpr.in(pairKeys)
-                )
-                .orderBy(
-                        purposeCategory.name.asc(),
-                        ingredient.name.asc(),
-                        ingredient.id.asc(),
-                        supplement.name.asc()
-                )
-                .limit(300) // ✅ Swagger 오류 방지용 안전 제한
+                .where(ingredient.id.in(ingredientIds))
+                .distinct()
                 .fetch();
 
-        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+        Map<Long, List<SupplementBriefRow>> map = new LinkedHashMap<>();
+        for (SupplementBriefRow r : rows) {
+            map.computeIfAbsent(r.getIngredientId(), k -> new ArrayList<>()).add(r);
+        }
+        return map;
     }
+
+    // 성분명 조회
+    public Map<Long, String> findIngredientNames(Collection<Long> ingredientIds) {
+        if (ingredientIds.isEmpty()) return Map.of();
+        List<Tuple> rows = queryFactory
+                .select(ingredient.id, ingredient.name)
+                .from(ingredient)
+                .where(ingredient.id.in(ingredientIds))
+                .fetch();
+
+        Map<Long, String> map = new HashMap<>(rows.size() * 2);
+        for (Tuple t : rows) map.put(t.get(ingredient.id), t.get(ingredient.name));
+        return map;
+    }
+
 }
