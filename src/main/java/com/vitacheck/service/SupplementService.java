@@ -102,49 +102,9 @@ public class SupplementService {
         return Collections.emptyList();
     }
 
-//    @Transactional(readOnly = true)
-//    public Map<String, SupplementByPurposeResponse> getSupplementsByPurposes(SupplementPurposeRequest request) {
-//        List<AllPurpose> allPurposes = request.getPurposeNames().stream()
-//                .map(AllPurpose::valueOf)
-//                .toList();
-//
-//        // 1. 목적(Purpose)으로 PurposeCategory 엔티티를 조회합니다.
-//        List<PurposeCategory> categories = purposeCategoryRepository.findAllByNameIn(allPurposes);
-//
-//        // 결과를 담을 Map을 생성합니다.
-//        Map<String, SupplementByPurposeResponse> result = new HashMap<>();
-//
-//        // 2. 각 PurposeCategory를 순회합니다.
-//        for (PurposeCategory category : categories) {
-//
-//            // 3. category.getIngredients()를 통해 직접 성분(Ingredient) 목록에 접근합니다.
-//            for (Ingredient ingredient : category.getIngredients()) {
-//
-//                // 4. 각 성분에 연결된 영양제 정보를 가져옵니다.
-//                List<List<String>> supplementInfo = ingredient.getSupplementIngredients().stream()
-//                        .map(si -> si.getSupplement())
-//                        .map(supplement -> List.of(supplement.getName(), supplement.getImageUrl()))
-//                        .toList();
-//
-//                // 5. 목적(Purpose) 목록을 가져옵니다.
-//                List<String> purposes = ingredient.getPurposeCategories().stream()
-//                        .map(pc -> pc.getName().getDescription())
-//                        .toList();
-//
-//                // 6. 최종 결과 Map에 담습니다.
-//                result.put(ingredient.getName(),
-//                        SupplementByPurposeResponse.builder()
-//                                .purposes(purposes)
-//                                .supplements(supplementInfo)
-//                                .build());
-//            }
-//        }
-//        return result;
-//    }
-
     @Transactional(readOnly = true)
-    public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request, Pageable pageable) {
-
+    public Page<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request,
+                                                                       Pageable pageable) {
         // 1) 요청 enum 파싱
         List<AllPurpose> purposes = request.getPurposeNames().stream()
                 .map(String::trim)
@@ -153,59 +113,59 @@ public class SupplementService {
                 .distinct()
                 .toList();
 
-        Page<PurposeIngredientSupplementRow> rowsPage =
-                purposeQueryRepository.findByPurposes(purposes, pageable);
+        // 2) 얇은 페이지: 성분 ID만
+        Page<Long> ingredientPage = purposeQueryRepository.findIngredientIdPageByPurposes(purposes, pageable);
+        List<Long> ingredientIds = ingredientPage.getContent();
+        if (ingredientIds.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, ingredientPage.getTotalElements());
+        }
 
-        // 2) ingredientId 기준으로 그룹핑
-        record Key(Long ingredientId, String ingredientName) {}
-        Map<Key, List<PurposeIngredientSupplementRow>> grouped =
-                rowsPage.getContent().stream()
-                        .collect(Collectors.groupingBy(
-                                r -> new Key(r.ingredientId(), r.ingredientName()),
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                        ));
+        // 3) 목적과 보충제는 각각 가볍게 조회
+        Map<Long, List<AllPurpose>> purposeMap =
+                purposeQueryRepository.findPurposesByIngredientIds(ingredientIds, purposes);
+        Map<Long, PurposeQueryRepositoryImpl.SupplementBriefRow> dummy = null; // import 참고
+        Map<Long, List<PurposeQueryRepositoryImpl.SupplementBriefRow>> supplementMap =
+                purposeQueryRepository.findSupplementsByIngredientIds(ingredientIds);
 
-        // 3) 각 그룹을 IngredientPurposeBucket 으로 변환
-        List<IngredientPurposeBucket> items = grouped.entrySet().stream()
-                .map(e -> {
-                    Key k = e.getKey();
-                    List<PurposeIngredientSupplementRow> list = e.getValue();
+        // 성분명 조회
+        Map<Long, String> ingredientNames = purposeQueryRepository.findIngredientNames(ingredientIds);
 
-                    // supplements 중복 제거
-                    List<SupplementByPurposeResponse.SupplementBrief> supplements =
-                            new ArrayList<>(list.stream()
-                                    .collect(Collectors.toMap(
-                                            PurposeIngredientSupplementRow::supplementId,
-                                            r -> SupplementByPurposeResponse.SupplementBrief.builder()
-                                                    .id(r.supplementId())
-                                                    .name(r.supplementName())
-                                                    .imageUrl(r.supplementImageUrl())
-                                                    .build(),
-                                            (a, b) -> a,
-                                            LinkedHashMap::new
-                                    ))
-                                    .values()
-                            );
+        // 4) DTO 조립 (순서: 페이지 순서를 그대로 유지)
+        //    description 캐시로 valueOf/getDescription 반복 비용 절감
+        Map<AllPurpose, String> descCache = Arrays.stream(AllPurpose.values())
+                .collect(Collectors.toMap(p -> p, AllPurpose::getDescription));
 
-                    // 여러 목적 수집
-                    Set<String> purposeSet = list.stream()
-                            .map(r -> AllPurpose.valueOf(r.purposeDesc()).getDescription())
-                            .collect(Collectors.toCollection(LinkedHashSet::new)); // 순서 유지
+        List<IngredientPurposeBucket> items = new ArrayList<>(ingredientIds.size());
+        for (Long ingId : ingredientIds) {
+            String ingName = ingredientNames.getOrDefault(ingId, "");
 
-                    return IngredientPurposeBucket.builder()
-                            .ingredientName(k.ingredientName())
-                            .data(SupplementByPurposeResponse.builder()
-                                    .id(k.ingredientId())
-                                    .purposes(new ArrayList<>(purposeSet)) // 여러 목적 리스트
-                                    .supplements(supplements)
+            List<String> purposesDesc = purposeMap.getOrDefault(ingId, List.of()).stream()
+                    .map(descCache::get)
+                    .distinct()
+                    .toList();
+
+            List<SupplementByPurposeResponse.SupplementBrief> supplements =
+                    supplementMap.getOrDefault(ingId, List.of()).stream()
+                            .map(r -> SupplementByPurposeResponse.SupplementBrief.builder()
+                                    .id(r.getSupplementId())
+                                    .name(r.getSupplementName())
+                                    .imageUrl(r.getSupplementImageUrl())
                                     .build())
-                            .build();
-                })
-                .toList();
+                            .toList();
 
-        return new PageImpl<>(items, rowsPage.getPageable(), rowsPage.getTotalElements());
+            items.add(IngredientPurposeBucket.builder()
+                    .ingredientName(ingName)
+                    .data(SupplementByPurposeResponse.builder()
+                            .id(ingId)
+                            .purposes(purposesDesc)
+                            .supplements(supplements)
+                            .build())
+                    .build());
+        }
+
+        return new PageImpl<>(items, pageable, ingredientPage.getTotalElements());
     }
+
 
     @Transactional(readOnly = true)
     public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
