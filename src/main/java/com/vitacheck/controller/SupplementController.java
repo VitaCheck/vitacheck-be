@@ -26,6 +26,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,25 +74,25 @@ public class SupplementController {
 //    }
 
     @PostMapping("/by-purposes")
-    @Operation(
-            summary = "목적별 영양소·영양제 조회(페이징)",
-            description = "선택한 목적에 맞는 성분과 관련 영양제를 페이지네이션하여 반환합니다."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공")
-    })
-    // ⭐️ 반환 타입을 SliceResponseDto 로 변경합니다.
-    public SliceResponseDto<IngredientPurposeBucket> getSupplementsByPurposes(
+    @Operation(summary = "목적별 영양소·영양제 조회(페이징)")
+    // ⭐️ 반환 타입을 Map<String, Object> 로 변경합니다.
+    public Map<String, Object> getSupplementsByPurposes(
             @RequestBody SupplementPurposeRequest request,
-            @ParameterObject Pageable pageable
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
         log.info("[Controller] page={}, size={}, sort={}",
                 pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
 
+        // 1. 서비스에서 Slice 데이터를 받아옵니다.
         Slice<IngredientPurposeBucket> sliceData = supplementService.getSupplementsByPurposesPaged(request, pageable);
 
-        // ⭐️ 서비스에서 받은 Slice 데이터를 DTO로 감싸서 반환합니다.
-        return new SliceResponseDto<>(sliceData);
+        // 2. ⭐️ Map 객체를 직접 생성하여 JSON 구조를 수동으로 만듭니다.
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", sliceData.getContent()); // 데이터 목록 추가
+        response.put("hasNext", sliceData.hasNext());   // 다음 페이지 여부 추가
+
+        // 3. ⭐️ 완성된 Map을 반환합니다.
+        return response;
     }
 
 
