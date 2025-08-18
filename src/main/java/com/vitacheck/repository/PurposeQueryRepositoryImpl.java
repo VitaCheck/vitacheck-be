@@ -65,8 +65,9 @@ public class PurposeQueryRepositoryImpl implements PurposeQueryRepository {
 
     // 2. 목적을 기준으로 영양소 필터링
     @Override
-    public Map<Long, List<AllPurpose>> findPurposesByIngredientIds(Collection<Long> ingredientIds,
-                                                                   @Nullable List<AllPurpose> filterPurposes) {
+    public Map<Long, List<AllPurpose>> findPurposesByIngredientIds(
+            Collection<Long> ingredientIds,
+            @Nullable List<AllPurpose> filterPurposes) {
         if (ingredientIds.isEmpty()) return Map.of();
 
         BooleanExpression filter = (filterPurposes == null || filterPurposes.isEmpty())
