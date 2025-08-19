@@ -42,7 +42,7 @@ public class SupplementService {
     private final StatisticsService statisticsService;
     private final SupplementLikeRepository supplementLikeRepository;
     private final IngredientDosageRepository dosageRepository;
-    private final PurposeQueryRepository purposeQueryRepository;
+//    private final PurposeQueryRepository purposeQueryRepository;
     private final BrandRepository brandRepository;
 
     public SearchDto.UnifiedSearchResponse search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
@@ -100,70 +100,70 @@ public class SupplementService {
         return Collections.emptyList();
     }
 
-    @Transactional(readOnly = true)
-    public Slice<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request,
-                                                                        Pageable pageable) {
-        // 1) 요청 enum 파싱
-        List<AllPurpose> purposes = request.getPurposeNames().stream()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(AllPurpose::valueOf)
-                .distinct()
-                .toList();
-
-        // 2) 얇은 페이지: 성분 ID만
-        Slice<Long> ingredientSlice = purposeQueryRepository.findIngredientIdPageByPurposes(purposes, pageable);
-        List<Long> ingredientIds = ingredientSlice.getContent();
-
-        if (ingredientIds.isEmpty()) {
-            return new SliceImpl<>(Collections.emptyList(), pageable, false);
-        }
-
-        // 3) 목적과 보충제는 각각 가볍게 조회
-        Map<Long, List<AllPurpose>> purposeMap =
-                purposeQueryRepository.findPurposesByIngredientIds(ingredientIds, purposes);
-        Map<Long, PurposeQueryRepositoryImpl.SupplementBriefRow> dummy = null; // import 참고
-        Map<Long, List<PurposeQueryRepositoryImpl.SupplementBriefRow>> supplementMap =
-                purposeQueryRepository.findSupplementsByIngredientIds(ingredientIds);
-
-        // 성분명 조회
-        Map<Long, String> ingredientNames = purposeQueryRepository.findIngredientNames(ingredientIds);
-
-        // 4) DTO 조립 (순서: 페이지 순서를 그대로 유지)
-        //    description 캐시로 valueOf/getDescription 반복 비용 절감
-        Map<AllPurpose, String> descCache = Arrays.stream(AllPurpose.values())
-                .collect(Collectors.toMap(p -> p, AllPurpose::getDescription));
-
-        List<IngredientPurposeBucket> items = new ArrayList<>(ingredientIds.size());
-        for (Long ingId : ingredientIds) {
-            String ingName = ingredientNames.getOrDefault(ingId, "");
-
-            List<String> purposesDesc = purposeMap.getOrDefault(ingId, List.of()).stream()
-                    .map(descCache::get)
-                    .distinct()
-                    .toList();
-
-            List<SupplementByPurposeResponse.SupplementBrief> supplements =
-                    supplementMap.getOrDefault(ingId, List.of()).stream()
-                            .map(r -> SupplementByPurposeResponse.SupplementBrief.builder()
-                                    .id(r.getSupplementId())
-                                    .name(r.getSupplementName())
-                                    .imageUrl(r.getSupplementImageUrl())
-                                    .build())
-                            .toList();
-
-            items.add(IngredientPurposeBucket.builder()
-                    .ingredientName(ingName)
-                    .data(SupplementByPurposeResponse.builder()
-                            .id(ingId)
-                            .purposes(purposesDesc)
-                            .supplements(supplements)
-                            .build())
-                    .build());
-        }
-
-        return new SliceImpl<>(items, pageable, ingredientSlice.hasNext());
-    }
+//    @Transactional(readOnly = true)
+//    public Slice<IngredientPurposeBucket> getSupplementsByPurposesPaged(SupplementPurposeRequest request,
+//                                                                        Pageable pageable) {
+//        // 1) 요청 enum 파싱
+//        List<AllPurpose> purposes = request.getPurposeNames().stream()
+//                .map(String::trim)
+//                .filter(s -> !s.isEmpty())
+//                .map(AllPurpose::valueOf)
+//                .distinct()
+//                .toList();
+//
+//        // 2) 얇은 페이지: 성분 ID만
+//        Slice<Long> ingredientSlice = purposeQueryRepository.findIngredientIdPageByPurposes(purposes, pageable);
+//        List<Long> ingredientIds = ingredientSlice.getContent();
+//
+//        if (ingredientIds.isEmpty()) {
+//            return new SliceImpl<>(Collections.emptyList(), pageable, false);
+//        }
+//
+//        // 3) 목적과 보충제는 각각 가볍게 조회
+//        Map<Long, List<AllPurpose>> purposeMap =
+//                purposeQueryRepository.findPurposesByIngredientIds(ingredientIds, purposes);
+//        Map<Long, PurposeQueryRepositoryImpl.SupplementBriefRow> dummy = null; // import 참고
+//        Map<Long, List<PurposeQueryRepositoryImpl.SupplementBriefRow>> supplementMap =
+//                purposeQueryRepository.findSupplementsByIngredientIds(ingredientIds);
+//
+//        // 성분명 조회
+//        Map<Long, String> ingredientNames = purposeQueryRepository.findIngredientNames(ingredientIds);
+//
+//        // 4) DTO 조립 (순서: 페이지 순서를 그대로 유지)
+//        //    description 캐시로 valueOf/getDescription 반복 비용 절감
+//        Map<AllPurpose, String> descCache = Arrays.stream(AllPurpose.values())
+//                .collect(Collectors.toMap(p -> p, AllPurpose::getDescription));
+//
+//        List<IngredientPurposeBucket> items = new ArrayList<>(ingredientIds.size());
+//        for (Long ingId : ingredientIds) {
+//            String ingName = ingredientNames.getOrDefault(ingId, "");
+//
+//            List<String> purposesDesc = purposeMap.getOrDefault(ingId, List.of()).stream()
+//                    .map(descCache::get)
+//                    .distinct()
+//                    .toList();
+//
+//            List<SupplementByPurposeResponse.SupplementBrief> supplements =
+//                    supplementMap.getOrDefault(ingId, List.of()).stream()
+//                            .map(r -> SupplementByPurposeResponse.SupplementBrief.builder()
+//                                    .id(r.getSupplementId())
+//                                    .name(r.getSupplementName())
+//                                    .imageUrl(r.getSupplementImageUrl())
+//                                    .build())
+//                            .toList();
+//
+//            items.add(IngredientPurposeBucket.builder()
+//                    .ingredientName(ingName)
+//                    .data(SupplementByPurposeResponse.builder()
+//                            .id(ingId)
+//                            .purposes(purposesDesc)
+//                            .supplements(supplements)
+//                            .build())
+//                    .build());
+//        }
+//
+//        return new SliceImpl<>(items, pageable, ingredientSlice.hasNext());
+//    }
 
 
     @Transactional(readOnly = true)

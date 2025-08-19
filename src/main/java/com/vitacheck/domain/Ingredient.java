@@ -3,17 +3,13 @@ package com.vitacheck.domain;
 import com.vitacheck.domain.common.BaseTimeEntity;
 import com.vitacheck.domain.mapping.IngredientAlternativeFood;
 import com.vitacheck.domain.mapping.SupplementIngredient;
-import com.vitacheck.domain.purposes.PurposeCategory;
+import com.vitacheck.domain.purposes.PurposeIngredient;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import java.util.ArrayList;
@@ -54,6 +50,9 @@ public class Ingredient extends BaseTimeEntity {
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IngredientAlternativeFood> alternativeFoods = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "ingredients")
-    private List<PurposeCategory> purposeCategories = new ArrayList<>();
+//    @ManyToMany(mappedBy = "ingredients")
+//    private List<PurposeCategory> purposeCategories = new ArrayList<>();
+// 🔹 중간 테이블(PurposeIngredient)과 연결
+    @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurposeIngredient> purposeIngredients = new ArrayList<>();
 }

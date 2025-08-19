@@ -2,10 +2,7 @@ package com.vitacheck.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 import com.vitacheck.domain.user.Gender;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,10 +24,8 @@ public class IngredientResponseDTO {
         private Double recommendedDosage;     // 하한
         private String unit;           // 단위
         private List<SubIngredient> subIngredients = new ArrayList<>(); // 대체 식품
-        private List<IngredientSupplement> supplements; // 영양제
         private String DosageErrorCode;  // 상한, 권장량 오류
         private String FoodErrorCode;    // 대체 식품 오류
-        private String SupplementErrorCode;  // 관련 영양제 오류
     }
 
     @Getter
@@ -61,6 +56,25 @@ public class IngredientResponseDTO {
     public static class IngredientName {
         private Long id;
         private String name;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class IngredientWithSupplement {
+        private Long ingredientId;                 // 성분 ID
+        private String ingredientName;             // 성분 이름
+        private List<IngredientSupplement> supplements; // 관련 영양제
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class IngredientSupplementBasedCursor {
+        private List<IngredientSupplement> supplements;
+        private Long nextCursor;
     }
 
 }

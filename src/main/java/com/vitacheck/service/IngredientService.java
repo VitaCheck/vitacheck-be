@@ -1,11 +1,13 @@
 package com.vitacheck.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.*;
 import com.vitacheck.domain.mapping.QIngredientAlternativeFood;
 import com.vitacheck.domain.mapping.QSupplementIngredient;
+import com.vitacheck.domain.searchLog.QSearchLog;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
@@ -23,7 +25,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.vitacheck.domain.searchLog.QSearchLog;
 import com.querydsl.core.Tuple;
 
 
@@ -34,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.vitacheck.domain.searchLog.QSearchLog.searchLog;
 
 @Service
 @RequiredArgsConstructor
@@ -84,7 +84,6 @@ public class IngredientService {
     public IngredientResponseDTO.IngredientDetails getIngredientDetails(Long id) {
         String dosageErrorCode = null;
         String foodErrorCode = null;
-        String supplementErrorCode = null;
 
 
         // 1. 성분 가져오기
@@ -168,9 +167,43 @@ public class IngredientService {
                 foodErrorCode = ErrorCode.INGREDIENT_FOOD_NOT_FOUND.name();
             }
 
-            // 7. 관련 영양제 조회
-            QSupplementIngredient si = QSupplementIngredient.supplementIngredient;
-            QSupplement s = QSupplement.supplement;
+            return IngredientResponseDTO.IngredientDetails.builder()
+                    .id(ingredient.getId())
+                    .name(ingredient.getName())
+                    .description(ingredient.getDescription())
+                    .effect(ingredient.getEffect())
+                    .caution(ingredient.getCaution())
+                    .age(ageGroup)
+                    .gender(gender)
+                    .recommendedDosage(recommendedDosage)
+                    .upperLimit(upperLimit)
+                    .subIngredients(foodDTOs)
+                    .DosageErrorCode(dosageErrorCode)
+                    .FoodErrorCode(foodErrorCode)
+                    .build();
+
+        }
+
+
+    public IngredientResponseDTO.IngredientSupplementBasedCursor getIngredientSupplementBasedCursor(Long id, Long cursor, int size) {
+
+
+    //1. 성분 이름으로 검색
+        Ingredient ingredient = ingredientRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.INGREDIENT_NOT_FOUND));
+
+        // 2. 관련 영양제 조회
+        QSupplementIngredient si = QSupplementIngredient.supplementIngredient;
+        QSupplement s = QSupplement.supplement;
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        //필수 조건
+        builder.and(si.ingredient.id.eq(ingredient.getId()));
+        //옵션
+        if (cursor != null) {
+            builder.and(s.id.gt(cursor));  // cursor가 있을 때만 조건 추가
+        }
 
             List<IngredientResponseDTO.IngredientSupplement> supplements = queryFactory
                     .select(Projections.fields(
@@ -182,33 +215,23 @@ public class IngredientService {
                     ))
                     .from(si)
                     .join(s).on(si.supplement.id.eq(s.id))
-                    .where(si.ingredient.id.eq(id))
+                    .where(builder)
+                    .orderBy(s.id.asc())   // id 순서대로 정렬
+                    .limit(size + 1)       // 다음 페이지가 있는지 확인하려고 size+1 가져오기
                     .fetch();
 
-            supplementErrorCode = supplements.isEmpty()
-                    ? ErrorCode.INGREDIENT_SUPPLEMENT_NOT_FOUND.name()
-                    : null;
-
-            return IngredientResponseDTO.IngredientDetails.builder()
-                    .id(ingredient.getId())
-                    .name(ingredient.getName())
-                    .description(ingredient.getDescription())
-                    .effect(ingredient.getEffect())
-                    .caution(ingredient.getCaution())
-                    .age(ageGroup)
-                    .gender(gender)
-//                .recommendedDosage(dosage.getRecommendedDosage())
-//                .upperLimit(dosage.getUpperLimit())
-                    .recommendedDosage(recommendedDosage)
-                    .upperLimit(upperLimit)
-                    .subIngredients(foodDTOs)
-                    .supplements(supplements)
-                    .DosageErrorCode(dosageErrorCode)
-                    .FoodErrorCode(foodErrorCode)
-                    .SupplementErrorCode(supplementErrorCode)
-                    .build();
-
+        // 다음 cursor 계산
+        Long nextCursor = null;
+        if (supplements.size() > size) {
+            IngredientResponseDTO.IngredientSupplement last = supplements.remove(supplements.size() - 1);
+            nextCursor = last.getId();
         }
+
+        return IngredientResponseDTO.IngredientSupplementBasedCursor.builder()
+                .supplements(supplements)
+                .nextCursor(nextCursor)
+                .build();
+    }
 
 
     public List<PopularIngredientDto> findPopularIngredients(String ageGroup, int limit) {
