@@ -1,5 +1,6 @@
 package com.vitacheck.service;
 
+import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.searchLog.Method;
 import com.vitacheck.domain.searchLog.SearchCategory;
@@ -17,12 +18,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -184,5 +189,24 @@ public class SearchLogService {
                 .filter(Objects::nonNull)
                 .map(SupplementDto.SimpleResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    public void recordSearchLog(String keyword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
+            // 🔹 미로그인 사용자 로그
+            logSearch(null, keyword, SearchCategory.KEYWORD, null, null);
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+
+            LocalDate birthDate = user.getBirthDate();
+            int age = Period.between(birthDate, LocalDate.now()).getYears();
+
+            // 🔹 로그인 사용자 로그
+            logSearch(user.getId(), keyword, SearchCategory.KEYWORD, age, user.getGender());
+        }
     }
 }
