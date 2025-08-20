@@ -214,59 +214,57 @@ public class SupplementService {
     @Transactional(readOnly = true)
     public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
 
-        // 1) 상세 엔티티: 브랜드/성분까지 한 번에
+        // 1) 영양제 + 성분 한 번에 조회
         Supplement supplement = supplementRepository.findByIdWithBrandAndIngredients(id)
                 .orElseThrow(() -> new RuntimeException("해당 영양제를 찾을 수 없습니다."));
 
-        // 2) 성분 ID 모으기
+        // 2) 성분 ID 수집
         Set<Long> ingredientIds = supplement.getSupplementIngredients().stream()
                 .map(si -> si.getIngredient().getId())
                 .collect(Collectors.toSet());
 
-        // 3) 사용자 성별/나이 파악
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 3) 사용자 성별/나이
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Gender gender = Gender.ALL;
         Integer age = null;
 
-        if (authentication != null && authentication.isAuthenticated()
-                && !Objects.equals(authentication.getPrincipal(), "anonymousUser")) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
             User user = userDetails.getUser();
-            gender = user.getGender() != null ? user.getGender() : Gender.ALL;
+            gender = (user.getGender() != null) ? user.getGender() : Gender.ALL;
 
             if (user.getBirthDate() != null) {
                 age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
             }
 
-            // 클릭 로그 (로그인)
+            // 클릭 로그(로그인)
             searchLogService.logClick(user.getId(), supplement.getName(), SearchCategory.SUPPLEMENT, age, gender);
         } else {
-            // 클릭 로그 (미로그인)
+            // 클릭 로그(비로그인)
             searchLogService.logClick(null, supplement.getName(), SearchCategory.SUPPLEMENT, null, null);
         }
 
-        // 4) 권장량/UL 벌크 로딩 (유저 조건 우선)
-        //    - 나이가 없으면 그냥 ALL만 쓰도록 쿼리/로직을 조정하거나, 안전하게 일반값으로만 가도 됨
-        List<IngredientDosage> userDosages = (age != null)
-                ? dosageRepository.findDosagesByUserCondition(ingredientIds, gender, age) // 새 JPQL 메소드 필요(이전 메시지 참고)
-                : Collections.emptyList();
+        // 나이 미확정이면 성인 기본값(25세) 가정
+        if (age == null) age = 25;
 
-        Map<Long, IngredientDosage> dosageByIngredientId = userDosages.stream()
-                .collect(Collectors.toMap(d -> d.getIngredient().getId(), d -> d, (a, b) -> a));
+        // 4) 권장량/UL 로딩: 유저조건 → 일반값(ALL & 무연령) 보강
+        Map<Long, IngredientDosage> dosageByIngredientId = new HashMap<>();
 
-        // 4-1) 유저조건으로 못 채운 성분은 일반값(ALL & 무연령)으로 보강
+        // 4-1) 유저 성별/나이에 맞는 도수 우선 채움
+        List<IngredientDosage> userDosages =
+                dosageRepository.findDosagesByUserCondition(ingredientIds, gender, age);
+        userDosages.forEach(d -> dosageByIngredientId.put(d.getIngredient().getId(), d));
+
+        // 4-2) 못 채운 성분은 일반값으로 보강
         Set<Long> missingIds = ingredientIds.stream()
                 .filter(ingId -> !dosageByIngredientId.containsKey(ingId))
                 .collect(Collectors.toSet());
-
         if (!missingIds.isEmpty()) {
-            List<IngredientDosage> generalDosages = dosageRepository.findGeneralDosagesByIngredientIds(missingIds);
-            generalDosages.forEach(d ->
-                    dosageByIngredientId.putIfAbsent(d.getIngredient().getId(), d)
-            );
+            dosageRepository.findGeneralDosagesByIngredientIds(missingIds)
+                    .forEach(d -> dosageByIngredientId.putIfAbsent(d.getIngredient().getId(), d));
         }
 
-        // 5) 응답용 아이템 매핑 (DB 추가 접근 없음)
+        // 5) 응답 매핑 (upper=100% 기준)
         List<SupplementDto.DetailResponse.IngredientDetail> ingredients =
                 supplement.getSupplementIngredients().stream()
                         .map(si -> {
@@ -281,15 +279,13 @@ public class SupplementService {
                             double upper = (dosage != null && dosage.getUpperLimit() != null)
                                     ? dosage.getUpperLimit() : 0.0;
 
-                            // 📌 시각화 계산: upper_limit을 100%로 간주
                             double normalized = (upper > 0.0) ? (amount / upper) * 100.0 : 0.0;
-                            double recommendedStart = (upper > 0.0 && recommended > 0.0) ? (recommended / upper) * 100.0 : 0.0;
+                            double recommendedStart = (upper > 0.0 && recommended > 0.0)
+                                    ? (recommended / upper) * 100.0 : 0.0;
 
-                            // 과도한 값에 대한 상한(표시 안정화용) — 필요 없다면 제거 가능
                             normalized = Math.min(normalized, 999.0);
                             recommendedStart = Math.min(recommendedStart, 999.0);
 
-                            // 상태 판정: normalized vs recommendedStart, upper(=100%) 기준
                             String status = normalized < recommendedStart ? "deficient"
                                     : normalized <= 100.0 ? "in_range"
                                     : "excessive";
@@ -297,7 +293,7 @@ public class SupplementService {
                             return SupplementDto.DetailResponse.IngredientDetail.builder()
                                     .id(ing.getId())
                                     .name(ing.getName())
-                                    .amount(amount + unit)
+                                    .amount(amount + unit) // 예: "25.0μg"
                                     .status(status)
                                     .visualization(
                                             SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
@@ -316,7 +312,6 @@ public class SupplementService {
                 .ingredients(ingredients)
                 .build();
     }
-
 
     private final SearchLogRepository searchLogRepository;
 
