@@ -12,7 +12,6 @@ import java.util.TimeZone;
 @SpringBootApplication
 @EnableJpaAuditing // Auditing 기능 활성화
 @EnableScheduling
-@EnableAsync
 public class VitacheckBeApplication {
 
     @PostConstruct
