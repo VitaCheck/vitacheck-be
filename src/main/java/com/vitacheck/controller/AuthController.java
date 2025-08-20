@@ -68,4 +68,11 @@ public class AuthController {
         UserDto.TokenResponse tokenResponse = userService.socialSignUp(tempToken, request);
         return CustomResponse.ok(tokenResponse);
     }
+
+    @Operation(summary = "액세스 토큰 재발급", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
+    @PostMapping("/refresh")
+    public CustomResponse<UserDto.TokenResponse> refreshAccessToken(@RequestBody UserDto.RefreshTokenRequest request) {
+        UserDto.TokenResponse tokenResponse = userService.refreshAccessToken(request);
+        return CustomResponse.ok(tokenResponse);
+    }
 }
