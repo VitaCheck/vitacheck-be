@@ -211,7 +211,6 @@ public class SupplementService {
                 .toList();
     }
 
-    // 👇👇👇 [수정] getSupplementDetailById 메소드를 원래 로직으로 되돌립니다. 👇👇👇
     public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
         // 1) 상세 엔티티는 brand/ingredients까지 한방에 가져오는 메서드로 (아래 3-2에서 추가)
         Supplement supplement = supplementRepository.findByIdWithBrandAndIngredients(id)
@@ -237,12 +236,16 @@ public class SupplementService {
                             double amount = si.getAmount() != null ? si.getAmount() : 0.0;
                             String unit = ing.getUnit() != null ? ing.getUnit() : "";
 
-                            double ul = (dosage != null && dosage.getUpperLimit() != null) ? dosage.getUpperLimit() : 0.0;
-                            double percent = (ul > 0) ? (amount / ul) * 100.0 : 0.0;
-                            percent = Math.min(percent, 999.0);
+                            double recommended = (dosage != null && dosage.getRecommendedDosage() != null)
+                                    ? dosage.getRecommendedDosage() : 0.0;
+                            double upper = (dosage != null && dosage.getUpperLimit() != null)
+                                    ? dosage.getUpperLimit() : 0.0;
 
-                            String status = percent < 30.0 ? "deficient"
-                                    : percent <= 70.0 ? "in_range"
+                            double normalized = (upper > 0.0) ? (amount / upper) * 100.0 : 0.0;
+                            double recommendedStart = (upper > 0.0 && recommended > 0.0) ? (recommended / upper) * 100.0 : 0.0;
+
+                            String status = normalized < recommendedStart ? "deficient"
+                                    : normalized <= 100.0 ? "in_range"
                                     : "excessive";
 
                             return SupplementDto.DetailResponse.IngredientDetail.builder()
@@ -251,9 +254,9 @@ public class SupplementService {
                                     .amount(amount + unit)
                                     .status(status)
                                     .visualization(SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
-                                            .normalizedAmountPercent(Math.round(percent * 10) / 10.0)
-                                            .recommendedStartPercent(30.0)
-                                            .recommendedEndPercent(70.0)
+                                            .normalizedAmountPercent(Math.round(normalized * 10) / 10.0)
+                                            .recommendedStartPercent(Math.round(recommendedStart * 10) / 10.0)
+                                            .recommendedEndPercent(100.0)
                                             .build())
                                     .build();
                         })
