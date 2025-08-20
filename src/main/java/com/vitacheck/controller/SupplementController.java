@@ -90,8 +90,8 @@ public class SupplementController {
     }
 
     @Operation(
-            summary = "제품 검색 기록 API By 박지영",
-            description = " 검색에서 검색한 키워드를 기록합니다. 제품 검색을 사용할 때만 이 api를 추가로 사용해주시면 됩니다."
+            summary = "검색 기록 API By 박지영",
+            description = " 검색에서 검색한 키워드를 DB에 저장/기록 합니다. 모든 검색 기능에서 이 api를 같이 호출해주시면 됩니다."
     )
     @GetMapping("/api/v1/search-logs")
     public CustomResponse<Void> recordSearchLog(

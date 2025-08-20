@@ -57,21 +57,6 @@ public class IngredientService {
             throw new CustomException(ErrorCode.INGREDIENT_NOT_FOUND);
         }
 
-        // 2. 사용자 정보 가져오기 (로그인 여부에 따라 기본값 처리)
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            // 🔹 검색 로그 저장(미로그인)
-            searchLogService.logSearch(null, keyword, SearchCategory.INGREDIENT, null,null);
-        } else {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            User user = userDetails.getUser();
-            LocalDate birthDate = user.getBirthDate();
-            int age = Period.between(birthDate, LocalDate.now()).getYears();
-            // 🔹 검색 로그 저장(로그인)
-            searchLogService.logSearch(user.getId(), keyword, SearchCategory.INGREDIENT, age, user.getGender());
-        }
-
 
         return ingredients.stream()
                 .map(ingredient -> IngredientResponseDTO.IngredientName.builder()
