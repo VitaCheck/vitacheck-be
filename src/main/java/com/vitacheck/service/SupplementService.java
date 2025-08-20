@@ -211,8 +211,10 @@ public class SupplementService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
-        // 1) 상세 엔티티는 brand/ingredients까지 한방에 가져오는 메서드로 (아래 3-2에서 추가)
+
+        // 1) 상세 엔티티: 브랜드/성분까지 한 번에
         Supplement supplement = supplementRepository.findByIdWithBrandAndIngredients(id)
                 .orElseThrow(() -> new RuntimeException("해당 영양제를 찾을 수 없습니다."));
 
@@ -221,12 +223,50 @@ public class SupplementService {
                 .map(si -> si.getIngredient().getId())
                 .collect(Collectors.toSet());
 
-        // 3) 권장량/UL 벌크 로딩 후 맵으로
-        Map<Long, IngredientDosage> dosageByIngredientId = dosageRepository
-                .findGeneralDosagesByIngredientIds(ingredientIds).stream()
-                .collect(Collectors.toMap(d -> d.getIngredient().getId(), d -> d));
+        // 3) 사용자 성별/나이 파악
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Gender gender = Gender.ALL;
+        Integer age = null;
 
-        // 4) 매핑 시 DB 추가 접근 없음
+        if (authentication != null && authentication.isAuthenticated()
+                && !Objects.equals(authentication.getPrincipal(), "anonymousUser")) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+            gender = user.getGender() != null ? user.getGender() : Gender.ALL;
+
+            if (user.getBirthDate() != null) {
+                age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+            }
+
+            // 클릭 로그 (로그인)
+            searchLogService.logClick(user.getId(), supplement.getName(), SearchCategory.SUPPLEMENT, age, gender);
+        } else {
+            // 클릭 로그 (미로그인)
+            searchLogService.logClick(null, supplement.getName(), SearchCategory.SUPPLEMENT, null, null);
+        }
+
+        // 4) 권장량/UL 벌크 로딩 (유저 조건 우선)
+        //    - 나이가 없으면 그냥 ALL만 쓰도록 쿼리/로직을 조정하거나, 안전하게 일반값으로만 가도 됨
+        List<IngredientDosage> userDosages = (age != null)
+                ? dosageRepository.findDosagesByUserCondition(ingredientIds, gender, age) // 새 JPQL 메소드 필요(이전 메시지 참고)
+                : Collections.emptyList();
+
+        Map<Long, IngredientDosage> dosageByIngredientId = userDosages.stream()
+                .collect(Collectors.toMap(d -> d.getIngredient().getId(), d -> d, (a, b) -> a));
+
+        // 4-1) 유저조건으로 못 채운 성분은 일반값(ALL & 무연령)으로 보강
+        Set<Long> missingIds = ingredientIds.stream()
+                .filter(ingId -> !dosageByIngredientId.containsKey(ingId))
+                .collect(Collectors.toSet());
+
+        if (!missingIds.isEmpty()) {
+            List<IngredientDosage> generalDosages = dosageRepository.findGeneralDosagesByIngredientIds(missingIds);
+            generalDosages.forEach(d ->
+                    dosageByIngredientId.putIfAbsent(d.getIngredient().getId(), d)
+            );
+        }
+
+        // 5) 응답용 아이템 매핑 (DB 추가 접근 없음)
         List<SupplementDto.DetailResponse.IngredientDetail> ingredients =
                 supplement.getSupplementIngredients().stream()
                         .map(si -> {
@@ -241,9 +281,15 @@ public class SupplementService {
                             double upper = (dosage != null && dosage.getUpperLimit() != null)
                                     ? dosage.getUpperLimit() : 0.0;
 
+                            // 📌 시각화 계산: upper_limit을 100%로 간주
                             double normalized = (upper > 0.0) ? (amount / upper) * 100.0 : 0.0;
                             double recommendedStart = (upper > 0.0 && recommended > 0.0) ? (recommended / upper) * 100.0 : 0.0;
 
+                            // 과도한 값에 대한 상한(표시 안정화용) — 필요 없다면 제거 가능
+                            normalized = Math.min(normalized, 999.0);
+                            recommendedStart = Math.min(recommendedStart, 999.0);
+
+                            // 상태 판정: normalized vs recommendedStart, upper(=100%) 기준
                             String status = normalized < recommendedStart ? "deficient"
                                     : normalized <= 100.0 ? "in_range"
                                     : "excessive";
@@ -253,30 +299,16 @@ public class SupplementService {
                                     .name(ing.getName())
                                     .amount(amount + unit)
                                     .status(status)
-                                    .visualization(SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
-                                            .normalizedAmountPercent(Math.round(normalized * 10) / 10.0)
-                                            .recommendedStartPercent(Math.round(recommendedStart * 10) / 10.0)
-                                            .recommendedEndPercent(100.0)
-                                            .build())
+                                    .visualization(
+                                            SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
+                                                    .normalizedAmountPercent(Math.round(normalized * 10) / 10.0)
+                                                    .recommendedStartPercent(Math.round(recommendedStart * 10) / 10.0)
+                                                    .recommendedEndPercent(100.0)
+                                                    .build()
+                                    )
                                     .build();
                         })
                         .toList();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            // 🔹 클릭 로그 저장 (미로그인)
-            searchLogService.logClick(null, supplement.getName(), SearchCategory.SUPPLEMENT, null,null);
-
-        } else {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            User user = userDetails.getUser();
-            LocalDate birthDate = user.getBirthDate();
-            int age = Period.between(birthDate, LocalDate.now()).getYears();
-
-            // 🔹 클릭 로그 저장 (로그인)
-            searchLogService.logClick(user.getId(), supplement.getName(), SearchCategory.SUPPLEMENT, age, user.getGender());
-        }
 
         return SupplementDto.DetailResponse.builder()
                 .supplementId(supplement.getId())
@@ -284,6 +316,7 @@ public class SupplementService {
                 .ingredients(ingredients)
                 .build();
     }
+
 
     private final SearchLogRepository searchLogRepository;
 
