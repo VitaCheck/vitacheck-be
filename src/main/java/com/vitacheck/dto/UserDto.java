@@ -133,4 +133,10 @@ public class UserDto {
 
         private String profileImageUrl;
     }
+
+    @Getter
+    @NoArgsConstructor
+    public static class RefreshTokenRequest {
+        private String refreshToken;
+    }
 }

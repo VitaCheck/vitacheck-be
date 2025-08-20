@@ -211,4 +211,14 @@ public class UserService {
         return user.getProfileUrl();
     }
 
+    public UserDto.TokenResponse refreshAccessToken(UserDto.RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+        String email = jwtUtil.getEmailFromToken(refreshToken);
+        String newAccessToken = jwtUtil.createAccessToken(email);
+        return new UserDto.TokenResponse(newAccessToken, refreshToken);
+    }
+
 }
