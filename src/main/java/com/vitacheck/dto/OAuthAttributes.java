@@ -100,17 +100,12 @@ public class OAuthAttributes {
             }
         }
 
-        // 휴대폰 번호 파싱 (null 체크 및 포맷팅)
-        // '-' 문자를 제거하여 숫자만 저장합니다.
-        String mobile = (String) response.get("mobile");
-        String parsedPhoneNumber = (mobile != null) ? mobile.replaceAll("-", "") : null;
-
         return OAuthAttributes.builder()
                 .name((String) response.get("name")) // 실명
                 .email((String) response.get("email")) // 이메일
                 .provider("naver")
                 .providerId((String) response.get("id")) // 고유 식별자
-                .phoneNumber(parsedPhoneNumber)
+                .phoneNumber(null)
                 .birthDate(parsedBirthDate)
                 .gender(parsedGender)
                 .attributes(response) // 사용자 정보 전체
