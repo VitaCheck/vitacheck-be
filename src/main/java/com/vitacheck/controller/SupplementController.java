@@ -61,6 +61,47 @@ public class SupplementController {
         return CustomResponse.ok(response);
     }
 
+    @GetMapping("/search-cursor")
+    @Operation(
+            summary = "영양제 제품 검색 API (Cursor 기반 페이지네이션) By 박지영",
+            description = """
+                    키워드와 연관된 모든 영양제 제품이 조회됩니다. (성분, 브랜드, 제품 이름 등)
+                    
+                    ex. 유산균 → 제품 이름에 유산균 포함된 영양제, 유산균을 성분으로 포함하는 영양제 등 모두 조회됩니다.
+                    
+                    검색 키워드로 제품을 cursor 기반 페이지네이션으로 조회, 정렬은 인기도 높은 순으로(인기도=클릭수+검색수) 
+                    
+                    cursor 처음은 빈칸인채로 호출하면 됩니다. 그 이후 부터는 nextCursor 값이 아닌 '마지막으로 조회된 cursorID'를 넣어주면 됩니다. 
+                    
+                    nextcursor가 null이면 다음 페이지가 없다는 뜻입니다."""
+    )
+    public CustomResponse<SupplementDto.KeywordSearchSupplementBasedCursor> searchSupplements(
+            @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
+            @RequestParam String keyword,
+            @Parameter(name = "cursorId", description = "마지막 조회된 아이디 (인기도 *1000000 + supplementId)", example = "")
+            @RequestParam(required = false) Long cursorId,
+            @Parameter(name = "size", description = "가져올 데이터 개수", example = "40")
+            @RequestParam(defaultValue = "40") int size
+    ) {
+        SupplementDto.KeywordSearchSupplementBasedCursor responseDto =
+                supplementService.searchSupplements(keyword, cursorId,size);
+
+        return CustomResponse.ok(responseDto);
+    }
+
+    @Operation(
+            summary = "제품 검색 기록 API By 박지영",
+            description = " 검색에서 검색한 키워드를 기록합니다. 제품 검색을 사용할 때만 이 api를 추가로 사용해주시면 됩니다."
+    )
+    @GetMapping("/api/v1/search-logs")
+    public CustomResponse<Void> recordSearchLog(
+            @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
+            @RequestParam String keyword) {
+        supplementService.recordSearchLog(keyword);
+        return CustomResponse.ok(null);
+    }
+
+
 //    @PostMapping("/by-purposes")
 //    @Operation(summary = "목적별 영양소 및 영양제 조회", description = "선택한 목적에 맞는 성분 및 관련 영양제를 반환합니다.")
 //    @ApiResponses({
