@@ -44,7 +44,6 @@ public class NotificationScheduler {
         }
 
         for (NotificationRoutine routine : routines) {
-            // 👇👇👇 여기가 수정된 핵심 로직입니다! 👇👇👇
             Optional<NotificationSettings> setting = notificationSettingsRepository.findByUserAndTypeAndChannel(
                     routine.getUser(),
                     NotificationType.INTAKE,
@@ -55,7 +54,15 @@ public class NotificationScheduler {
             if (setting.isPresent() && setting.get().isEnabled()) {
                 String fcmToken = routine.getUser().getFcmToken();
                 String title = "💊 영양제 복용 시간입니다!";
-                String body = String.format("'%s'를 복용할 시간이에요.", routine.getSupplement().getName());
+
+                String supplementName;
+                if (routine.isCustom()) {
+                    supplementName = routine.getCustomSupplement().getName();
+                } else {
+                    supplementName = routine.getSupplement().getName();
+                }
+
+                String body = String.format("'%s'를 복용할 시간이에요.", supplementName);
                 fcmService.sendNotification(fcmToken, title, body);
             } else {
                 log.info("사용자 ID: {}님이 섭취 푸시 알림을 꺼두어 발송하지 않았습니다.", routine.getUser().getId());
