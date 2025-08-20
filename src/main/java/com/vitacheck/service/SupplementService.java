@@ -347,4 +347,52 @@ public class SupplementService {
             return PopularSupplementDto.from(supplement, searchCount);
         });
     }
+
+
+    public SupplementDto.KeywordSearchSupplementBasedCursor searchSupplements(
+            String keyword, Long cursor,  int size) {
+        List<Object[]> rows = supplementRepository.findSupplementsByKeywordWithPopularity(keyword, cursor, size+1);
+
+        List<SupplementDto.KeywordSearchSupplement> supplements = rows.stream()
+                .limit(size) // size까지만 DTO 변환
+                .map(row -> SupplementDto.KeywordSearchSupplement.builder()
+                        .cursorId((Long) row[5])
+                        .supplementName((String) row[1])
+                        .coupangUrl((String) row[2])
+                        .imageUrl((String) row[3])
+                        .build())
+                .toList();
+
+        // nextCursor 계산
+        Long nextCursor = null;
+        if (rows.size() > size) {
+            Object[] lastRow = rows.get(size); // size+1 번째 데이터
+            nextCursor = ((Number) lastRow[5]).longValue(); // ✅ cursorId를 꺼내야 함
+        }
+
+        return SupplementDto.KeywordSearchSupplementBasedCursor.builder()
+                .supplements(supplements)
+                .nextCursor(nextCursor)
+                .build();
+    }
+
+    public void recordSearchLog(String keyword) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
+            // 🔹 미로그인 사용자 로그
+            searchLogService.logSearch(null, keyword, SearchCategory.KEYWORD, null, null);
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+
+            LocalDate birthDate = user.getBirthDate();
+            int age = Period.between(birthDate, LocalDate.now()).getYears();
+
+            // 🔹 로그인 사용자 로그
+            searchLogService.logSearch(user.getId(), keyword, SearchCategory.KEYWORD, age, user.getGender());
+        }
+    }
+
 }

@@ -2,10 +2,13 @@ package com.vitacheck.controller;
 
 import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.user.User;
+import com.vitacheck.dto.IngredientResponseDTO;
 import com.vitacheck.dto.SupplementDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.service.IngredientService;
 import com.vitacheck.service.SearchLogService;
+import com.vitacheck.service.SupplementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +35,8 @@ public class SearchController {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final SearchLogService searchLogService;
+    private final IngredientService ingredientService;
+    private final SupplementService supplementService;
 
     @Operation(
             summary = "인기 검색어 조회 API By 박지영",

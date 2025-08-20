@@ -76,6 +76,10 @@ public class IngredientController {
             summary = "성분 관련 영양제 조회 (cursor 기반) API By 박지영",
             description = """
         성분 관련 영양제를 cursor기반으로 반환합니다..
+        
+        cursor 처음은 빈칸 또는 0으로 호출하면 됩니다. 그 이후 부터는 nextCursor 값이 아닌 '마지막으로 조회된 ID'를 넣어주면 됩니다.
+                    
+        nextcursor가 null이면 다음 페이지가 없다는 뜻입니다.
         """
 
     )

@@ -2,8 +2,10 @@ package com.vitacheck.dto;
 
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.mapping.SupplementIngredient;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -115,4 +117,26 @@ public class SupplementDto {
             }
         }
     }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class KeywordSearchSupplementBasedCursor {
+        private List<KeywordSearchSupplement> supplements;
+        private Long nextCursor;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class KeywordSearchSupplement{
+        private Long cursorId;  // 인기도 + supplementid
+        private String supplementName;
+        private String coupangUrl;
+        private String imageUrl;
+    }
+
+
 }

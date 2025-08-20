@@ -36,3 +36,5 @@ public interface PurposeCategoryRepository extends JpaRepository<PurposeCategory
         """, nativeQuery = true)
     List<Object[]> findPurposeWithLimitedSupplements(@Param("goals") List<String> goals);
 }
+
+
