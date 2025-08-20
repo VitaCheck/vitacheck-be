@@ -42,24 +42,29 @@ public interface IngredientDosageRepository extends JpaRepository<IngredientDosa
                 .findFirst();
     }
 
+    // 1) 유저 조건 기반 조회 (성별/나이)
     @Query("""
-    select d
-    from IngredientDosage d
-    where d.ingredient.id in :ingredientIds
-      and (d.gender = :gender or d.gender = com.vitacheck.domain.user.Gender.ALL)
-      and d.minAge <= :age and d.maxAge >= :age
-""")
-    List<IngredientDosage> findDosagesByUserCondition(@Param("ingredientIds") Collection<Long> ingredientIds,
-                                                      @Param("gender") Gender gender,
-                                                      @Param("age") int age);
+      select d
+      from IngredientDosage d
+      where d.ingredient.id in :ingredientIds
+        and (d.gender = :gender or d.gender = com.vitacheck.domain.user.Gender.ALL)
+        and d.minAge <= :age and d.maxAge >= :age
+    """)
+    List<IngredientDosage> findDosagesByUserCondition(
+            @Param("ingredientIds") Collection<Long> ingredientIds,
+            @Param("gender") Gender gender,
+            @Param("age") int age
+    );
 
-    // 기존 일반값(ALL & 무연령) 조회
+    // 2) 일반값 (fallback) 조회 (ALL & 무연령)
     @Query("""
-    select d
-    from IngredientDosage d
-    where d.ingredient.id in :ingredientIds
-      and (d.gender is null or d.gender = com.vitacheck.domain.user.Gender.ALL)
-      and (d.minAge is null and d.maxAge is null)
-""")
-    List<IngredientDosage> findGeneralDosagesByIngredientIds(@Param("ingredientIds") Collection<Long> ingredientIds);
+      select d
+      from IngredientDosage d
+      where d.ingredient.id in :ingredientIds
+        and d.gender = com.vitacheck.domain.user.Gender.ALL
+        and d.minAge is null and d.maxAge is null
+    """)
+    List<IngredientDosage> findGeneralDosagesByIngredientIds(
+            @Param("ingredientIds") Collection<Long> ingredientIds
+    );
 }
