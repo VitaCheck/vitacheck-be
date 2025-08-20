@@ -64,6 +64,18 @@ public class SearchController {
         return CustomResponse.ok(popularList);
     }
 
+    @Operation(
+            summary = "검색 기록 API By 박지영",
+            description = " 검색에서 검색한 키워드를 DB에 저장/기록 합니다. 모든 검색 기능에서 이 api를 같이 호출해주시면 됩니다."
+    )
+    @GetMapping("/api/v1/search/logs")
+    public CustomResponse<Void> recordSearchLog(
+            @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
+            @RequestParam String keyword) {
+        searchLogService.recordSearchLog(keyword);
+        return CustomResponse.ok(null);
+    }
+
     @Operation(summary = "최근 검색어 조회", description = "로그인한 사용자의 최근 검색어 목록을 중복 없이 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "프로필 URL 업데이트 성공",

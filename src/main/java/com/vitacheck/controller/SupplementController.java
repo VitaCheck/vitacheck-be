@@ -89,52 +89,6 @@ public class SupplementController {
         return CustomResponse.ok(responseDto);
     }
 
-    @Operation(
-            summary = "검색 기록 API By 박지영",
-            description = " 검색에서 검색한 키워드를 DB에 저장/기록 합니다. 모든 검색 기능에서 이 api를 같이 호출해주시면 됩니다."
-    )
-    @GetMapping("/api/v1/search-logs")
-    public CustomResponse<Void> recordSearchLog(
-            @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
-            @RequestParam String keyword) {
-        supplementService.recordSearchLog(keyword);
-        return CustomResponse.ok(null);
-    }
-
-
-//    @PostMapping("/by-purposes")
-//    @Operation(summary = "목적별 영양소 및 영양제 조회", description = "선택한 목적에 맞는 성분 및 관련 영양제를 반환합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "조회 성공")
-//    })
-//    public CustomResponse<Map<String, SupplementByPurposeResponse>> getSupplementsByPurposes(
-//            @RequestBody SupplementPurposeRequest request
-//    ) {
-//        Map<String, SupplementByPurposeResponse> response = supplementService.getSupplementsByPurposes(request);
-//        return CustomResponse.ok(response);
-//    }
-
-//    @PostMapping("/by-purposes")
-//    @Operation(summary = "목적별 영양소·영양제 조회(페이징)")
-//    // ⭐️ 반환 타입을 Map<String, Object> 로 변경합니다.
-//    public Map<String, Object> getSupplementsByPurposes(
-//            @RequestBody SupplementPurposeRequest request,
-//            @org.springdoc.core.annotations.ParameterObject Pageable pageable
-//    ) {
-//        log.info("[Controller] page={}, size={}, sort={}",
-//                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
-//
-//        // 1. 서비스에서 Slice 데이터를 받아옵니다.
-//        Slice<IngredientPurposeBucket> sliceData = supplementService.getSupplementsByPurposesPaged(request, pageable);
-//
-//        // 2. ⭐️ Map 객체를 직접 생성하여 JSON 구조를 수동으로 만듭니다.
-//        Map<String, Object> response = new HashMap<>();
-//        response.put("content", sliceData.getContent()); // 데이터 목록 추가
-//        response.put("hasNext", sliceData.hasNext());   // 다음 페이지 여부 추가
-//
-//        // 3. ⭐️ 완성된 Map을 반환합니다.
-//        return response;
-//    }
 
 
 

@@ -175,6 +175,22 @@ public class SupplementService {
 
         boolean liked = (userId != null) && supplementLikeRepository.existsByUserIdAndSupplementId(userId, supplementId);
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            // 🔹 클릭 로그 저장 (미로그인)
+            searchLogService.logClick(null, supplement.getName(), SearchCategory.SUPPLEMENT, null,null);
+
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+            LocalDate birthDate = user.getBirthDate();
+            int age = Period.between(birthDate, LocalDate.now()).getYears();
+
+            // 🔹 클릭 로그 저장 (로그인)
+            searchLogService.logClick(user.getId(), supplement.getName(), SearchCategory.SUPPLEMENT, age, user.getGender());
+        }
+
         return SupplementDetailResponseDto.builder()
                 .supplementId(supplement.getId())
                 .brandId(brand != null ? brand.getId() : null)
@@ -376,23 +392,5 @@ public class SupplementService {
                 .build();
     }
 
-    public void recordSearchLog(String keyword) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()
-                || authentication.getPrincipal().equals("anonymousUser")) {
-            // 🔹 미로그인 사용자 로그
-            searchLogService.logSearch(null, keyword, SearchCategory.KEYWORD, null, null);
-        } else {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            User user = userDetails.getUser();
-
-            LocalDate birthDate = user.getBirthDate();
-            int age = Period.between(birthDate, LocalDate.now()).getYears();
-
-            // 🔹 로그인 사용자 로그
-            searchLogService.logSearch(user.getId(), keyword, SearchCategory.KEYWORD, age, user.getGender());
-        }
-    }
 
 }
