@@ -57,6 +57,7 @@ public class SecurityConfig {
             "/api/v1/search/**",
             "/api/v1/notification-settings/internal/trigger-notifications",
             "/health",
+            "/clova-ocr/**",
 
             // test
             "/api/v1/test"
