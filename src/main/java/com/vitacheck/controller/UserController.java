@@ -121,4 +121,17 @@ public class UserController {
         String profileImageUrl = userService.getProfileImageUrlByEmail(email);
         return CustomResponse.ok(profileImageUrl);
     }
+
+    @Operation(summary = "회원 탈퇴", description = "로그인된 사용자의 계정을 탈퇴 처리합니다. 데이터는 30일 후 영구 삭제됩니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "회원 탈퇴 요청 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+    })
+    @DeleteMapping("/me")
+    public CustomResponse<String> withdrawUser(@AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        userService.withdrawUser(email);
+        return CustomResponse.ok("회원 탈퇴 요청이 처리되었습니다.");
+    }
 }

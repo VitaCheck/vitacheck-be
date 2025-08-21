@@ -21,4 +21,6 @@ public interface SupplementLikeRepository extends JpaRepository<SupplementLike, 
     List<SupplementLike> findAllByUserIdWithSupplement(@Param("userId") Long userId);
 
     boolean existsByUserIdAndSupplementId(Long userId, Long supplementId);
+
+    void deleteAllByUser(User user);
 }

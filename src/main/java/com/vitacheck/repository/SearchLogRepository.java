@@ -1,6 +1,7 @@
 package com.vitacheck.repository;
 
 import com.vitacheck.domain.searchLog.SearchLog;
+import com.vitacheck.domain.user.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,6 @@ public interface SearchLogRepository extends JpaRepository<SearchLog, Long>, Sea
             "GROUP BY s.keyword " +
             "ORDER BY MAX(s.createdAt) DESC")
     List<String> findRecentViewedSupplementNamesByUserId(@Param("userId") Long userId, Pageable pageable);
+
+    void deleteAllByUserId(Long userId);
 }

@@ -220,5 +220,11 @@ public class UserService {
         String newAccessToken = jwtUtil.createAccessToken(email);
         return new UserDto.TokenResponse(newAccessToken, refreshToken);
     }
+    @Transactional
+    public void withdrawUser(String email) {
+        User user =  userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.withdraw();
+    }
 
 }

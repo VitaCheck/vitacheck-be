@@ -8,7 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface IngredientLikeRepository extends JpaRepository<IngredientLike, Long> {
+public interface
+IngredientLikeRepository extends JpaRepository<IngredientLike, Long> {
 
     Optional<IngredientLike> findByUserAndIngredient(User user, Ingredient ingredient);
 
@@ -17,4 +18,6 @@ public interface IngredientLikeRepository extends JpaRepository<IngredientLike, 
     void deleteByUserAndIngredient(User user, Ingredient ingredient);
 
     List<IngredientLike> findAllByUserId(Long userId);
+
+    void deleteAllByUser(User user);
 }
