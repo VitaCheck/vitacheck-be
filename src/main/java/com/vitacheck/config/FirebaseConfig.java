@@ -89,9 +89,4 @@ public class FirebaseConfig {
         return app;
     }
 
-    // 위에서 생성된 FirebaseApp Bean을 주입받아 FirebaseMessaging Bean을 생성합니다.
-    @Bean
-    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
-        return FirebaseMessaging.getInstance(firebaseApp);
-    }
 }
