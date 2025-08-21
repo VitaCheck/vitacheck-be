@@ -6,8 +6,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -56,9 +54,8 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserDevice> devices = new ArrayList<>();
+    @Column(name = "fcm_token", columnDefinition = "TEXT")
+    private String fcmToken;
 
     private String profileUrl;
 
@@ -68,6 +65,10 @@ public class User extends BaseTimeEntity {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
     public User updateFromSocial(String nickname) {
@@ -97,12 +98,8 @@ public class User extends BaseTimeEntity {
         this.birthDate = LocalDate.of(1900, 1, 1);
         this.phoneNumber = "010-0000-0000";
         this.providerId = null;
+        this.fcmToken = null;
         this.profileUrl = null;
         this.status = UserStatus.DELETED;
-
-        // ✅ 추가: 사용자와 연결된 모든 기기(FCM 토큰) 정보를 삭제하는 코드
-        this.devices.clear();
     }
-
-
 }

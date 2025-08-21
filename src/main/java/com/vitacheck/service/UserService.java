@@ -3,13 +3,11 @@ package com.vitacheck.service;
 import com.vitacheck.config.jwt.JwtUtil;
 import com.vitacheck.domain.user.Role;
 import com.vitacheck.domain.user.User;
-import com.vitacheck.domain.user.UserDevice;
 import com.vitacheck.domain.user.UserStatus;
 import com.vitacheck.dto.OAuthAttributes;
 import com.vitacheck.dto.UserDto;
 import com.vitacheck.global.apiPayload.CustomException;
 import com.vitacheck.global.apiPayload.code.ErrorCode;
-import com.vitacheck.repository.UserDeviceRepository;
 import com.vitacheck.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,7 +31,6 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private final NotificationSettingsService notificationSettingsService;
     private final TermsService termsService;
-    private final UserDeviceRepository userDeviceRepository;
 
     public String preSignUp(UserDto.PreSignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -185,35 +181,10 @@ public class UserService {
     }
 
     @Transactional
-    public void updateFcmToken(String email, UserDto.UpdateFcmTokenRequest request) {
+    public void updateFcmToken(String email, String fcmToken) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        String fcmToken = request.getFcmToken();
-
-        // 1. 혹시 다른 유저가 이 토큰을 사용하고 있었다면, 연결을 끊어줍니다.
-        userDeviceRepository.findByFcmToken(fcmToken).ifPresent(device -> {
-            if (!device.getUser().getId().equals(user.getId())) {
-                device.updateUser(null); // 혹은 device를 삭제
-            }
-        });
-
-        // 2. 현재 유저의 기기 목록에서 이미 해당 토큰이 있는지 확인합니다.
-        Optional<UserDevice> existingDevice = user.getDevices().stream()
-                .filter(device -> device.getFcmToken().equals(fcmToken))
-                .findFirst();
-
-        if (existingDevice.isEmpty()) {
-            // 3. 없다면, 새로운 기기로 등록합니다.
-            UserDevice newDevice = UserDevice.builder()
-                    .user(user)
-                    .fcmToken(fcmToken)
-                    .deviceType(request.getDeviceType())
-                    .build();
-            user.getDevices().add(newDevice);
-            userDeviceRepository.save(newDevice);
-        }
-        // 4. 이미 있다면, 아무것도 하지 않습니다 (연결 유지).
+        user.updateFcmToken(fcmToken);
     }
 
     public UserDto.SocialSignUpRequest getSocialInfoFromTempToken(String tempToken) {

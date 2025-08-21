@@ -26,10 +26,6 @@ import java.util.List;
 @Profile("!test")
 public class FirebaseConfig {
 
-
-    @Value("${firebase.project-id}")
-    private String projectId;
-
     // prod 환경에서 사용
     @Value("${firebase.key-json:#{null}}")
     private String fcmKeyJson;
@@ -81,12 +77,16 @@ public class FirebaseConfig {
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .setProjectId(projectId)
                 .build();
 
         FirebaseApp app = FirebaseApp.initializeApp(options);
-        log.info("FirebaseApp 초기화 성공.(Project ID: {})", projectId);
+        log.info("FirebaseApp 초기화 성공.");
         return app;
     }
 
+    // 위에서 생성된 FirebaseApp Bean을 주입받아 FirebaseMessaging Bean을 생성합니다.
+    @Bean
+    public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
+        return FirebaseMessaging.getInstance(firebaseApp);
+    }
 }
