@@ -5,6 +5,7 @@ import com.vitacheck.domain.notification.NotificationChannel;
 import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.notification.NotificationSettings;
 import com.vitacheck.domain.notification.NotificationType;
+import com.vitacheck.domain.user.UserDevice;
 import com.vitacheck.repository.NotificationRoutineRepository;
 import com.vitacheck.repository.NotificationSettingsRepository; // Repository 주입
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -52,7 +54,9 @@ public class NotificationScheduler {
 
             // 설정이 존재하고, isEnabled가 true일 때만 알림 발송
             if (setting.isPresent() && setting.get().isEnabled()) {
-                String fcmToken = routine.getUser().getFcmToken();
+                List<String> fcmTokens = routine.getUser().getDevices().stream()
+                        .map(UserDevice::getFcmToken)
+                        .collect(Collectors.toList());
                 String title = "💊 영양제 복용 시간입니다!";
 
                 String supplementName;
@@ -63,7 +67,7 @@ public class NotificationScheduler {
                 }
 
                 String body = String.format("'%s'를 복용할 시간이에요.", supplementName);
-                fcmService.sendNotification(fcmToken, title, body);
+                fcmService.sendMulticastNotification(fcmTokens, title, body);
             } else {
                 log.info("사용자 ID: {}님이 섭취 푸시 알림을 꺼두어 발송하지 않았습니다.", routine.getUser().getId());
             }

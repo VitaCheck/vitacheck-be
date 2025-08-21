@@ -89,22 +89,13 @@ public class UserController {
         return CustomResponse.ok(newImageUrl);
     }
 
-    @Operation(summary = "FCM 토큰 업데이트", description = "클라이언트(앱/웹)의 푸시 알림을 위한 FCM 디바이스 토큰을 등록 또는 갱신합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "FCM 토큰 업데이트 성공",
-                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공적으로 요청을 수행했습니다.\",\"result\":\"FCM 토큰이 업데이트되었습니다.\"}"))),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
-                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0001\",\"message\":\"로그인이 필요합니다.\",\"result\":null}"))),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
-                    content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
-    })
     @PutMapping("/me/fcm-token")
     public CustomResponse<String> updateFcmToken(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "사용자의 새로운 FCM 디바이스 토큰")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "사용자의 새로운 FCM 디바이스 토큰과 타입")
             @RequestBody UserDto.UpdateFcmTokenRequest request
     ) {
-        userService.updateFcmToken(userDetails.getUsername(), request.getFcmToken());
+        userService.updateFcmToken(userDetails.getUsername(), request);
         return CustomResponse.ok("FCM 토큰이 업데이트되었습니다.");
     }
 

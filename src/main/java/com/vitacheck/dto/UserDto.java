@@ -116,7 +116,11 @@ public class UserDto {
     @Getter
     @NoArgsConstructor
     public static class UpdateFcmTokenRequest {
+        @NotBlank(message = "FCM 토큰은 비워둘 수 없습니다.") // ✅ 유효성 검사 추가
         private String fcmToken;
+
+        // ✅ 기기 타입을 받는 필드를 추가합니다. (예: "WEB", "IOS", "ANDROID")
+        private String deviceType;
     }
 
     @Getter
