@@ -14,4 +14,5 @@ import java.util.Optional;
 public interface NotificationSettingsRepository extends JpaRepository<NotificationSettings, Long> {
     List<NotificationSettings> findByUser(User user);
     Optional<NotificationSettings> findByUserAndTypeAndChannel(User user, NotificationType type, NotificationChannel channel);
+    void deleteAllByUser(User user);
 }

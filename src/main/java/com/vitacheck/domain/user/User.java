@@ -89,4 +89,17 @@ public class User extends BaseTimeEntity {
             this.phoneNumber = phoneNumber;
         }
     }
+
+    public void withdraw() {
+        this.password = null;
+        this.fullName = "탈퇴한사용자";
+        this.nickname = "탈퇴한사용자";
+        this.gender = Gender.NONE;
+        this.birthDate = LocalDate.of(1900, 1, 1);
+        this.phoneNumber = "010-0000-0000";
+        this.providerId = null;
+        this.fcmToken = null;
+        this.profileUrl = null;
+        this.status = UserStatus.DELETED;
+    }
 }

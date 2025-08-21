@@ -3,6 +3,7 @@ package com.vitacheck.repository;
 import com.vitacheck.domain.RoutineDetail;
 import com.vitacheck.domain.notification.NotificationRoutine;
 import com.vitacheck.domain.RoutineDayOfWeek;
+import com.vitacheck.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,8 +22,9 @@ public interface NotificationRoutineRepository extends JpaRepository<Notificatio
         WHERE nr.user.id = :userId
           AND nr.supplement.id = :supplementId
     """)
-    List<RoutineDetail> findRoutineDetailsByUserIdAndSupplementId(@Param("userId") Long userId,
-                                                                  @Param("supplementId") Long supplementId);
+    List<RoutineDetail> findRoutineDetailsByUserIdAndSupplementId(
+            @Param("userId") Long userId,
+            @Param("supplementId") Long supplementId);
 
     List<NotificationRoutine> findAllByUserId(Long userId);
 
@@ -63,7 +65,7 @@ public interface NotificationRoutineRepository extends JpaRepository<Notificatio
     """)
     Optional<NotificationRoutine> findByIdWithTargets(@Param("id") Long id);
 
-
-
     boolean existsByCustomSupplementId(Long customSupplementId);
+
+    void deleteAllByUser(User user);
 }

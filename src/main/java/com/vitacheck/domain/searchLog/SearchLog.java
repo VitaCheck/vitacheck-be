@@ -42,6 +42,4 @@ public class SearchLog extends BaseTimeEntity {
 
     @Column(name = "age")
     private Integer age;
-
-
 }
