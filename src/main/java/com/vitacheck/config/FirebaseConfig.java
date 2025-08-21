@@ -77,6 +77,7 @@ public class FirebaseConfig {
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .setProjectId("vitacheck-1ee1d")
                 .build();
 
         FirebaseApp app = FirebaseApp.initializeApp(options);
