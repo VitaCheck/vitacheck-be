@@ -31,4 +31,8 @@ public class UserDevice extends BaseTimeEntity {
     public void updateUser(User user) {
         this.user = user;
     }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
