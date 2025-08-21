@@ -182,7 +182,7 @@ public class SearchLogService {
 
         // 3. 1번에서 가져온 최신순으로 다시 정렬하며 DTO로 변환합니다.
         Map<String, Supplement> supplementMap = supplements.stream()
-                .collect(Collectors.toMap(Supplement::getName, s -> s));
+                .collect(Collectors.toMap(Supplement::getName, s -> s, (first, second) -> first));
 
         return supplementNames.stream()
                 .map(supplementMap::get)
