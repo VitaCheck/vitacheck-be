@@ -133,6 +133,7 @@ public class NotificationRoutineCommandService {
         }
     }
 
+    @Transactional
     public RoutineResponseDto toggleRoutine(Long userId, Long routineId) {
         NotificationRoutine routine = notificationRoutineRepository.findByIdAndUserId(routineId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
