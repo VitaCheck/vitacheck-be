@@ -56,7 +56,10 @@ public class SecurityConfig {
             "/api/v1/terms",
             "/api/v1/search/**",
             "/api/v1/notification-settings/internal/trigger-notifications",
-            "/health"
+            "/health",
+
+            // test
+            "/api/v1/test"
     };
 
     @Bean
