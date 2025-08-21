@@ -98,7 +98,7 @@ public class IngredientController {
 
 
     @Operation(summary = "인기 검색 성분 조회", description = "가장 많이 검색된 성분을 순서대로 조회합니다.")
-    @GetMapping("/popular-ingredients")
+    @GetMapping("/api/v1/ingredients/popular")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "인기 검색 성분 조회",
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공적으로 요청을 수행했습니다.\",\"result\":\"FCM 토큰이 업데이트되었습니다.\"}"))),
