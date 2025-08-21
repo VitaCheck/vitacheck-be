@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface UserDeviceRepository extends JpaRepository<UserDevice, Long> {
     Optional<UserDevice> findByFcmToken(String fcmToken);
+    void deleteByFcmToken(String fcmToken);
 }
