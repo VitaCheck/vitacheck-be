@@ -26,6 +26,10 @@ import java.util.List;
 @Profile("!test")
 public class FirebaseConfig {
 
+
+    @Value("${firebase.project-id}")
+    private String projectId;
+
     // prod 환경에서 사용
     @Value("${firebase.key-json:#{null}}")
     private String fcmKeyJson;
@@ -77,11 +81,11 @@ public class FirebaseConfig {
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .setProjectId("vitacheck-1ee1d")
+                .setProjectId(projectId)
                 .build();
 
         FirebaseApp app = FirebaseApp.initializeApp(options);
-        log.info("FirebaseApp 초기화 성공.");
+        log.info("FirebaseApp 초기화 성공.(Project ID: {})", projectId);
         return app;
     }
 
