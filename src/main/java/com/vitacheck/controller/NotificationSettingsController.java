@@ -40,7 +40,7 @@ public class NotificationSettingsController {
         return CustomResponse.ok(response);
     }
 
-    @PutMapping("/me")
+    @PatchMapping("/me")
     @Operation(summary = "내 알림 설정 변경", description = "특정 알림(종류/채널)의 수신 동의 여부를 변경(토글)합니다.")
     public CustomResponse<String> updateMyNotificationSetting(
             @AuthenticationPrincipal UserDetails userDetails,
