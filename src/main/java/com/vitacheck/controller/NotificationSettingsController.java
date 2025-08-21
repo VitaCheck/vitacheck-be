@@ -41,24 +41,43 @@ public class NotificationSettingsController {
     }
 
     @PatchMapping("/me")
-    @Operation(summary = "내 알림 설정 변경", description = "특정 알림(종류/채널)의 수신 동의 여부를 변경(토글)합니다.")
+    @Operation(summary = "내 알림 설정 변경",
+            description = """
+                특정 알림(종류/채널)의 수신 동의 여부를 변경(토글)합니다.
+                
+                이벤트 및 혜택 type : "EVENT"  /  섭취 알림 type : "INTAKE"
+                
+                이메일 channel : "EMAIL"      /   앱 푸시 channel : "PUSH"
+            """)
     public CustomResponse<String> updateMyNotificationSetting(
             @AuthenticationPrincipal UserDetails userDetails,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "변경할 알림의 종류, 채널, 그리고 활성화 여부를 전달합니다.",
+                    description = """
+                            변경할 알림의 종류, 채널, 그리고 활성화 여부를 전달합니다.
+                            """,
                     required = true,
                     content = @Content(
                             schema = @Schema(implementation = NotificationSettingsDto.UpdateRequest.class),
                             examples = {
                                     @ExampleObject(
-                                            name = "섭취 알림 켜기/끄기",
-                                            value = "{\"type\": \"INTAKE\", \"channel\": \"PUSH\", \"isEnabled\": false}",
-                                            summary = "섭취 푸시 알림 끄기 예시"
+                                            name = "이벤트 및 혜택 이메일 알림 켜기/끄기",
+                                            value = "{\"type\": \"EVENT\", \"channel\": \"EMAIL\", \"isEnabled\": false}",
+                                            summary = "이벤트 및 혜택 이메일 알림"
                                     ),
                                     @ExampleObject(
-                                            name = "이벤트 알림 켜기/끄기",
-                                            value = "{\"type\": \"EVENT\", \"channel\": \"SMS\", \"isEnabled\": true}",
-                                            summary = "이벤트 SMS 알림 켜기 예시"
+                                            name = "이벤트 및 혜택 앱 푸시 알림 켜기/끄기",
+                                            value = "{\"type\": \"EVENT\", \"channel\": \"PUSH\", \"isEnabled\": false}",
+                                            summary = "이벤트 및 혜택 앱 푸시 알림"
+                                    ),
+                                    @ExampleObject(
+                                            name = "섭취 이메일 알림 켜기/끄기",
+                                            value = "{\"type\": \"INTAKE\", \"channel\": \"EMAIL\", \"isEnabled\": false}",
+                                            summary = "섭취 이메일 알림"
+                                    ),
+                                    @ExampleObject(
+                                            name = "섭취 앱 푸시 알림 알림 켜기/끄기",
+                                            value = "{\"type\": \"INTAKE\", \"channel\": \"PUSH\", \"isEnabled\": true}",
+                                            summary = "섭취 앱 푸시 알림"
                                     )
                             }
                     )
