@@ -51,12 +51,12 @@ public class NotificationSettingsController {
                             schema = @Schema(implementation = NotificationSettingsDto.UpdateRequest.class),
                             examples = {
                                     @ExampleObject(
-                                            name = "섭취 알림 끄기",
+                                            name = "섭취 알림 켜기/끄기",
                                             value = "{\"type\": \"INTAKE\", \"channel\": \"PUSH\", \"isEnabled\": false}",
                                             summary = "섭취 푸시 알림 끄기 예시"
                                     ),
                                     @ExampleObject(
-                                            name = "이벤트 알림 켜기",
+                                            name = "이벤트 알림 켜기/끄기",
                                             value = "{\"type\": \"EVENT\", \"channel\": \"SMS\", \"isEnabled\": true}",
                                             summary = "이벤트 SMS 알림 켜기 예시"
                                     )

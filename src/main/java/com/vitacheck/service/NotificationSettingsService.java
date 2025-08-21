@@ -49,7 +49,7 @@ public class NotificationSettingsService {
                 .findByUserAndTypeAndChannel(user, request.getType(), request.getChannel())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REQUEST)); // 존재하지 않는 설정을 변경하려는 경우
 
-        setting.setIsEnabled(request.isEnabled());
+        setting.setIsEnabled(!setting.isEnabled());
 
         notificationSettingsRepository.save(setting);
     }
