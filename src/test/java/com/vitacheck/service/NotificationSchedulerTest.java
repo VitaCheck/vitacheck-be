@@ -7,9 +7,8 @@ import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.notification.NotificationSettings;
 import com.vitacheck.domain.notification.NotificationType;
 import com.vitacheck.domain.user.User;
-import com.vitacheck.domain.user.UserDevice;
 import com.vitacheck.repository.NotificationRoutineRepository;
-import com.vitacheck.repository.NotificationSettingsRepository;
+import com.vitacheck.repository.NotificationSettingsRepository; // import 추가
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.Optional; // import 추가
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,6 +34,7 @@ class NotificationSchedulerTest {
     @Mock
     private FcmService fcmService;
 
+    // 👇👇👇 1. 가짜 Repository Mock 객체를 추가합니다. 👇👇👇
     @Mock
     private NotificationSettingsRepository notificationSettingsRepository;
 
@@ -46,19 +46,10 @@ class NotificationSchedulerTest {
 
     @BeforeEach
     void setUp() {
-        // 1. 토큰 없이 테스트용 User 객체를 생성합니다.
         testUser = User.builder()
                 .id(1L)
-                .build();
-
-        // 2. 토큰을 가진 UserDevice 객체를 생성하고 User와 연결합니다.
-        UserDevice testDevice = UserDevice.builder()
                 .fcmToken("test_fcm_token_12345")
-                .user(testUser)
                 .build();
-
-        // 3. User의 기기 목록에 생성한 기기를 추가합니다.
-        testUser.getDevices().add(testDevice);
 
         testSupplement = Supplement.builder()
                 .id(10L)
@@ -75,6 +66,8 @@ class NotificationSchedulerTest {
                 .supplement(testSupplement)
                 .build();
 
+        // 👇👇👇 2. 알림 설정 시나리오를 추가합니다. 👇👇👇
+        // "이 사용자는 INTAKE/PUSH 알림을 받겠다고(isEnabled=true) 설정했습니다" 라고 가정
         NotificationSettings settings = NotificationSettings.builder().isEnabled(true).build();
         when(notificationSettingsRepository.findByUserAndTypeAndChannel(
                 any(User.class),
@@ -82,6 +75,7 @@ class NotificationSchedulerTest {
                 eq(NotificationChannel.PUSH)
         )).thenReturn(Optional.of(settings));
 
+        // 기존 시나리오
         when(notificationRoutineRepository.findRoutinesToSend(
                 any(RoutineDayOfWeek.class),
                 any(LocalTime.class)
@@ -91,9 +85,8 @@ class NotificationSchedulerTest {
         notificationScheduler.sendRoutineNotifications();
 
         // then: 검증
-        // ✅ 이제 sendMulticastNotification 메소드가 토큰 리스트와 함께 호출되는지 확인합니다.
-        verify(fcmService, times(1)).sendMulticastNotification(
-                eq(List.of("test_fcm_token_12345")),
+        verify(fcmService, times(1)).sendNotification(
+                eq("test_fcm_token_12345"),
                 eq("💊 영양제 복용 시간입니다!"),
                 eq("'비타민C 1000'를 복용할 시간이에요.")
         );
