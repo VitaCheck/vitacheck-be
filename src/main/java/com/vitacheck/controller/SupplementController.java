@@ -40,28 +40,8 @@ public class SupplementController {
     private final SupplementService supplementService;
     private final StatisticsService statisticsService;
 
+
     @GetMapping("/search")
-    @Operation(summary = "영양제 통합 검색", description = "키워드, 브랜드명, 성분명으로 영양제를 검색합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "검색 성공"),
-            @ApiResponse(responseCode = "400", description = "검색 파라미터가 없는 경우")
-    })
-    public CustomResponse<SearchDto.UnifiedSearchResponse> searchSupplements(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "검색 키워드 (상품명)") @RequestParam(required = false) String keyword,
-            @Parameter(description = "브랜드 이름") @RequestParam(required = false) String brandName,
-            @Parameter(description = "성분 이름") @RequestParam(required = false) String ingredientName,
-            @ParameterObject Pageable pageable
-    ) {
-        if (!StringUtils.hasText(keyword) && !StringUtils.hasText(brandName) && !StringUtils.hasText(ingredientName)) {
-            throw new CustomException(ErrorCode.SEARCH_KEYWORD_EMPTY);
-        }
-
-        SearchDto.UnifiedSearchResponse response = supplementService.search(user, keyword, brandName, ingredientName, pageable);
-        return CustomResponse.ok(response);
-    }
-
-    @GetMapping("/search-cursor")
     @Operation(
             summary = "영양제 제품 검색 API (Cursor 기반 페이지네이션) By 박지영",
             description = """
