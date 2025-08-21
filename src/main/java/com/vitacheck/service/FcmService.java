@@ -12,8 +12,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FcmService {
 
-    private final FirebaseMessaging firebaseMessaging;
-
     public void sendMulticastNotification(List<String> tokens, String title, String body) {
         if (tokens == null || tokens.isEmpty()) {
             log.warn("FCM 토큰 목록이 비어있어 알림을 보낼 수 없습니다.");
@@ -31,7 +29,7 @@ public class FcmService {
                 .build();
 
         try {
-            BatchResponse response = firebaseMessaging.sendMulticast(message);
+            BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
             log.info("FCM 멀티캐스트 알림 발송 성공: {} messages", response.getSuccessCount());
             if (response.getFailureCount() > 0) {
                 log.warn("FCM 멀티캐스트 알림 발송 일부 실패: {} messages", response.getFailureCount());
@@ -58,7 +56,7 @@ public class FcmService {
                 .build();
 
         try {
-            firebaseMessaging.send(message);
+            FirebaseMessaging.getInstance().send(message);
             log.info("FCM 알림 발송 성공: To = {}, Title = {}", token, title);
         } catch (FirebaseMessagingException e) {
             log.error("FCM 알림 발송 실패: {}", e.getMessage());
