@@ -71,8 +71,3 @@ oauth2:
 
 server:
   forward-headers-strategy: framework
-
-ncloud:
-  ocr:
-    url: "https://7pb8vc0l17.apigw.ntruss.com/custom/v1/45211/1133bd626f11422e3a1f6b7a85c33c9a7a2d11d18e611b26849c34c44fb3c23d/general"
-    secret: "${NCLOUD_OCR_SECRET}"
