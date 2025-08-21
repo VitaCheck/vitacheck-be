@@ -138,6 +138,7 @@ public class NotificationRoutineCommandService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ROUTINE_NOT_FOUND));
 
         routine.toggleEnabled();
+        notificationRoutineRepository.save(routine);
 
         boolean isTaken = intakeRecordRepository.existsByNotificationRoutineAndUserAndDateAndIsTaken(
                 routine, routine.getUser(), LocalDate.now(), true
