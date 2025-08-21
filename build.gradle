@@ -59,7 +59,7 @@ dependencies {
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     // Firebase
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
 
     //Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
