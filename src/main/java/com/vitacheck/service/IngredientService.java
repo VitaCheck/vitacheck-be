@@ -249,7 +249,14 @@ public class IngredientService {
                 .map(tuple -> {
                     String ingredientName = tuple.get(QSearchLog.searchLog.keyword);
                     long searchCount = tuple.get(QSearchLog.searchLog.keyword.count());
-                    return new PopularIngredientDto(ingredientName, searchCount);
+                    // 성분 이름을 이용해 성분 객체를 찾아 ID를 가져옵니다. ✅
+                    Ingredient ingredient = ingredientRepository.findByName(ingredientName)
+                            .orElse(null);
+                    return new PopularIngredientDto(
+                            ingredient != null ? ingredient.getId() : null, // ✅ ID를 DTO에 포함시킵니다.
+                            ingredientName,
+                            searchCount
+                    );
                 })
                 .collect(Collectors.toList());
     }
