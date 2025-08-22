@@ -119,6 +119,7 @@ public class UserService {
                 .phoneNumber(request.getPhoneNumber())
                 .provider(attributes.getProvider())
                 .providerId(attributes.getProviderId())
+                .fcmToken(request.getFcmToken())
                 .role(Role.USER)
                 .status(UserStatus.ACTIVE)
                 .lastLoginAt(LocalDateTime.now())

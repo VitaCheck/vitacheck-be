@@ -69,6 +69,7 @@ public class UserDto {
         private Gender gender;
         private LocalDate birthDate;
         private String phoneNumber;
+        private String fcmToken;
 
         public SocialSignUpRequest(OAuthAttributes attributes) {
             this.email = attributes.getEmail();
