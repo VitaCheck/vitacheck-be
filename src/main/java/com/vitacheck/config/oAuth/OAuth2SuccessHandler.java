@@ -61,6 +61,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                     .queryParam("accessToken", accessToken)
                     .queryParam("refreshToken", refreshToken)
+                    .queryParam("fcmUpdateRequired", "true")
                     .build()
                     .toUriString();
         }
