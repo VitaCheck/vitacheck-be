@@ -2,7 +2,7 @@ package com.vitacheck.controller;
 
 import com.vitacheck.dto.CustomRoutineUpsertRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
-import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.NotificationRoutineCustomCommandService;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

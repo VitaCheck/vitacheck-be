@@ -1,4 +1,4 @@
-package com.vitacheck.domain.common;
+package com.vitacheck.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class) // Auditing 기능 적용
-public class BaseTimeEntity {
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseTimeEntity {
 
     @CreatedDate
     @Column(updatable = false)

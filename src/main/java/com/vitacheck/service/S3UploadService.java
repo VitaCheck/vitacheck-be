@@ -1,7 +1,7 @@
 package com.vitacheck.service;
 
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.code.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
 

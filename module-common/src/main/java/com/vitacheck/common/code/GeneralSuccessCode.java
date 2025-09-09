@@ -1,4 +1,4 @@
-package com.vitacheck.global.apiPayload.code;
+package com.vitacheck.common.code;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

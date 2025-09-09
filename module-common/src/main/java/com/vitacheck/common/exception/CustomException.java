@@ -1,6 +1,6 @@
-package com.vitacheck.global.apiPayload;
+package com.vitacheck.common.exception;
 
-import com.vitacheck.global.apiPayload.code.BaseErrorCode;
+import com.vitacheck.common.code.BaseErrorCode;
 import lombok.Getter;
 
 @Getter

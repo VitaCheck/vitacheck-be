@@ -1,10 +1,8 @@
 package com.vitacheck.controller;
 
-import com.vitacheck.domain.Ingredient;
 import com.vitacheck.dto.IngredientResponseDTO;
 import com.vitacheck.dto.PopularIngredientDto;
-import com.vitacheck.global.apiPayload.CustomResponse;
-import com.vitacheck.repository.IngredientRepository;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +11,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

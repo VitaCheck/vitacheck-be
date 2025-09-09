@@ -1,6 +1,6 @@
 package com.vitacheck.domain.searchLog;
 
-import com.vitacheck.domain.common.BaseTimeEntity;
+import com.vitacheck.common.entity.BaseTimeEntity;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;
