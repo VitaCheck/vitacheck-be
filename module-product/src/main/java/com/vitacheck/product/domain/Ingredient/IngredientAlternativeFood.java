@@ -1,7 +1,7 @@
-package com.vitacheck.domain;
+package com.vitacheck.product.domain.Ingredient;
+
 
 import com.vitacheck.common.entity.BaseTimeEntity;
-import com.vitacheck.domain.mapping.IngredientAlternativeFood;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,22 +12,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "alternative_foods")
+@Table(name = "ingredient_alternative_food")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class AlternativeFood extends BaseTimeEntity {
+public class IngredientAlternativeFood extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ingredient_id")
+    private Ingredient ingredient;
 
-    @Column(name = "emoji")
-    private String emoji;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "alternative_food_id")
+    private AlternativeFood alternativeFood;
 
-    @OneToMany(mappedBy = "alternativeFood", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<IngredientAlternativeFood> ingredients = new ArrayList<>();
 
 }

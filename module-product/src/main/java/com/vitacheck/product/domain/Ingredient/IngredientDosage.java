@@ -1,7 +1,7 @@
-package com.vitacheck.domain;
+package com.vitacheck.product.domain.Ingredient;
 
 import com.vitacheck.common.entity.BaseTimeEntity;
-import com.vitacheck.domain.user.Gender;
+import com.vitacheck.common.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,9 +1,9 @@
-package com.vitacheck.domain;
+package com.vitacheck.product.domain.Ingredient;
 
 import com.vitacheck.common.entity.BaseTimeEntity;
-import com.vitacheck.domain.mapping.IngredientAlternativeFood;
-import com.vitacheck.domain.mapping.SupplementIngredient;
-import com.vitacheck.domain.purposes.PurposeIngredient;
+
+import com.vitacheck.product.domain.Purpose.PurposeIngredient;
+import com.vitacheck.product.domain.Supplement.SupplementIngredient;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,9 +50,6 @@ public class Ingredient extends BaseTimeEntity {
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<IngredientAlternativeFood> alternativeFoods = new ArrayList<>();
 
-//    @ManyToMany(mappedBy = "ingredients")
-//    private List<PurposeCategory> purposeCategories = new ArrayList<>();
-// 🔹 중간 테이블(PurposeIngredient)과 연결
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurposeIngredient> purposeIngredients = new ArrayList<>();
 }

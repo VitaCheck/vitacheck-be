@@ -1,8 +1,7 @@
-package com.vitacheck.domain;
+package com.vitacheck.product.domain.Supplement;
 
 
 import com.vitacheck.common.entity.BaseTimeEntity;
-import com.vitacheck.domain.mapping.SupplementIngredient;
 import jakarta.persistence.*;
 import lombok.*;
 
