@@ -1,7 +1,7 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.dto.IntakeRecordResponseDto;
-import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.IntakeRecordCommandService;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -2,10 +2,11 @@ package com.vitacheck.controller;
 
 import com.vitacheck.domain.purposes.AllPurpose;
 import com.vitacheck.dto.AllPurposeDto;
-import com.vitacheck.dto.IngredientResponseDTO;
 import com.vitacheck.dto.PurposeResponseDTO;
-import com.vitacheck.global.apiPayload.CustomResponse;
 import com.vitacheck.service.PurposeService;
+//import com.vitacheck.product.Service.PurposeService;
+//import com.vitacheck.product.dto.PurposeResponseDTO;
+import com.vitacheck.common.CustomResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -15,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -72,21 +72,3 @@ public class PurposeController {
 
 
 }
-
-/*
-swagger 디테일 보강 전 코드 (임시 보관)
-@RestController
-@RequestMapping("/api/v1/purposes")
-@RequiredArgsConstructor
-@Tag(name = "Purpose", description = "건강 목적 Enum API")
-public class PurposeController {
-
-    private final PurposeService purposeService;
-
-    @GetMapping
-    @Operation(summary = "건강 목적 전체 조회", description = "모든 건강 목적(enum) 리스트를 반환합니다.")
-    public List<AllPurposeDto> getAllPurposes() {
-        return purposeService.getAllPurposes();
-    }
-}
- */

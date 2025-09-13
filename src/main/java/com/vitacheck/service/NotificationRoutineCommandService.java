@@ -6,8 +6,8 @@ import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.RoutineRegisterRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
 import com.vitacheck.dto.RoutineResponseDto;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.repository.CustomSupplementRepository;
 import com.vitacheck.repository.IntakeRecordRepository;
 import com.vitacheck.repository.NotificationRoutineRepository;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

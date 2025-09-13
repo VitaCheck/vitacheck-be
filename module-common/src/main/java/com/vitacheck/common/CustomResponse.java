@@ -1,11 +1,11 @@
-package com.vitacheck.global.apiPayload;
+package com.vitacheck.common;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.vitacheck.global.apiPayload.code.BaseCode;
-import com.vitacheck.global.apiPayload.code.BaseErrorCode;
-import com.vitacheck.global.apiPayload.code.GeneralSuccessCode;
+import com.vitacheck.common.code.BaseCode;
+import com.vitacheck.common.code.BaseErrorCode;
+import com.vitacheck.common.code.GeneralSuccessCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 

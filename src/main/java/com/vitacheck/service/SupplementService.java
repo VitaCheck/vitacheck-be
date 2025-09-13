@@ -3,18 +3,14 @@ package com.vitacheck.service;
 import com.querydsl.core.Tuple;
 import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.Brand;
-import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
-import com.vitacheck.domain.mapping.SupplementIngredient;
-import com.vitacheck.domain.purposes.AllPurpose;
-import com.vitacheck.domain.purposes.PurposeCategory;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -27,7 +23,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service

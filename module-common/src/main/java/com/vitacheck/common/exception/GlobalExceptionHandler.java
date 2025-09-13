@@ -1,7 +1,8 @@
-package com.vitacheck.global.apiPayload;
+package com.vitacheck.common.exception;
+import com.vitacheck.common.CustomResponse;
 import lombok.extern.slf4j.Slf4j;
-import com.vitacheck.global.apiPayload.code.BaseErrorCode;
-import com.vitacheck.global.apiPayload.code.GeneralErrorCode;
+import com.vitacheck.common.code.BaseErrorCode;
+import com.vitacheck.common.code.GeneralErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

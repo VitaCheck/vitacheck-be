@@ -1,7 +1,6 @@
 package com.vitacheck.domain.purposes;
 
 import com.vitacheck.domain.Ingredient;
-import com.vitacheck.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,12 +29,4 @@ public class PurposeCategory {
     @Builder.Default
     private List<PurposeIngredient> purposeIngredients = new ArrayList<>();
 
-//    @ManyToMany
-//    @JoinTable(
-//            name = "purpose_ingredient", // 생성될 매핑 테이블의 이름
-//            joinColumns = @JoinColumn(name = "purpose_category_id"),
-//            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
-//    )
-//    @Builder.Default
-//    private List<Ingredient> ingredients = new ArrayList<>();
 }

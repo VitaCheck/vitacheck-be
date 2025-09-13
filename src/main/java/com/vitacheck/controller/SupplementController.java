@@ -1,12 +1,10 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.domain.user.Gender;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.CustomResponse;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.StatisticsService;
+
 import com.vitacheck.service.SupplementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,15 +16,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +39,13 @@ public class SupplementController {
             summary = "영양제 제품 검색 API (Cursor 기반 페이지네이션) By 박지영",
             description = """
                     키워드와 연관된 모든 영양제 제품이 조회됩니다. (성분, 브랜드, 제품 이름 등)
-                    
+
                     ex. 유산균 → 제품 이름에 유산균 포함된 영양제, 유산균을 성분으로 포함하는 영양제 등 모두 조회됩니다.
-                    
-                    검색 키워드로 제품을 cursor 기반 페이지네이션으로 조회, 정렬은 인기도 높은 순으로(인기도=클릭수+검색수) 
-                    
-                    cursor 처음은 빈칸인채로 호출하면 됩니다. 그 이후 부터는 nextCursor 값이 아닌 '마지막으로 조회된 cursorID'를 넣어주면 됩니다. 
-                    
+
+                    검색 키워드로 제품을 cursor 기반 페이지네이션으로 조회, 정렬은 인기도 높은 순으로(인기도=클릭수+검색수)
+
+                    cursor 처음은 빈칸인채로 호출하면 됩니다. 그 이후 부터는 nextCursor 값이 아닌 '마지막으로 조회된 cursorID'를 넣어주면 됩니다.
+
                     nextcursor가 null이면 다음 페이지가 없다는 뜻입니다."""
     )
     public CustomResponse<SupplementDto.KeywordSearchSupplementBasedCursor> searchSupplements(

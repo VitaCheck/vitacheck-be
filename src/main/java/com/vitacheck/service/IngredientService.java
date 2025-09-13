@@ -13,8 +13,8 @@ import com.vitacheck.domain.user.Gender;
 import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.IngredientResponseDTO;
 import com.vitacheck.dto.PopularIngredientDto;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.repository.IngredientAlternativeFoodRepository;
 import com.vitacheck.repository.IngredientDosageRepository;
 import com.vitacheck.repository.IngredientRepository;
@@ -32,7 +32,6 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 

@@ -1,9 +1,9 @@
 package com.vitacheck.controller;
 
 import com.vitacheck.dto.NotificationSettingsDto;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.CustomResponse;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.CustomResponse;
+import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.service.NotificationScheduler;
 import com.vitacheck.service.NotificationSettingsService;
 import com.vitacheck.service.UserService;

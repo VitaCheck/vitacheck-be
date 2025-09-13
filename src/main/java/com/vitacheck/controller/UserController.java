@@ -1,8 +1,7 @@
 package com.vitacheck.controller;
 
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.UserDto;
-import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

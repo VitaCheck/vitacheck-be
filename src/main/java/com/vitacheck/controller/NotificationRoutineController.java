@@ -3,7 +3,7 @@ package com.vitacheck.controller;
 import com.vitacheck.dto.RoutineRegisterRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
 import com.vitacheck.dto.RoutineResponseDto;
-import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.NotificationRoutineCommandService;
 import com.vitacheck.service.RoutineQueryService;
 import com.vitacheck.service.UserService;

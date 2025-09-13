@@ -1,12 +1,12 @@
 package com.vitacheck.controller;
 
+import com.vitacheck.common.CustomResponse;
+import com.vitacheck.common.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.dto.IngredientLikeToggleResponseDto;
 import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.dto.LikedIngredientResponseDto;
 import com.vitacheck.dto.LikedSupplementResponseDto;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.CustomResponse;
-import com.vitacheck.global.apiPayload.code.ErrorCode;
 import com.vitacheck.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

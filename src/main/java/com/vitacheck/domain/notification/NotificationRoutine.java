@@ -1,9 +1,10 @@
 package com.vitacheck.domain.notification;
 
+import com.vitacheck.common.entity.BaseTimeEntity;
 import com.vitacheck.domain.CustomSupplement;
 import com.vitacheck.domain.IntakeRecord;
 import com.vitacheck.domain.RoutineDetail;
-import com.vitacheck.domain.common.BaseTimeEntity;
+
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.user.User;
 import jakarta.persistence.*;

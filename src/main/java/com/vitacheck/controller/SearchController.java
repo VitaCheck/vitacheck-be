@@ -2,10 +2,8 @@ package com.vitacheck.controller;
 
 import com.vitacheck.config.jwt.CustomUserDetails;
 import com.vitacheck.domain.user.User;
-import com.vitacheck.dto.IngredientResponseDTO;
 import com.vitacheck.dto.SupplementDto;
-import com.vitacheck.global.apiPayload.CustomException;
-import com.vitacheck.global.apiPayload.CustomResponse;
+import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.IngredientService;
 import com.vitacheck.service.SearchLogService;
 import com.vitacheck.service.SupplementService;
@@ -15,15 +13,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 

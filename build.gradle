@@ -23,6 +23,8 @@ configurations {
 }
 
 dependencies {
+    implementation project(":module-common")
+//    implementation project(":module-product")
     // ✅✅✅ 핵심 변경 사항: BOM을 platform 키워드로 직접 주입 ✅✅✅
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1")
 
@@ -68,6 +70,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.h2database:h2'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
@@ -81,6 +84,10 @@ sourceSets {
 
 tasks.withType(JavaCompile).configureEach {
     options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+}
+
+test {
+    useJUnitPlatform()
 }
 
 clean {

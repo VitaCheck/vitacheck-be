@@ -1,4 +1,4 @@
-package com.vitacheck.global.apiPayload.code;
+package com.vitacheck.common.code;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
