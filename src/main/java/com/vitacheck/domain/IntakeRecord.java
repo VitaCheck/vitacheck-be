@@ -2,7 +2,7 @@ package com.vitacheck.domain;
 
 import com.vitacheck.common.entity.BaseTimeEntity;
 import com.vitacheck.domain.notification.NotificationRoutine;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

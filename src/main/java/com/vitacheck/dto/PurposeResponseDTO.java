@@ -1,13 +1,11 @@
 package com.vitacheck.dto;
 
 import com.vitacheck.domain.purposes.AllPurpose;
-import com.vitacheck.domain.user.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PurposeResponseDTO {

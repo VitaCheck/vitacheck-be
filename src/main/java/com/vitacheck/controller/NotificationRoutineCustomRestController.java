@@ -4,7 +4,7 @@ import com.vitacheck.dto.CustomRoutineUpsertRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.NotificationRoutineCustomCommandService;
-import com.vitacheck.service.UserService;
+import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

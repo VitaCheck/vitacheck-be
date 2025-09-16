@@ -1,7 +1,6 @@
 package com.vitacheck.repository;
 
 import com.vitacheck.domain.searchLog.SearchLog;
-import com.vitacheck.domain.user.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

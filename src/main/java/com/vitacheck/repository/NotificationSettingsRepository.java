@@ -3,7 +3,7 @@ package com.vitacheck.repository;
 import com.vitacheck.domain.notification.NotificationChannel;
 import com.vitacheck.domain.notification.NotificationSettings;
 import com.vitacheck.domain.notification.NotificationType;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

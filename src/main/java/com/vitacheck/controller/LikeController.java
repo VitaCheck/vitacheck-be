@@ -8,6 +8,7 @@ import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.dto.LikedIngredientResponseDto;
 import com.vitacheck.dto.LikedSupplementResponseDto;
 import com.vitacheck.service.*;
+import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;

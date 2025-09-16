@@ -1,6 +1,6 @@
 package com.vitacheck.controller;
 
-import com.vitacheck.domain.user.Gender;
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.dto.*;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.StatisticsService;

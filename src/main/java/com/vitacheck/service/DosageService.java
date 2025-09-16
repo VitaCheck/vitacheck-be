@@ -1,10 +1,10 @@
 package com.vitacheck.service;
 
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.domain.Ingredient;
 import com.vitacheck.domain.IngredientDosage;
-import com.vitacheck.domain.user.Gender;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.repository.IngredientDosageRepository;
+import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,8 +40,8 @@ public class DosageService {
         List<Long> ingredientIds = ingredients.stream().map(Ingredient::getId).collect(Collectors.toList());
 
 
-
-        List<IngredientDosage> dosages = ingredientDosageRepository.findApplicableDosages(ingredientIds, user.getGender(), age);
+        List<Gender> genderOptions = List.of(user.getGender(), Gender.ALL);
+        List<IngredientDosage> dosages = ingredientDosageRepository.findApplicableDosages(ingredientIds, genderOptions, age);
 
 
         if (!dosages.isEmpty()) {
