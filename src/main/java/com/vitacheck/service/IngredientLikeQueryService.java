@@ -1,7 +1,6 @@
 package com.vitacheck.service;
 
 import com.vitacheck.domain.IngredientLike;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.LikedIngredientResponseDto;
 import com.vitacheck.repository.IngredientLikeRepository;
 import lombok.RequiredArgsConstructor;

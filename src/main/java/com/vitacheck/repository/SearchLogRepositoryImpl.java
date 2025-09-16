@@ -4,10 +4,10 @@ import com.querydsl.core.Tuple; // Tuple import
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.domain.QSupplement;
 import com.vitacheck.domain.searchLog.QSearchLog;
 import com.vitacheck.domain.searchLog.SearchCategory;
-import com.vitacheck.domain.user.Gender;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

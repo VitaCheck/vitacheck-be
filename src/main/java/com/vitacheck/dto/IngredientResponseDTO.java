@@ -1,7 +1,6 @@
 package com.vitacheck.dto;
 
-import com.querydsl.core.annotations.QueryProjection;
-import com.vitacheck.domain.user.Gender;
+import com.vitacheck.common.enums.Gender;
 import lombok.*;
 
 import java.util.ArrayList;

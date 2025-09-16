@@ -1,70 +1,39 @@
 package com.vitacheck.repository;
 
+import com.vitacheck.common.enums.Gender; // ✅ 통일된 Enum으로 import
 import com.vitacheck.domain.IngredientDosage;
-import com.vitacheck.domain.user.Gender;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface IngredientDosageRepository extends JpaRepository<IngredientDosage, Long> {
 
-    /**
-     * 주어진 성분 ID 리스트와 사용자의 연령/성별에 맞는 모든 섭취 기준을 조회합니다.
-     */
+    // ✅✅✅ 쿼리를 단순하고 명확하게 수정합니다 ✅✅✅
     @Query("SELECT d FROM IngredientDosage d WHERE d.ingredient.id IN :ingredientIds " +
-            "AND d.gender IN (:gender, 'ALL') " +
+            "AND d.gender IN :genders " + // gender가 아닌 genders 리스트를 받도록 변경
             "AND :age BETWEEN d.minAge AND d.maxAge")
     List<IngredientDosage> findApplicableDosages(
             @Param("ingredientIds") List<Long> ingredientIds,
-            @Param("gender") Gender gender,
+            @Param("genders") List<Gender> genders, // 파라미터 타입을 List로 변경
             @Param("age") int age);
 
     @Query("SELECT d FROM IngredientDosage d " +
             "WHERE d.ingredient.id = :ingredientId " +
             "AND (:age BETWEEN d.minAge AND d.maxAge) " +
-            "AND d.gender IN (:gender, com.vitacheck.domain.user.Gender.ALL) " +
-            "ORDER BY d.gender DESC") // MALE/FEMALE이 ALL보다 우선순위가 높도록 정렬
+            "AND d.gender IN :genders " + // genders 리스트를 받도록 변경
+            "ORDER BY d.gender DESC")
     List<IngredientDosage> findApplicableDosages(
             @Param("ingredientId") Long ingredientId,
-            @Param("gender") Gender gender,
+            @Param("genders") List<Gender> genders, // 파라미터 타입을 List로 변경
             @Param("age") int age);
 
-
-
     default Optional<IngredientDosage> findBestDosage(Long ingredientId, Gender gender, int age) {
-        // 우선순위대로 정렬된 목록에서 가장 첫 번째 결과를 반환합니다.
-        return findApplicableDosages(ingredientId, gender, age)
+        // ✅ 서비스 로직에 있던 것을 이쪽으로 가져와도 괜찮습니다.
+        return findApplicableDosages(ingredientId, List.of(gender, Gender.ALL), age)
                 .stream()
                 .findFirst();
     }
-
-    // 1) 유저 조건 기반 조회 (성별/나이)
-    @Query("""
-      select d
-      from IngredientDosage d
-      where d.ingredient.id in :ingredientIds
-        and (d.gender = :gender or d.gender = com.vitacheck.domain.user.Gender.ALL)
-        and d.minAge <= :age and d.maxAge >= :age
-    """)
-    List<IngredientDosage> findDosagesByUserCondition(
-            @Param("ingredientIds") Collection<Long> ingredientIds,
-            @Param("gender") Gender gender,
-            @Param("age") int age
-    );
-
-    // 2) 일반값 (fallback) 조회 (ALL & 무연령)
-    @Query("""
-      select d
-      from IngredientDosage d
-      where d.ingredient.id in :ingredientIds
-        and d.gender = com.vitacheck.domain.user.Gender.ALL
-        and d.minAge is null and d.maxAge is null
-    """)
-    List<IngredientDosage> findGeneralDosagesByIngredientIds(
-            @Param("ingredientIds") Collection<Long> ingredientIds
-    );
 }

@@ -2,7 +2,7 @@ package com.vitacheck.repository;
 
 import com.vitacheck.domain.IntakeRecord;
 import com.vitacheck.domain.notification.NotificationRoutine;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

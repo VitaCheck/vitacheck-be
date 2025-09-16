@@ -1,8 +1,8 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.user.User;
 import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.repository.SupplementRepository;
+import com.vitacheck.user.domain.User;
 import com.vitacheck.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

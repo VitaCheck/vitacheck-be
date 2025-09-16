@@ -1,17 +1,17 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.Terms;
 import com.vitacheck.domain.mapping.UserTermsAgreement;
+import com.vitacheck.domain.Terms;
 import com.vitacheck.domain.notification.NotificationSettings;
 import com.vitacheck.domain.notification.NotificationType;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.TermsDto;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.repository.NotificationSettingsRepository;
 import com.vitacheck.repository.TermsRepository;
-import com.vitacheck.repository.UserRepository;
 import com.vitacheck.repository.UserTermsAgreementRepository;
+import com.vitacheck.user.domain.User;
+import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

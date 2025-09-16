@@ -1,8 +1,7 @@
 package com.vitacheck.repository;
 
 import com.querydsl.core.Tuple;
-import com.vitacheck.domain.user.Gender;
-import com.vitacheck.dto.PopularIngredientDto;
+import com.vitacheck.common.enums.Gender;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

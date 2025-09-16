@@ -9,7 +9,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.searchLog.SearchCategory;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.user.domain.User;
 import com.vitacheck.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,7 +34,7 @@ public class SupplementRepositoryImpl implements SupplementRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Supplement> search(User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
+    public Page<Supplement> search(com.vitacheck.user.domain.User user, String keyword, String brandName, String ingredientName, Pageable pageable) {
 
         // 1단계: 현재 페이지에 해당하는 영양제의 ID 목록만 조회 (가벼운 쿼리)
         List<Long> ids = queryFactory

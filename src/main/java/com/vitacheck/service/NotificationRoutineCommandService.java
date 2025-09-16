@@ -2,7 +2,6 @@ package com.vitacheck.service;
 
 import com.vitacheck.domain.*;
 import com.vitacheck.domain.notification.NotificationRoutine;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.RoutineRegisterRequestDto;
 import com.vitacheck.dto.RoutineRegisterResponseDto;
 import com.vitacheck.dto.RoutineResponseDto;
@@ -12,7 +11,8 @@ import com.vitacheck.repository.CustomSupplementRepository;
 import com.vitacheck.repository.IntakeRecordRepository;
 import com.vitacheck.repository.NotificationRoutineRepository;
 import com.vitacheck.repository.SupplementRepository;
-import com.vitacheck.repository.UserRepository;
+import com.vitacheck.user.domain.User;
+import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

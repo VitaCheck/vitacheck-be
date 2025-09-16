@@ -1,17 +1,17 @@
 package com.vitacheck.service;
 
 import com.querydsl.core.Tuple;
-import com.vitacheck.config.jwt.CustomUserDetails;
+import com.vitacheck.auth.config.jwt.CustomUserDetails;
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.domain.Brand;
 import com.vitacheck.domain.IngredientDosage;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.searchLog.SearchCategory;
-import com.vitacheck.domain.user.Gender;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.*;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.repository.*;
+import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
@@ -32,33 +32,12 @@ public class SupplementService {
 
     private final SupplementRepository supplementRepository;
     private final IngredientRepository ingredientRepository;
-    private final PurposeCategoryRepository purposeCategoryRepository;
     private final SearchLogService searchLogService;
-    private final StatisticsService statisticsService;
     private final SupplementLikeRepository supplementLikeRepository;
     private final IngredientDosageRepository dosageRepository;
-//    private final PurposeQueryRepository purposeQueryRepository;
     private final BrandRepository brandRepository;
 
-
-
-    private List<SearchDto.IngredientInfo> findMatchedIngredients(String keyword, String ingredientName) {
-        // 1. 실제 검색에 사용할 검색어를 정합니다. ingredientName이 우선순위를 가집니다.
-        String finalSearchTerm = StringUtils.hasText(ingredientName) ? ingredientName : keyword;
-
-        // 2. 검색어가 존재하는 경우, 이름을 포함하는 모든 성분을 검색합니다.
-        if (StringUtils.hasText(finalSearchTerm)) {
-            return ingredientRepository.findByNameContainingIgnoreCase(finalSearchTerm).stream()
-                    .map(SearchDto.IngredientInfo::from)
-                    .collect(Collectors.toList());
-        }
-
-        // 3. 검색어가 없으면 빈 리스트를 반환합니다.
-        return Collections.emptyList();
-    }
-
-
-
+    // ... (getSupplementDetail, getSupplementsByBrandId 등 다른 메서드는 그대로 둡니다) ...
     @Transactional(readOnly = true)
     public SupplementDetailResponseDto getSupplementDetail(Long supplementId, Long userId) {
         Supplement supplement = supplementRepository.findById(supplementId)
@@ -97,10 +76,7 @@ public class SupplementService {
                 .ingredients(
                         supplement.getSupplementIngredients().stream()
                                 .map(i -> {
-                                    // Ingredient를 통해 unit을 가져오는 것이 아니라,
-                                    // SupplementIngredient 자체의 unit을 사용하도록 수정
                                     String amount = (i.getAmount() != null) ? i.getAmount().toString() : "";
-                                    // *** SupplementIngredient에 unit이 없으므로 Ingredient에서 가져와야 함 ***
                                     String unit = i.getIngredient().getUnit() != null ? i.getIngredient().getUnit() : "";
 
                                     return new SupplementDetailResponseDto.IngredientDto(
@@ -114,66 +90,34 @@ public class SupplementService {
 
 
     public List<SupplementDto.SimpleResponse> getSupplementsByBrandId(Long brandId) {
-        // 이 메소드는 변경 없음
         return supplementRepository.findAllByBrandId(brandId).stream()
                 .map(SupplementDto.SimpleResponse::from)
                 .toList();
     }
 
+
     @Transactional(readOnly = true)
     public SupplementDto.DetailResponse getSupplementDetailById(Long id) {
 
-        // 1) 영양제 + 성분 한 번에 조회
         Supplement supplement = supplementRepository.findByIdWithBrandAndIngredients(id)
                 .orElseThrow(() -> new RuntimeException("해당 영양제를 찾을 수 없습니다."));
 
-        // 2) 성분 ID 수집
         Set<Long> ingredientIds = supplement.getSupplementIngredients().stream()
                 .map(si -> si.getIngredient().getId())
                 .collect(Collectors.toSet());
 
-        // 3) 사용자 성별/나이
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Gender gender = Gender.ALL;
-        Integer age = null;
-
+        User user = null; // ✅ User 객체를 담을 변수
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-            User user = userDetails.getUser();
-            gender = (user.getGender() != null) ? user.getGender() : Gender.ALL;
-
-            if (user.getBirthDate() != null) {
-                age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
-            }
-
-            // 클릭 로그(로그인)
-            searchLogService.logClick(user.getId(), supplement.getName(), SearchCategory.SUPPLEMENT, age, gender);
-        } else {
-            // 클릭 로그(비로그인)
-            searchLogService.logClick(null, supplement.getName(), SearchCategory.SUPPLEMENT, null, null);
+            user = userDetails.getUser();
         }
 
-        // 나이 미확정이면 성인 기본값(25세) 가정
-        if (age == null) age = 25;
+        // ✅✅✅ 핵심 수정 사항 시작 ✅✅✅
+        // 4) 사용자 정보 기반으로 섭취 기준 조회
+        Map<Long, IngredientDosage> dosageByIngredientId = getDosagesForUserAndIngredients(user, ingredientIds);
+        // ✅✅✅ 핵심 수정 사항 끝 ✅✅✅
 
-        // 4) 권장량/UL 로딩: 유저조건 → 일반값(ALL & 무연령) 보강
-        Map<Long, IngredientDosage> dosageByIngredientId = new HashMap<>();
-
-        // 4-1) 유저 성별/나이에 맞는 도수 우선 채움
-        List<IngredientDosage> userDosages =
-                dosageRepository.findDosagesByUserCondition(ingredientIds, gender, age);
-        userDosages.forEach(d -> dosageByIngredientId.put(d.getIngredient().getId(), d));
-
-        // 4-2) 못 채운 성분은 일반값으로 보강
-        Set<Long> missingIds = ingredientIds.stream()
-                .filter(ingId -> !dosageByIngredientId.containsKey(ingId))
-                .collect(Collectors.toSet());
-        if (!missingIds.isEmpty()) {
-            dosageRepository.findGeneralDosagesByIngredientIds(missingIds)
-                    .forEach(d -> dosageByIngredientId.putIfAbsent(d.getIngredient().getId(), d));
-        }
-
-        // 5) 응답 매핑 (upper=100% 기준)
         List<SupplementDto.DetailResponse.IngredientDetail> ingredients =
                 supplement.getSupplementIngredients().stream()
                         .map(si -> {
@@ -202,7 +146,7 @@ public class SupplementService {
                             return SupplementDto.DetailResponse.IngredientDetail.builder()
                                     .id(ing.getId())
                                     .name(ing.getName())
-                                    .amount(amount + unit) // 예: "25.0μg"
+                                    .amount(amount + unit)
                                     .status(status)
                                     .visualization(
                                             SupplementDto.DetailResponse.IngredientDetail.Visualization.builder()
@@ -222,17 +166,40 @@ public class SupplementService {
                 .build();
     }
 
+    // ✅✅✅ 이 헬퍼 메서드를 추가합니다 ✅✅✅
+    private Map<Long, IngredientDosage> getDosagesForUserAndIngredients(User user, Set<Long> ingredientIds) {
+        if (ingredientIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Gender gender = (user != null && user.getGender() != null) ? user.getGender() : Gender.ALL;
+        int age = (user != null && user.getBirthDate() != null) ? Period.between(user.getBirthDate(), LocalDate.now()).getYears() : 25; // 기본값 25세
+
+        List<Gender> genderOptions = List.of(gender, Gender.ALL);
+        List<Long> idList = new ArrayList<>(ingredientIds);
+
+        List<IngredientDosage> dosages = dosageRepository.findApplicableDosages(idList, genderOptions, age);
+
+        return dosages.stream()
+                .collect(Collectors.toMap(
+                        dosage -> dosage.getIngredient().getId(),
+                        dosage -> dosage,
+                        // 성별이 정확히 일치하는 것을 우선으로 선택
+                        (dosage1, dosage2) -> dosage1.getGender() != Gender.ALL ? dosage1 : dosage2
+                ));
+    }
+
+
     private final SearchLogRepository searchLogRepository;
 
     public Page<PopularSupplementDto> findPopularSupplements(String ageGroup, Gender gender, Pageable pageable) {
-        // 1. 연령대 문자열을 숫자 범위로 변환
         Integer startAge = null;
         Integer endAge = null;
 
         if (!"전체".equals(ageGroup)) {
             if (ageGroup.equals("60대 이상")) {
                 startAge = 60;
-                endAge = 150; // 매우 넓은 범위로 설정
+                endAge = 150;
             } else if (ageGroup.contains("대")) {
                 try {
                     int decade = Integer.parseInt(ageGroup.replace("대", ""));
@@ -246,10 +213,8 @@ public class SupplementService {
             }
         }
 
-        // 2. Repository 호출하여 Tuple 페이지를 받음
         Page<Tuple> resultPage = searchLogRepository.findPopularSupplements(startAge, endAge,gender, pageable);
 
-        // 3. Tuple 페이지를 DTO 페이지로 변환
         return resultPage.map(tuple -> {
             Supplement supplement = tuple.get(0, Supplement.class);
             long searchCount = tuple.get(1, Long.class);
@@ -263,7 +228,7 @@ public class SupplementService {
         List<Object[]> rows = supplementRepository.findSupplementsByKeywordWithPopularity(keyword, cursor, size+1);
 
         List<SupplementDto.KeywordSearchSupplement> supplements = rows.stream()
-                .limit(size) // size까지만 DTO 변환
+                .limit(size)
                 .map(row -> SupplementDto.KeywordSearchSupplement.builder()
                         .cursorId((Long) row[5])
                         .supplementName((String) row[1])
@@ -272,11 +237,10 @@ public class SupplementService {
                         .build())
                 .toList();
 
-        // nextCursor 계산
         Long nextCursor = null;
         if (rows.size() > size) {
-            Object[] lastRow = rows.get(size); // size+1 번째 데이터
-            nextCursor = ((Number) lastRow[5]).longValue(); // ✅ cursorId를 꺼내야 함
+            Object[] lastRow = rows.get(size);
+            nextCursor = ((Number) lastRow[5]).longValue();
         }
 
         return SupplementDto.KeywordSearchSupplementBasedCursor.builder()
@@ -284,6 +248,4 @@ public class SupplementService {
                 .nextCursor(nextCursor)
                 .build();
     }
-
-
 }

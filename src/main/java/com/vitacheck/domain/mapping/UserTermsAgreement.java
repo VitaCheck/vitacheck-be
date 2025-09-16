@@ -1,7 +1,7 @@
 package com.vitacheck.domain.mapping;
 
 import com.vitacheck.domain.Terms;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

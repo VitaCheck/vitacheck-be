@@ -1,17 +1,17 @@
 package com.vitacheck.service;
 
-import com.vitacheck.config.jwt.CustomUserDetails;
+import com.vitacheck.auth.config.jwt.CustomUserDetails;
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.searchLog.Method;
 import com.vitacheck.domain.searchLog.SearchCategory;
 import com.vitacheck.domain.searchLog.SearchLog;
-import com.vitacheck.domain.user.Gender;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.SupplementDto;
 import com.vitacheck.repository.BrandRepository;
 import com.vitacheck.repository.IngredientRepository;
 import com.vitacheck.repository.SearchLogRepository;
 import com.vitacheck.repository.SupplementRepository;
+import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

@@ -1,8 +1,9 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.user.User;
-import com.vitacheck.domain.user.UserStatus;
 import com.vitacheck.repository.*;
+import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.UserStatus;
+import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -27,7 +28,7 @@ public class UserCleanUpService {
     private final SearchLogRepository searchLogRepository;
     private final IntakeRecordRepository intakeRecordRepository;
 
-    @Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "0 0 4 * * *") // 30일
     @Transactional
     public void cleanUpDeletedUser() {
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);

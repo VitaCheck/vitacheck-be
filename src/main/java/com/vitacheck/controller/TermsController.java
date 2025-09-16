@@ -3,7 +3,7 @@ package com.vitacheck.controller;
 import com.vitacheck.dto.TermsDto;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.TermsService;
-import com.vitacheck.service.UserService;
+import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

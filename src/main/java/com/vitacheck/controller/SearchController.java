@@ -1,12 +1,12 @@
 package com.vitacheck.controller;
 
-import com.vitacheck.config.jwt.CustomUserDetails;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.auth.config.jwt.CustomUserDetails;
 import com.vitacheck.dto.SupplementDto;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.service.IngredientService;
 import com.vitacheck.service.SearchLogService;
 import com.vitacheck.service.SupplementService;
+import com.vitacheck.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

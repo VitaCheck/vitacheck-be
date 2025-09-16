@@ -1,7 +1,7 @@
 package com.vitacheck.repository;
 
 import com.vitacheck.domain.mapping.UserTermsAgreement;
-import com.vitacheck.domain.user.User;
+import com.vitacheck.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

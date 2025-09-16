@@ -2,13 +2,13 @@ package com.vitacheck.service;
 
 import com.vitacheck.domain.SupplementLike;
 import com.vitacheck.domain.Supplement;
-import com.vitacheck.domain.user.User;
 import com.vitacheck.dto.LikeToggleResponseDto;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.repository.SupplementLikeRepository;
 import com.vitacheck.repository.SupplementRepository;
-import com.vitacheck.repository.UserRepository;
+import com.vitacheck.user.domain.User;
+import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
