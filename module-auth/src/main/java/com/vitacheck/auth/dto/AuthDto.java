@@ -56,29 +56,26 @@ public class AuthDto {
 
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "소셜 로그인 추가 정보 입력 요청 DTO")
     public static class SocialSignUpRequest {
-        // 소셜 로그인 제공 정보
-        private String email;
-        private String fullName;
-        private String provider;
-        private String providerId;
-
-        // 사용자가 직접 입력한 정보
+        @Schema(description = "사용할 닉네임", example = "행복한쿼카")
         private String nickname;
+
+        @Schema(description = "성별", example = "MALE")
         private Gender gender;
-        private LocalDate birthDate;
+
+        @Schema(description = "생년월일 (YYYY-MM-DD 형식)", example = "2000-01-01")
+        private String birthDate; // ⬅️ String으로 변경
+
+        @Schema(description = "휴대폰 번호", example = "010-1234-5678")
         private String phoneNumber;
+
+        @Schema(description = "FCM 토큰")
         private String fcmToken;
 
-        public SocialSignUpRequest(OAuthAttributes attributes) {
-            this.email = attributes.getEmail();
-            this.fullName = attributes.getName();
-            this.provider = attributes.getProvider();
-            this.providerId = attributes.getProviderId();
-            this.gender = attributes.getGender();
-            this.birthDate = attributes.getBirthDate();
-            this.phoneNumber = attributes.getPhoneNumber();
-        }
+        @Schema(description = "사용자가 동의한 약관의 ID 목록", example = "[1, 2]")
+        private List<Long> agreedTermIds; // ⬅️ 약관 동의 추가
     }
 
     // JWT 토큰 응답 DTO

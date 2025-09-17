@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final ApplicationEventPublisher applicationEventPublisher; // 이벤트 발생기
+    private final ApplicationEventPublisher applicationEventPublisher; // 이벤트 발생
 
     public String preSignUp(AuthDto.PreSignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -91,15 +92,19 @@ public class AuthService {
         }
         OAuthAttributes attributes = jwtUtil.getSocialAttributesFromToken(tempToken);
 
+        userRepository.findByEmail(attributes.getEmail()).ifPresent(u -> {
+            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
+        });
+
         User newUser = User.builder()
                 .email(attributes.getEmail())
                 .fullName(attributes.getName())
-                .nickname(request.getNickname())
-                .gender(request.getGender())
-                .birthDate(request.getBirthDate())
-                .phoneNumber(request.getPhoneNumber())
                 .provider(attributes.getProvider())
                 .providerId(attributes.getProviderId())
+                .nickname(request.getNickname())
+                .gender(request.getGender())
+                .birthDate(LocalDate.parse(request.getBirthDate()))
+                .phoneNumber(request.getPhoneNumber())
                 .fcmToken(request.getFcmToken())
                 .role(Role.USER)
                 .status(UserStatus.ACTIVE)
@@ -108,7 +113,9 @@ public class AuthService {
 
         userRepository.save(newUser);
 
-        applicationEventPublisher.publishEvent(new UserSignedUpEvent(newUser, List.of()));
+        if (request.getAgreedTermIds() != null && !request.getAgreedTermIds().isEmpty()) {
+            applicationEventPublisher.publishEvent(new UserSignedUpEvent(newUser, request.getAgreedTermIds()));
+        }
 
         String accessToken = jwtUtil.createAccessToken(newUser.getEmail());
         String refreshToken = jwtUtil.createRefreshToken(newUser.getEmail());
