@@ -25,6 +25,9 @@ spring:
             scope:
               - email
               - profile
+              - openid
+              - https://www.googleapis.com/auth/user.birthday.read
+              - https://www.googleapis.com/auth/user.gender.read
           naver:
             client-id: ${NAVER_CLIENT_ID}
             client-secret: ${NAVER_CLIENT_SECRET}

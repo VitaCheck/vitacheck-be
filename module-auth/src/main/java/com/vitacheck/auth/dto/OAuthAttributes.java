@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -52,17 +53,6 @@ public class OAuthAttributes {
             return ofNaver("id", attributes);
         }
         return ofGoogle(userNameAttributeName, attributes);
-    }
-
-    private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
-        return OAuthAttributes.builder()
-                .name((String) attributes.get("name"))
-                .email((String) attributes.get("email"))
-                .provider("google")
-                .providerId((String) attributes.get("sub"))
-                .attributes(attributes)
-                .nameAttributeKey(userNameAttributeName)
-                .build();
     }
 
     /**
@@ -113,6 +103,59 @@ public class OAuthAttributes {
                 .nameAttributeKey(userNameAttributeName)
                 .build();
     }
+
+    private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
+        // People API 응답에서 생년월일과 성별 정보 파싱
+        // API 응답은 List<Map<String, Object>> 형태로 올 수 있습니다.
+
+        // 성별 파싱
+        String gender = null;
+        List<Map<String, Object>> genders = (List<Map<String, Object>>) attributes.get("genders");
+        if (genders != null && !genders.isEmpty()) {
+            // "value" 키에 "male" 또는 "female" 값이 들어 있습니다.
+            gender = (String) genders.get(0).get("value");
+        }
+
+        // 생년월일 파싱
+        LocalDate birthDate = null;
+        List<Map<String, Object>> birthdays = (List<Map<String, Object>>) attributes.get("birthdays");
+        // 생년 정보가 공개 설정되지 않은 경우 이 필드가 없을 수 있습니다.
+        if (birthdays != null && !birthdays.isEmpty()) {
+            Map<String, Object> dateMap = (Map<String, Object>) birthdays.get(0).get("date");
+            if (dateMap != null) {
+                Integer year = (Integer) dateMap.get("year");
+                Integer month = (Integer) dateMap.get("month");
+                Integer day = (Integer) dateMap.get("day");
+                if (year != null && month != null && day != null) {
+                    birthDate = LocalDate.of(year, month, day);
+                }
+            }
+        }
+
+        return OAuthAttributes.builder()
+                .name((String) attributes.get("name"))
+                .email((String) attributes.get("email"))
+                .provider("google")
+                .providerId((String) attributes.get("sub"))
+                .gender(parseGender(gender)) // 문자열을 Gender Enum으로 변환
+                .birthDate(birthDate)
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)
+                .build();
+    }
+
+    // "male", "female" 문자열을 Gender Enum 타입으로 변환하는 헬퍼 메소드
+    private static Gender parseGender(String genderStr) {
+        if (genderStr == null) {
+            return Gender.NONE; // 또는 null 처리
+        }
+        return switch (genderStr.toLowerCase()) {
+            case "male" -> Gender.MALE;
+            case "female" -> Gender.FEMALE;
+            default -> Gender.NONE;
+        };
+    }
+
 
     public User toEntity() {
         String finalNickname = this.name;
