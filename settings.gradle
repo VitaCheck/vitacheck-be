@@ -1,5 +1,4 @@
 rootProject.name = 'vitacheck-be'
 
 include 'module-common'
-//include 'module-product'
-//include 'module-search'
+include 'module-product'

@@ -24,16 +24,6 @@ class PurposeControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp() {
-        // 필요시 초기화 코드 작성
-    }
-
-    @AfterEach
-    void tearDown() {
-        // 필요시 정리 코드 작성
-    }
-
     @Test
     void getAllPurposes() throws Exception {
         String response = mockMvc.perform(get("/api/v1/purposes"))
