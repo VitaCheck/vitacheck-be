@@ -50,3 +50,8 @@ application-local.yml
 .DS_Store
 
 firebase-service-account-key.json
+
+### Module ###
+module-auth/build
+module-common/build
+module-user/build
