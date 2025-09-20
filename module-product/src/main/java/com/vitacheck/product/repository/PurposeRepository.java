@@ -24,8 +24,7 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long> {
                s.name as supplementName,
                s.coupang_url,
                s.image_url,
-               ROW_NUMBER() OVER (PARTITION BY i.id ORDER BY s.id DESC) as rn_supplement,
-               ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY i.id ASC) as rn_ingredient
+               ROW_NUMBER() OVER (PARTITION BY i.id ORDER BY s.id DESC) as rn_supplement
         FROM purposes p
         JOIN purpose_ingredients pi ON p.id = pi.purpose_id
         JOIN ingredients i ON pi.ingredient_id = i.id
@@ -34,7 +33,6 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long> {
         WHERE p.id IN (:goals)
     ) sub
     WHERE rn_supplement <= 10   -- 성분당 영양제 10개 제한
-      AND rn_ingredient <= 3    -- 목적당 성분 3개 제한
     """, nativeQuery = true)
     List<Object[]> findPurposeWithLimitedSupplements(@Param("goals") List<Long> goalIds);
 
