@@ -7,6 +7,9 @@ HELP.md
 !**/src/test/**/build/
 module-common/build/
 module-product/build/
+module-auth/build/
+module-user/build/
+
 # macOS
 .DS_Store
 
