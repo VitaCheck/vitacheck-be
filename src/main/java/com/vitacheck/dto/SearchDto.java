@@ -1,6 +1,8 @@
 package com.vitacheck.dto;
 
-import com.vitacheck.domain.Ingredient;
+
+import com.vitacheck.product.domain.Ingredient.Ingredient;
+import com.vitacheck.product.dto.SupplementResponseDTO;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
@@ -13,7 +15,7 @@ public class SearchDto {
     @Builder
     public static class UnifiedSearchResponse {
         private List<IngredientInfo> matchedIngredients; // ✅ 매칭된 성분 정보 (없으면 null)
-        private Page<SupplementDto.SearchResponse> supplements; // ✅ 기존 영양제 검색 결과
+        private Page<SupplementResponseDTO.SearchResponse> supplements; // ✅ 기존 영양제 검색 결과
     }
 
     @Getter

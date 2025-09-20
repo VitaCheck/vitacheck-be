@@ -26,7 +26,8 @@ dependencies {
     implementation project(":module-common")
     implementation project(":module-user")
     implementation project(":module-auth")
-//    implementation project(":module-product")
+    implementation project(":module-product")
+
     // ✅✅✅ 핵심 변경 사항: BOM을 platform 키워드로 직접 주입 ✅✅✅
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1")
 

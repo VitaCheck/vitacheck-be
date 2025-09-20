@@ -1,14 +1,14 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.Ingredient;
-import com.vitacheck.domain.IngredientDosage;
-import com.vitacheck.domain.Supplement;
 import com.vitacheck.domain.combination.Combination;
 import com.vitacheck.domain.combination.RecommandType;
-import com.vitacheck.domain.mapping.SupplementIngredient;
 import com.vitacheck.dto.CombinationDTO;
+import com.vitacheck.product.domain.Ingredient.Ingredient;
+import com.vitacheck.product.domain.Ingredient.IngredientDosage;
+import com.vitacheck.product.domain.Supplement.Supplement;
+import com.vitacheck.product.domain.Supplement.SupplementIngredient;
+import com.vitacheck.product.repository.SupplementRepository;
 import com.vitacheck.repository.CombinationRepository;
-import com.vitacheck.repository.SupplementRepository;
 import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

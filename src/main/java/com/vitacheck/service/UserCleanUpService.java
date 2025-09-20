@@ -1,5 +1,7 @@
 package com.vitacheck.service;
 
+import com.vitacheck.Activity.repository.IngredientLikeRepository;
+import com.vitacheck.Activity.repository.SupplementLikeRepository;
 import com.vitacheck.repository.*;
 import com.vitacheck.user.domain.User;
 import com.vitacheck.user.domain.UserStatus;

@@ -35,6 +35,9 @@ dependencies {
     testImplementation 'com.h2database:h2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+    // Database
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
     // OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 
@@ -47,20 +50,20 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
-
-def querydslDir = "$buildDir/generated/querydsl"
-
-sourceSets {
-    main.java.srcDirs += querydslDir
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
-}
-
-clean {
-    delete file(querydslDir)
-}
+//
+//def querydslDir = "$buildDir/generated/querydsl"
+//
+//sourceSets {
+//    main.java.srcDirs += querydslDir
+//}
+//
+//tasks.withType(JavaCompile).configureEach {
+//    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+//}
+//
+//clean {
+//    delete file(querydslDir)
+//}
 
 tasks.named('test') {
     useJUnitPlatform()
