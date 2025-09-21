@@ -17,6 +17,8 @@ import com.vitacheck.product.repository.IngredientRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -30,7 +32,6 @@ import java.util.stream.Collectors;
 @Getter
 public class IngredientService {
     private final IngredientRepository ingredientRepository;
-//    private final IngredientAlternativeFoodRepository ingredientAlternativeFoodRepository;
     private final JPAQueryFactory queryFactory;
     private final IngredientDosageRepository ingredientDosageRepository;
 //    private final JwtParser jwtParser; // 토큰에서 email 추출용
@@ -79,7 +80,7 @@ public class IngredientService {
 //    }
 
     // 성분 정보(설명, 대체식품, 권장량 등) 가져오기
-    public IngredientResponseDTO.IngredientDetails getIngredientDetails(Long id, String token) {
+    public IngredientResponseDTO.IngredientDetails getIngredientDetails(Long id) {
         {
             String dosageErrorCode = null;
             String foodErrorCode = null;
@@ -102,21 +103,21 @@ public class IngredientService {
 //        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
 //            // 로그인하지 않은 경우 기본값 설정
 //            dosageErrorCode = ErrorCode.UNAUTHORIZED.name();
-//            // 🔹 클릭 로그 저장 (미로그인)
-//            searchLogService.logClick(null, ingredient.getName(), SearchCategory.INGREDIENT, null,null);
+//////            // 🔹 클릭 로그 저장 (미로그인)
+//////            searchLogService.logClick(null, ingredient.getName(), SearchCategory.INGREDIENT, null,null);
 //
 //        } else {
 //            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//            User user = userDetails.getUser();
-//            gender = user.getGender();
-//
-//            LocalDate birthDate = user.getBirthDate();
-//            int age = Period.between(birthDate, LocalDate.now()).getYears();
-//            ageGroup = (age / 10) * 10;
-//
-////            // 🔹 클릭 로그 저장 (로그인)
-////            searchLogService.logClick(user.getId(), ingredient.getName(), SearchCategory.INGREDIENT, age, gender);
-//
+////            User user = userDetails.getUser();
+////            gender = user.getGender();
+////
+////            LocalDate birthDate = user.getBirthDate();
+////            int age = Period.between(birthDate, LocalDate.now()).getYears();
+////            ageGroup = (age / 10) * 10;
+////
+//////            // 🔹 클릭 로그 저장 (로그인)
+//////            searchLogService.logClick(user.getId(), ingredient.getName(), SearchCategory.INGREDIENT, age, gender);
+////
 //        }
 
 
