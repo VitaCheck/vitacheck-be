@@ -61,6 +61,7 @@ public class SupplementController {
     // 특정 영양제 상세 정보 반환 API
     @GetMapping
     @Operation(summary = "영양제 상세 조회", description = "supplementId로 상세 정보를 조회합니다. ❗변경사항 상세조회에서 좋아요 조회하는거 따로 분리함")
+    @Parameter(name = "id", description = "영양제 ID", example = "1")
     public CustomResponse<SupplementResponseDTO.SupplementDetail> getSupplement(
             @RequestParam Long id) {
         SupplementResponseDTO.SupplementDetail responseDto=supplementService.getSupplementDetail(id);
@@ -73,6 +74,7 @@ public class SupplementController {
     // 특정 브랜드 다른 영양제 목록 반환 API
     @GetMapping("/brand")
     @Operation(summary = "특정 브랜드의 다른 영양제 목록 반환", description = "특정 브랜드의 다른 영양제 목록을 반환합니다.")
+    @Parameter(name = "id", description = "영양제 ID", example = "1")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
@@ -84,6 +86,7 @@ public class SupplementController {
     // 특정 영양제의 상세정보 반환 API DTO
     @GetMapping("/detail")
     @Operation(summary = "영양제 상세 조회", description = "성분별 함량, 상태, 시각화 정보 등을 반환합니다.")
+    @Parameter(name = "id", description = "영양제 ID", example = "1")
     public SupplementResponseDTO.DetailResponse getSupplementDetail(@RequestParam Long id) {
         return supplementService.getSupplementDetailById(id);
     }

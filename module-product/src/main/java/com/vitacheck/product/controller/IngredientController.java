@@ -59,11 +59,11 @@ public class IngredientController {
     )
     @GetMapping("/api/v1/ingredients/{id}")
     public CustomResponse<IngredientResponseDTO.IngredientDetails> getIngredientDetails(
-            @RequestHeader("Authorization") String authHeader,
+//            @RequestHeader("Authorization") String authHeader,
             @Parameter(name = "id", description = "성분 ID", example = "1")
             @PathVariable Long id) {
-        String token = authHeader.replace("Bearer ", "");
-        IngredientResponseDTO.IngredientDetails responseDto = ingredientService.getIngredientDetails(id,token);
+//        String token = authHeader.replace("Bearer ", "");
+        IngredientResponseDTO.IngredientDetails responseDto = ingredientService.getIngredientDetails(id);
         return CustomResponse.ok(responseDto);
     }
 

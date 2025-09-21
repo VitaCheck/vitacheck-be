@@ -1,14 +1,16 @@
 package com.vitacheck.service;
 
-import com.vitacheck.domain.notification.NotificationChannel;
-import com.vitacheck.domain.notification.NotificationRoutine;
-import com.vitacheck.domain.RoutineDayOfWeek;
+import com.vitacheck.Notification.domain.NotificationChannel;
+import com.vitacheck.Notification.domain.NotificationRoutine;
+import com.vitacheck.Notification.service.FcmService;
+import com.vitacheck.Notification.service.NotificationScheduler;
+import com.vitacheck.Intake.domain.RoutineDayOfWeek;
 import com.vitacheck.domain.Supplement;
-import com.vitacheck.domain.notification.NotificationSettings;
-import com.vitacheck.domain.notification.NotificationType;
+import com.vitacheck.Notification.domain.NotificationSettings;
+import com.vitacheck.Notification.domain.NotificationType;
 import com.vitacheck.domain.user.User;
-import com.vitacheck.repository.NotificationRoutineRepository;
-import com.vitacheck.repository.NotificationSettingsRepository; // import 추가
+import com.vitacheck.Notification.repository.NotificationRoutineRepository;
+import com.vitacheck.Notification.repository.NotificationSettingsRepository; // import 추가
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

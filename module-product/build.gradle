@@ -24,6 +24,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // Querydsl (product 도메인은 복잡한 쿼리 필요)
     implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
