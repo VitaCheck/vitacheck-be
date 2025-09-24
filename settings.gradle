@@ -1,1 +1,6 @@
 rootProject.name = 'vitacheck-be'
+
+include 'module-common'
+include 'module-user'
+include 'module-auth'
+include 'module-product'

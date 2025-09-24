@@ -4,7 +4,7 @@ name: VitaCheck Backend CI/CD
 # 이 워크플로우가 언제 실행될지를 정의하는 '트리거' 설정입니다.
 on:
   push:
-    branches: [ develop ]  # develop 브랜치에 push 될 때
+    branches: [ main ]  # develop 브랜치에 push 될 때
 
 # 실제 수행할 작업(Job)들을 정의합니다.
 jobs:
@@ -72,4 +72,5 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # script에서 모든 export 구문을 제거합니다.
           script: 'sh ~/deploy.sh'

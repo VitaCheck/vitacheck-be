@@ -1,9 +1,20 @@
 # application-prod.yml (최종 수정본)
 spring:
+  cloud:
+    aws:
+      s3:
+        bucket: vitacheck-assets
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
+  config:
+    import: "aws-secretsmanager:vitacheck/prod"
   datasource:
     url: jdbc:mysql://${PROD_DB_ENDPOINT}:3306/vitacheck?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     username: ${PROD_DB_USERNAME}
     password: ${PROD_DB_PASSWORD}
+
   security:
     oauth2:
       client:
@@ -14,6 +25,9 @@ spring:
             scope:
               - email
               - profile
+              - openid
+              - https://www.googleapis.com/auth/user.birthday.read
+              - https://www.googleapis.com/auth/user.gender.read
           naver:
             client-id: ${NAVER_CLIENT_ID}
             client-secret: ${NAVER_CLIENT_SECRET}
@@ -22,6 +36,8 @@ spring:
             scope:
               - name
               - email
+              - gender
+              - birthday
             client-name: Naver
         provider:
           naver:
@@ -31,7 +47,13 @@ spring:
             user-name-attribute: response
   jpa:
     hibernate:
-      ddl-auto: none # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: none
+      
+  data:
+    redis:
+      host: localhost     # EC2 내부 Redis
+      port: 6379
+      password: ${REDIS_PASSWORD}  # 환경변수 또는 Secrets Manager 값
 
 jwt:
   secret: ${JWT_SECRET}
@@ -42,14 +64,13 @@ open-api:
   food-safety-korea:
     api-key: ${FOOD_SAFETY_API_KEY}
 
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
-    s3:
-      bucket: vitacheck-assets
-    region:
-      static: ap-northeast-2
-    stack:
-      auto: false
+# Firebase 키 설정을 위한 부분 (Secrets Manager에서 값을 가져옴)
+firebase:
+  key-json: ${firebase.key-json}
+
+oauth2:
+  redirect:
+    frontend-url: https://vitachecking.com
+
+server:
+  forward-headers-strategy: framework
