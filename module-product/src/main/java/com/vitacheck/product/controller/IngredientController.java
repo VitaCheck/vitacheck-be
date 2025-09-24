@@ -26,7 +26,7 @@ public class IngredientController {
         """
 
     )
-    @GetMapping("/api/v1/ingredients/search")
+    @GetMapping("/search")
     public CustomResponse<List<IngredientResponseDTO.IngredientName>> getIngredientFood(
             @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
             @RequestParam String keyword) {
@@ -57,7 +57,7 @@ public class IngredientController {
         """
 
     )
-    @GetMapping("/api/v1/ingredients/{id}")
+    @GetMapping("/{id}")
     public CustomResponse<IngredientResponseDTO.IngredientDetails> getIngredientDetails(
 //            @RequestHeader("Authorization") String authHeader,
             @Parameter(name = "id", description = "성분 ID", example = "1")
@@ -78,7 +78,7 @@ public class IngredientController {
         nextcursor가 null이면 다음 페이지가 없다는 뜻입니다.
         """
     )
-    @GetMapping("/api/v1/ingredients/{id}/supplements")
+    @GetMapping("/{id}/supplements")
     public CustomResponse<IngredientResponseDTO.IngredientSupplementBasedCursor> getIngredientSupplementBasedCursor(
             @Parameter(name = "id", description = "성분 ID", example = "1")
             @PathVariable Long id,
