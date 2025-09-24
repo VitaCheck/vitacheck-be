@@ -8,12 +8,6 @@ group = 'com.vitacheck'
 version = '0.0.1-SNAPSHOT'
 description = 'module-auth'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 repositories {
     mavenCentral()
 }
