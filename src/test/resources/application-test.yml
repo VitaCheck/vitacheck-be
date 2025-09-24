@@ -85,3 +85,6 @@ spring:
 
 firebase:
   key-path: "firebase-service-account-key.json"
+oauth2:
+  redirect:
+    frontend-url: "http://localhost:5173"
