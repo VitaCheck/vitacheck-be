@@ -27,6 +27,7 @@ public class IngredientResponseDTO {
         private Double upperLimit;     // 상한
         private Double recommendedDosage;     // 하한
         private String unit;           // 단위
+        @Builder.Default
         private List<SubIngredient> subIngredients = new ArrayList<>(); // 대체 식품
         private String DosageErrorCode;  // 상한, 권장량 오류
         private String FoodErrorCode;    // 대체 식품 오류
