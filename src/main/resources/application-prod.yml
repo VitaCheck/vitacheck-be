@@ -47,7 +47,7 @@ spring:
             user-name-attribute: response
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
       
   data:
     redis:
