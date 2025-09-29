@@ -1,10 +1,6 @@
 package com.vitacheck.auth.dto;
 
 import com.vitacheck.common.enums.Gender;
-import com.vitacheck.common.util.RandomNicknameGenerator;
-import com.vitacheck.user.domain.Role;
-import com.vitacheck.user.domain.User;
-import com.vitacheck.user.domain.UserStatus;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -19,9 +15,7 @@ import java.util.Map;
 
 @Slf4j
 @Getter
-@Data
 @Builder
-@NoArgsConstructor
 public class OAuthAttributes {
     private Map<String, Object> attributes;
     private String nameAttributeKey;
@@ -154,27 +148,5 @@ public class OAuthAttributes {
             case "female" -> Gender.FEMALE;
             default -> Gender.NONE;
         };
-    }
-
-
-    public User toEntity() {
-        String finalNickname = this.name;
-        if (finalNickname == null || finalNickname.isBlank()) {
-            finalNickname = RandomNicknameGenerator.generate();
-        }
-
-        return User.builder()
-                .nickname(finalNickname)
-                .fullName(this.name)
-                .email(email)
-                .provider(provider)
-                .providerId(providerId)
-                .gender(gender)
-                .birthDate(birthDate)
-                .phoneNumber(phoneNumber)
-                .status(UserStatus.ACTIVE)
-                .lastLoginAt(LocalDateTime.now())
-                .role(Role.USER)
-                .build();
     }
 }

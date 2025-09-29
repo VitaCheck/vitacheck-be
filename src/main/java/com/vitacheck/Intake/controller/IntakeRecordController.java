@@ -3,6 +3,9 @@ package com.vitacheck.Intake.controller;
 import com.vitacheck.Intake.dto.IntakeRecordResponseDto;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.Intake.service.IntakeRecordCommandService;
+import com.vitacheck.common.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,7 +26,6 @@ import java.time.LocalDate;
 public class IntakeRecordController {
 
     private final IntakeRecordCommandService intakeRecordCommandService;
-    private final UserService userService;
 
     @Operation(
             summary = "섭취 여부 토글",
@@ -57,14 +59,12 @@ public class IntakeRecordController {
     @PostMapping("/{notificationRoutineId}/toggle")
     public CustomResponse<IntakeRecordResponseDto> toggleIntake(
             @PathVariable Long notificationRoutineId,
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @RequestParam(name = "date", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        String email = userDetails.getUsername();
-        Long userId = userService.findIdByEmail(email);
-
-        IntakeRecordResponseDto response = intakeRecordCommandService.toggleIntake(notificationRoutineId, userId, date);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        IntakeRecordResponseDto response = intakeRecordCommandService.toggleIntake(notificationRoutineId, user.getUserId(), date); // ◀◀ user.getId() 사용
         return CustomResponse.ok(response);
     }
 }

@@ -1,7 +1,7 @@
 package com.vitacheck.auth.config.jwt;
 
-import com.vitacheck.user.domain.User;
-import com.vitacheck.user.repository.UserRepository;
+import com.vitacheck.common.enums.Gender;
+import com.vitacheck.common.security.AuthenticatedUser;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,13 +10,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -24,9 +28,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserRepository userRepository;
 
-    // ▼ [신규 추가] 필터가 무시해야 할 경로 목록 ▼
     private static final List<String> EXCLUDE_PATHS = Arrays.asList(
             "/api/v1/auth/signup",
             "/api/v1/auth/social-signup",
@@ -37,7 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // ▼ [신규 추가] 현재 요청 경로가 무시 목록에 포함되면, 필터 로직을 건너뜀 ▼
         String path = request.getRequestURI();
         if (EXCLUDE_PATHS.contains(path)) {
             filterChain.doFilter(request, response);
@@ -54,21 +55,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (jwtUtil.validateToken(token)) {
             Claims claims = jwtUtil.getClaims(token);
+            Long userId = claims.get("userId", Long.class);
             String email = claims.get("email", String.class);
+            Gender gender = Gender.valueOf(claims.get("gender", String.class));
+            LocalDate birthDate = LocalDate.parse(claims.get("birthDate", String.class));
+            String role = claims.get("role", String.class);
+            List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
 
-            if (claims.get("provider") == null) {
-                User user = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new SecurityException("User not found with email: " + email));
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(
+                    userId,
+                    email,
+                    gender,
+                    birthDate,
+                    authorities
+            );
 
-                UserDetails userDetails = new CustomUserDetails(user);
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    authenticatedUser,
+                    "",
+                    authorities
+            );
 
-                Authentication authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        "",
-                        userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
         }
 
         filterChain.doFilter(request, response);

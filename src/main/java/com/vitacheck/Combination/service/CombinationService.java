@@ -3,6 +3,7 @@ package com.vitacheck.Combination.service;
 import com.vitacheck.Combination.domain.Combination;
 import com.vitacheck.Combination.domain.RecommandType;
 import com.vitacheck.Combination.dto.CombinationDTO;
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.product.domain.Ingredient.Ingredient;
 import com.vitacheck.product.domain.Ingredient.IngredientDosage;
 import com.vitacheck.product.domain.Supplement.Supplement;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +30,7 @@ public class CombinationService {
     private final DosageService dosageService;
 
     @Transactional(readOnly = true)
-    public CombinationDTO.AnalysisResponse analyze(User user, CombinationDTO.AnalysisRequest request) {
+    public CombinationDTO.AnalysisResponse analyze(Gender gender, LocalDate birthDate, CombinationDTO.AnalysisRequest request) {
         // 1. 요청받은 ID로 DB에서 영양제와 성분 정보들을 한 번에 조회
         List<Supplement> supplements = supplementRepository.findSupplementsWithIngredientsByIds(request.getSupplementIds());
 
@@ -43,9 +45,9 @@ public class CombinationService {
 
 
         Map<Long, IngredientDosage> dosageMap; // 기본값은 빈 Map
-        if (user != null) {
+        if (gender != null && birthDate != null) {
             // user가 null이 아닐 때 (로그인 상태일 때)만 DosageService를 호출
-            dosageMap = dosageService.getDosagesForUserAndIngredients(user, totalAmountMap.keySet());
+            dosageMap = dosageService.getDosagesForUserAndIngredients(gender, birthDate, totalAmountMap.keySet());
         } else {
             dosageMap = Collections.emptyMap();
         }
