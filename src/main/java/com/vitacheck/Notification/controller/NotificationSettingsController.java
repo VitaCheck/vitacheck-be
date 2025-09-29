@@ -6,6 +6,7 @@ import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.Notification.service.NotificationScheduler;
 import com.vitacheck.Notification.service.NotificationSettingsService;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,10 +34,10 @@ public class NotificationSettingsController {
     @GetMapping("/me")
     @Operation(summary = "내 알림 설정 조회", description = "현재 로그인한 사용자의 모든 알림 수신 동의 여부를 조회합니다.")
     public CustomResponse<List<NotificationSettingsDto>> getMyNotificationSettings(
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        Long userId = userService.findIdByEmail(userDetails.getUsername());
-        List<NotificationSettingsDto> response = notificationSettingsService.getNotificationSettings(userId);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        List<NotificationSettingsDto> response = notificationSettingsService.getNotificationSettings(user.getUserId()); // ◀◀ user.getId() 사용
         return CustomResponse.ok(response);
     }
 
@@ -50,7 +51,7 @@ public class NotificationSettingsController {
                 이메일 channel : "EMAIL"      /   앱 푸시 channel : "PUSH"
             """)
     public CustomResponse<String> updateMyNotificationSetting(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = """
                             변경할 알림의 종류, 채널, 그리고 활성화 여부를 전달합니다.
@@ -84,8 +85,8 @@ public class NotificationSettingsController {
             )
             @RequestBody NotificationSettingsDto.UpdateRequest request
     ) {
-        Long userId = userService.findIdByEmail(userDetails.getUsername());
-        notificationSettingsService.updateNotificationSetting(userId, request);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        notificationSettingsService.updateNotificationSetting(user.getUserId(), request); // ◀◀ user.getId() 사용
         return CustomResponse.ok("알림 설정이 변경되었습니다.");
     }
 

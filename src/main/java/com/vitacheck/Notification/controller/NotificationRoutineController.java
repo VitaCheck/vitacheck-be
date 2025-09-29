@@ -6,6 +6,9 @@ import com.vitacheck.Intake.dto.RoutineResponseDto;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.Notification.service.NotificationRoutineCommandService;
 import com.vitacheck.Intake.service.RoutineQueryService;
+import com.vitacheck.common.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -54,7 +57,7 @@ public class NotificationRoutineController {
             @ApiResponse(responseCode = "404", description = "사용자 또는 루틴을 찾을 수 없음")
     })
     public ResponseEntity<CustomResponse<RoutineRegisterResponseDto>> registerOrUpdateRoutine(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
 
             // Swagger 예시를 직접 지정하는 어노테이션 추가
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -84,10 +87,8 @@ public class NotificationRoutineController {
             )
             @RequestBody @Valid RoutineRegisterRequestDto request
     ) {
-        String email = userDetails.getUsername();
-        Long userId = userService.findIdByEmail(email);
-
-        RoutineRegisterResponseDto response = notificationRoutineCommandService.registerRoutine(userId, request);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        RoutineRegisterResponseDto response = notificationRoutineCommandService.registerRoutine(user.getUserId(), request); // ◀◀ user.getId() 사용
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(CustomResponse.created(response));
@@ -122,13 +123,11 @@ public class NotificationRoutineController {
             }
     )
     public ResponseEntity<CustomResponse<List<RoutineResponseDto>>> getMyRoutines(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        String email = userDetails.getUsername();
-        Long userId = userService.findIdByEmail(email);
-
-        List<RoutineResponseDto> response = routineQueryService.getMyRoutines(userId, date);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        List<RoutineResponseDto> response = routineQueryService.getMyRoutines(user.getUserId(), date); // ◀◀ user.getId() 사용
         return ResponseEntity.ok(CustomResponse.ok(response));
     }
 
@@ -141,13 +140,11 @@ public class NotificationRoutineController {
             @ApiResponse(responseCode = "404", description = "루틴을 찾을 수 없음")
     })
     public ResponseEntity<CustomResponse<Void>> deleteRoutine(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @PathVariable("notificationRoutineId") Long routineId
     ) {
-        String email = userDetails.getUsername();
-        Long userId = userService.findIdByEmail(email);
-
-        notificationRoutineCommandService.deleteRoutine(userId, routineId);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        notificationRoutineCommandService.deleteRoutine(user.getUserId(), routineId); // ◀◀ user.getId() 사용
         return ResponseEntity.ok(CustomResponse.ok(null));
     }
 
@@ -159,11 +156,11 @@ public class NotificationRoutineController {
             @ApiResponse(responseCode = "404", description = "루틴을 찾을 수 없음")
     })
     public CustomResponse<RoutineResponseDto> toggleRoutineStatus(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @PathVariable("notificationRoutineId") Long routineId
     ) {
-        Long userId = userService.findIdByEmail(userDetails.getUsername());
-        RoutineResponseDto response = notificationRoutineCommandService.toggleRoutine(userId, routineId);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        RoutineResponseDto response = notificationRoutineCommandService.toggleRoutine(user.getUserId(), routineId); // ◀◀ user.getId() 사용
         return CustomResponse.ok(response);
     }
 }

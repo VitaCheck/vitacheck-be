@@ -1,13 +1,15 @@
 package com.vitacheck.auth.config.jwt;
 
+import com.vitacheck.common.enums.Gender;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.common.security.UserContextProvider;
-import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.Period;
 
 @Component
 @RequiredArgsConstructor
@@ -15,35 +17,31 @@ public class JwtUserContextProvider implements UserContextProvider {
 
     @Override
     public Long getCurrentUserId() {
-        User user = getCurrentUser();
-        return (user != null) ? user.getId() : null;
+        return getAuthenticatedUser().getUserId();
     }
 
     @Override
     public String getCurrentEmail() {
-        User user = getCurrentUser();
-        return (user != null) ? user.getEmail() : null;
+        return getAuthenticatedUser().getEmail();
     }
 
     @Override
-    public com.vitacheck.common.enums.Gender getCurrentGender() {
-        User user = getCurrentUser();
-        return (user != null) ? user.getGender() : null;
+    public Gender getCurrentGender() {
+        return getAuthenticatedUser().getGender();
     }
 
     @Override
     public LocalDate getCurrentBirthDate() {
-        User user = getCurrentUser();
-        return (user != null) ? user.getBirthDate() : null;
+        return getAuthenticatedUser().getBirthDate();
     }
 
     @Override
     public Integer getCurrentAge() {
-        User user = getCurrentUser();
-        if (user == null || user.getBirthDate() == null) {
+        LocalDate birthDate = getAuthenticatedUser().getBirthDate();
+        if (birthDate == null) {
             return null;
         }
-        return java.time.Period.between(user.getBirthDate(), java.time.LocalDate.now()).getYears();
+        return Period.between(birthDate, LocalDate.now()).getYears();
     }
 
     @Override
@@ -53,12 +51,13 @@ public class JwtUserContextProvider implements UserContextProvider {
                 && !"anonymousUser".equals(authentication.getPrincipal());
     }
 
-    private User getCurrentUser() {
+    private AuthenticatedUser getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
-            return null;
+        if (authentication == null || !(authentication.getPrincipal() instanceof AuthenticatedUser)) {
+            throw new IllegalStateException("User is not Authenticated");
         }
-        return ((CustomUserDetails) authentication.getPrincipal()).getUser();
+
+        return (AuthenticatedUser) authentication.getPrincipal();
     }
 }
 

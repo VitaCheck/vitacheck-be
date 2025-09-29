@@ -15,7 +15,6 @@ repositories {
 dependencies {
     // 공통 모듈과 사용자 모듈에 의존합니다.
     implementation project(":module-common")
-    implementation project(":module-user")
 
     // Spring Security, OAuth2, JWT 관련 의존성을 추가합니다.
     implementation 'org.springframework.boot:spring-boot-starter-web' // ◀◀ Controller를 위해 추가
