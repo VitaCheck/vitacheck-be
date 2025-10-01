@@ -1,12 +1,12 @@
 package com.vitacheck.user.service;
 
-import com.vitacheck.auth.dto.CreateUserRequest;
-import com.vitacheck.auth.service.provider.UserRegistrationService;
 import com.vitacheck.user.domain.Role;
 import com.vitacheck.user.domain.User;
 import com.vitacheck.user.domain.UserStatus;
+import com.vitacheck.user.dto.CreateUserRequest;
 import com.vitacheck.user.dto.UserSignedUpEvent;
 import com.vitacheck.user.repository.UserRepository;
+import com.vitacheck.user.service.provider.UserRegistrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;

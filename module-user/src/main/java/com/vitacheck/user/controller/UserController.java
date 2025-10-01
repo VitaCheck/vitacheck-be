@@ -71,6 +71,7 @@ public class UserController {
         UserDto.InfoResponse updatedInfo = userService.updateMyInfo(user.getEmail(), request); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok(updatedInfo);
     }
+    
 
     @Operation(summary = "프로필 사진 URL 업데이트", description = "사용자 본인의 프로필 사진을 변경합니다.")
     @ApiResponses(value = {

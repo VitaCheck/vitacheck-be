@@ -1,4 +1,4 @@
-package com.vitacheck.auth.dto;
+package com.vitacheck.user.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

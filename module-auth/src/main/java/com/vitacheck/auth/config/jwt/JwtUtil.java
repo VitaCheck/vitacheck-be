@@ -1,7 +1,7 @@
 package com.vitacheck.auth.config.jwt;
 
 import com.vitacheck.auth.dto.AuthDto;
-import com.vitacheck.auth.dto.AuthUserDto;
+import com.vitacheck.user.dto.AuthUserDto;
 import com.vitacheck.auth.dto.OAuthAttributes;
 import com.vitacheck.common.enums.Gender;
 import io.jsonwebtoken.*;

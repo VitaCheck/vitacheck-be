@@ -1,6 +1,6 @@
-package com.vitacheck.auth.dto;
+package com.vitacheck.user.dto;
 
-import com.vitacheck.common.enums.Gender; // common 모듈의 Gender는 사용 가능
+import com.vitacheck.common.enums.Gender;
 import lombok.Builder;
 import lombok.Getter;
 

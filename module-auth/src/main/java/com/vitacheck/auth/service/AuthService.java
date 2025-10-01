@@ -2,13 +2,13 @@ package com.vitacheck.auth.service;
 
 import com.vitacheck.auth.config.jwt.JwtUtil;
 import com.vitacheck.auth.dto.AuthDto;
-import com.vitacheck.auth.dto.AuthUserDto;
-import com.vitacheck.auth.dto.CreateUserRequest;
+import com.vitacheck.user.dto.AuthUserDto;
 import com.vitacheck.auth.dto.OAuthAttributes;
-import com.vitacheck.auth.service.provider.AuthUserProvider;
-import com.vitacheck.auth.service.provider.UserRegistrationService;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.user.dto.CreateUserRequest;
+import com.vitacheck.user.service.provider.AuthUserProvider;
+import com.vitacheck.user.service.provider.UserRegistrationService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
