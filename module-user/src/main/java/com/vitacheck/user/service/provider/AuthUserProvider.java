@@ -1,6 +1,6 @@
-package com.vitacheck.auth.service.provider;
+package com.vitacheck.user.service.provider;
 
-import com.vitacheck.auth.dto.AuthUserDto;
+import com.vitacheck.user.dto.AuthUserDto;
 
 import java.util.Optional;
 

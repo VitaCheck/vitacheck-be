@@ -1,9 +1,9 @@
 package com.vitacheck.auth.config.oauth;
 
 import com.vitacheck.auth.config.jwt.JwtUtil;
-import com.vitacheck.auth.dto.AuthUserDto;
+import com.vitacheck.user.dto.AuthUserDto;
 import com.vitacheck.auth.dto.OAuthAttributes;
-import com.vitacheck.auth.service.provider.AuthUserProvider; // provider를 import 합니다.
+import com.vitacheck.user.service.provider.AuthUserProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

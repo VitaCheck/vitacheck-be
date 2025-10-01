@@ -60,6 +60,9 @@ public class SecurityConfig {
             "/health",
             "/clova-ocr/**",
 
+            // terms
+            "/api/v1/user/terms",
+
             // test
             "/api/v1/test"
     };
