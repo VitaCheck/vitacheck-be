@@ -4,7 +4,9 @@ import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.security.AuthenticatedUser;
+import com.vitacheck.user.dto.TermsDto;
 import com.vitacheck.user.dto.UserDto;
+import com.vitacheck.user.service.TermsService;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +22,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "user", description = "사용자 정보 관련 API")
 @RestController
 @RequestMapping("/api/v1/users")
@@ -27,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final TermsService termsService;
 
     @Operation(summary = "내 정보 조회", description = "인증된 사용자의 정보를 조회합니다.")
     @ApiResponses(value = {
@@ -71,7 +76,46 @@ public class UserController {
         UserDto.InfoResponse updatedInfo = userService.updateMyInfo(user.getEmail(), request); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok(updatedInfo);
     }
-    
+
+    @GetMapping("/terms")
+    @Operation(summary = "전체 약관 목록 조회", description = "...")
+    public CustomResponse<List<TermsDto.TermResponse>> getAllTerms() {
+        List<TermsDto.TermResponse> response = termsService.getAllTerms();
+        return CustomResponse.ok(response);
+    }
+
+    @PostMapping("/terms/agreements")
+    @Operation(summary = "약관 동의", description = "...")
+    public CustomResponse<String> agreeToTerms(
+            @AuthenticationPrincipal AuthenticatedUser user, // ◀◀ 타입 변경
+            @Valid @RequestBody TermsDto.AgreementRequest request
+    ) {
+        // user가 null인지 체크하는 로직 추가 (더 안전)
+        if (user == null) {
+            // 이 코드는 JwtAuthenticationFilter가 정상 동작하면 실행되지 않아야 합니다.
+            // 하지만 방어적인 코드로 남겨두는 것이 좋습니다.
+            throw new CustomException(com.vitacheck.common.code.ErrorCode.UNAUTHORIZED);
+        }
+
+        // email 대신 user ID를 직접 사용
+        termsService.agreeToTerms(user.getUserId(), request);
+        return CustomResponse.ok("약관 동의가 처리되었습니다.");
+    }
+
+    @DeleteMapping("/terms/agreements")
+    @Operation(summary = "약관 동의 철회", description = "...")
+    public CustomResponse<String> withdrawTerms(
+            @AuthenticationPrincipal AuthenticatedUser user, // ◀◀ 타입 변경
+            @Valid @RequestBody TermsDto.AgreementWithdrawalRequest request
+    ) {
+        if (user == null) {
+            throw new CustomException(com.vitacheck.common.code.ErrorCode.UNAUTHORIZED);
+        }
+
+        // email 대신 user ID를 직접 사용
+        termsService.withdrawTerms(user.getUserId(), request);
+        return CustomResponse.ok("약관 동의가 철회되었습니다.");
+    }
 
     @Operation(summary = "프로필 사진 URL 업데이트", description = "사용자 본인의 프로필 사진을 변경합니다.")
     @ApiResponses(value = {
