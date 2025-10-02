@@ -4,6 +4,9 @@ import com.vitacheck.Intake.dto.CustomRoutineUpsertRequestDto;
 import com.vitacheck.Intake.dto.RoutineRegisterResponseDto;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.Notification.service.NotificationRoutineCustomCommandService;
+import com.vitacheck.common.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,11 +43,11 @@ public class NotificationRoutineCustomRestController {
     })
     @PostMapping
     public ResponseEntity<CustomResponse<RoutineRegisterResponseDto>> upsert(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody CustomRoutineUpsertRequestDto req
     ) {
-        Long userId = userService.findIdByEmail(userDetails.getUsername());
-        RoutineRegisterResponseDto res = customService.upsert(userId, req);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        RoutineRegisterResponseDto res = customService.upsert(user.getUserId(), req); // ◀◀ user.getId() 사용
 
         boolean isCreate = (req.getNotificationRoutineId() == null);
         return isCreate

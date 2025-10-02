@@ -3,9 +3,9 @@ package com.vitacheck.Activity.controller;
 import com.vitacheck.Activity.dto.PopularIngredientDTO;
 import com.vitacheck.Activity.dto.PopularSupplementDTO;
 import com.vitacheck.Activity.service.SearchLogService;
-import com.vitacheck.auth.config.jwt.CustomUserDetails;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.enums.Gender;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.product.dto.SupplementResponseDTO;
 import com.vitacheck.product.service.SupplementService;
 import com.vitacheck.user.domain.User;
@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Period;
 import java.util.*;
 
 @RestController
@@ -72,7 +73,19 @@ public class SearchLogController {
     public CustomResponse<Void> recordSearchLog(
             @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
             @RequestParam String keyword) {
-        searchLogService.recordSearchLog(keyword);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = null;
+        Integer age = null;
+        Gender gender = null;
+
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof AuthenticatedUser) {
+            AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+            userId = user.getUserId();
+            age = Period.between(user.getBirthDate(), java.time.LocalDate.now()).getYears();
+            gender = user.getGender();
+        }
+
+        searchLogService.recordSearchLog(keyword, userId, age, gender);
         return CustomResponse.ok(null);
     }
 
@@ -90,14 +103,12 @@ public class SearchLogController {
             @Parameter(description = "가져올 검색어 개수") @RequestParam(defaultValue = "3") int limit
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = null;
-
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            user = userDetails.getUser(); // User 객체를 꺼냅니다.
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AuthenticatedUser)) {
+            return CustomResponse.ok(Collections.emptyList());
         }
 
-        List<String> recentSearches = searchLogService.findRecentSearches(user, limit);
+        AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+        List<String> recentSearches = searchLogService.findRecentSearches(user.getUserId(), limit);
         return CustomResponse.ok(recentSearches);
     }
 
@@ -115,13 +126,13 @@ public class SearchLogController {
             @Parameter(description = "가져올 상품 개수") @RequestParam(defaultValue = "5") int limit
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = null;
 
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            user = userDetails.getUser(); // User 객체를 꺼냅니다.
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AuthenticatedUser)) {
+            return CustomResponse.ok(Collections.emptyList());
         }
-        List<SupplementResponseDTO.SimpleResponse> recentProducts = searchLogService.findRecentProducts(user, limit);
+
+        AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+        List<SupplementResponseDTO.SimpleResponse> recentProducts = searchLogService.findRecentProducts(user.getUserId(), limit);
         return CustomResponse.ok(recentProducts);
     }
 

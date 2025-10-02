@@ -31,26 +31,21 @@ public class DosageService {
     /**
      * 사용자와 분석할 성분 목록을 기반으로, 각 성분별 최적의 섭취 기준을 조회하여 Map으로 반환합니다.
      */
-    public Map<Long, IngredientDosage> getDosagesForUserAndIngredients(User user, Set<Ingredient> ingredients) {
+    public Map<Long, IngredientDosage> getDosagesForUserAndIngredients(
+            Gender gender, LocalDate birthDate, Set<Ingredient> ingredients) {
 
-        if (user == null || ingredients.isEmpty()) {
+        if (gender == null || birthDate == null || ingredients.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
+        int age = Period.between(birthDate, LocalDate.now()).getYears();
         List<Long> ingredientIds = ingredients.stream().map(Ingredient::getId).collect(Collectors.toList());
 
-
-//        List<Gender> genderOptions = List.of(user.getGender(), Gender.ALL);
-        Gender gender=Gender.ALL;  // 수정 필요
-
         List<IngredientDosage> dosages = ingredientDosageRepository.findApplicableDosages(ingredientIds, gender, age);
-
 
         if (!dosages.isEmpty()) {
             dosages.forEach(d -> log.info(">> 조회된 dosage 정보: {}", d));
         }
-
 
         // 성분별로 가장 적합한 기준(성별 일치 > ALL)을 선택하여 Map으로 만듦
         return dosages.stream()

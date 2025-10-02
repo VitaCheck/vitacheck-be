@@ -1,6 +1,9 @@
 package com.vitacheck.user.controller;
 
 import com.vitacheck.common.CustomResponse;
+import com.vitacheck.common.code.ErrorCode;
+import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.dto.UserDto;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,9 +36,9 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
     })
     @GetMapping("/me")
-    public CustomResponse<UserDto.InfoResponse> getMyInfo(@AuthenticationPrincipal UserDetails userDetails){
-        String email = userDetails.getUsername();
-        UserDto.InfoResponse myInfo = userService.getMyInfo(email);
+    public CustomResponse<UserDto.InfoResponse> getMyInfo(@AuthenticationPrincipal AuthenticatedUser user){
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        UserDto.InfoResponse myInfo = userService.getMyInfo(user.getEmail()); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok(myInfo);
     }
 
@@ -48,7 +51,7 @@ public class UserController {
     })
     @PutMapping("/me")
     public CustomResponse<UserDto.InfoResponse> updateMyInfo(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
 
             // Swagger 예시를 직접 지정하는 어노테이션 추가
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -64,10 +67,11 @@ public class UserController {
             )
             @RequestBody UserDto.UpdateRequest request
     ) {
-        String email = userDetails.getUsername();
-        UserDto.InfoResponse updatedInfo = userService.updateMyInfo(email, request);
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        UserDto.InfoResponse updatedInfo = userService.updateMyInfo(user.getEmail(), request); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok(updatedInfo);
     }
+    
 
     @Operation(summary = "프로필 사진 URL 업데이트", description = "사용자 본인의 프로필 사진을 변경합니다.")
     @ApiResponses(value = {
@@ -80,11 +84,11 @@ public class UserController {
     })
     @PatchMapping("/me/profile-image")
     public CustomResponse<String> updateProfileImage(
-            @AuthenticationPrincipal UserDetails userDetails,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody UserDto.ProfileUpdateRequest request
     ){
-        String newImageUrl = userService.updateProfileImageUrl(userDetails.getUsername(), request.getProfileImageUrl());
-
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        String newImageUrl = userService.updateProfileImageUrl(user.getEmail(), request.getProfileImageUrl()); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok(newImageUrl);
     }
 
@@ -99,11 +103,12 @@ public class UserController {
     })
     @PutMapping("/me/fcm-token")
     public CustomResponse<String> updateFcmToken(
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "사용자의 새로운 FCM 디바이스 토큰")
             @RequestBody UserDto.UpdateFcmTokenRequest request
     ) {
-        userService.updateFcmToken(userDetails.getUsername(), request.getFcmToken());
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        userService.updateFcmToken(user.getEmail(), request.getFcmToken()); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok("FCM 토큰이 업데이트되었습니다.");
     }
 
@@ -115,9 +120,9 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
     })
     @GetMapping("/me/profile-image")
-    public CustomResponse<String> getMyProfileImageUrl(@AuthenticationPrincipal UserDetails userDetails) {
-        String email = userDetails.getUsername();
-        String profileImageUrl = userService.getProfileImageUrlByEmail(email);
+    public CustomResponse<String> getMyProfileImageUrl(@AuthenticationPrincipal AuthenticatedUser user) {
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        String profileImageUrl = userService.getProfileImageUrlByEmail(user.getEmail()); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok(profileImageUrl);
     }
 
@@ -128,9 +133,9 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     @DeleteMapping("/me")
-    public CustomResponse<String> withdrawUser(@AuthenticationPrincipal UserDetails userDetails) {
-        String email = userDetails.getUsername();
-        userService.withdrawUser(email);
+    public CustomResponse<String> withdrawUser(@AuthenticationPrincipal AuthenticatedUser user) {
+        if (user == null) { throw new CustomException(ErrorCode.UNAUTHORIZED); }
+        userService.withdrawUser(user.getEmail()); // ◀◀ user.getEmail() 사용
         return CustomResponse.ok("회원 탈퇴 요청이 처리되었습니다.");
     }
 }
