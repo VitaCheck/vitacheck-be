@@ -1,11 +1,11 @@
 package com.vitacheck.etc;
 
-import com.vitacheck.Notification.service.NotificationSettingsService;
-import com.vitacheck.Term.service.TermsService;
-import com.vitacheck.Term.domain.Terms;
-import com.vitacheck.Term.domain.UserTermsAgreement;
-import com.vitacheck.Term.repository.TermsRepository;
-import com.vitacheck.Term.repository.UserTermsAgreementRepository;
+import com.vitacheck.notification.service.NotificationSettingsService;
+import com.vitacheck.user.service.TermsService;
+import com.vitacheck.user.domain.Terms;
+import com.vitacheck.user.domain.UserTermsAgreement;
+import com.vitacheck.user.repository.TermsRepository;
+import com.vitacheck.user.repository.UserTermsAgreementRepository;
 import com.vitacheck.user.dto.UserSignedUpEvent;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
