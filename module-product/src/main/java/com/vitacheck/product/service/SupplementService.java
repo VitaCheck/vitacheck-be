@@ -3,6 +3,7 @@ package com.vitacheck.product.service;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.enums.Gender;
 import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.security.UserContextProvider;
 import com.vitacheck.product.domain.Ingredient.IngredientDosage;
 import com.vitacheck.product.domain.Supplement.Brand;
 import com.vitacheck.product.domain.Supplement.Supplement;
@@ -32,6 +33,7 @@ public class SupplementService {
 
     private final SupplementRepository supplementRepository;
     private final IngredientDosageRepository dosageRepository;
+    private final UserContextProvider userContextProvider;
 
 //    public SupplementService(SupplementRepository supplementRepository) {
 //        this.supplementRepository = supplementRepository;
@@ -152,6 +154,17 @@ public class SupplementService {
 
         // 나이 미확정이면 성인 기본값(25세) 가정
         if (age == null) age = 25;
+
+        if (userContextProvider.isAuthenticated()) {
+            // 로그인 상태라면, 실제 사용자 정보를 가져옵니다.
+            gender = userContextProvider.getCurrentGender();
+            age = userContextProvider.getCurrentAge();
+
+            // 사용자의 나이 정보가 없을 경우를 대비해 기본값을 설정합니다.
+            if (age == null) {
+                age = 25;
+            }
+        }
 
         // 4) 권장량/UL 로딩: 유저조건 → 일반값(ALL & 무연령) 보강
         Map<Long, IngredientDosage> dosageByIngredientId = new HashMap<>();

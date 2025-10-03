@@ -66,17 +66,20 @@ public class IngredientService {
             // 2. 사용자 정보 가져오기 (로그인 여부에 따라 기본값 처리)
 
             // 기본값: 비로그인 사용자
-            Gender gender = Gender.NONE;
+            Gender gender = Gender.ALL;
             int ageGroup = 0; // 0이면 '전체'로 해석
 
-            Long userId = userContextProvider.getCurrentUserId();
-            if (userId != null) {
+            if (userContextProvider.isAuthenticated()) {
                 // 로그인 사용자라면 정보 가져오기
                 gender = userContextProvider.getCurrentGender();
-                int currentAge = userContextProvider.getCurrentAge();
+                Integer currentAge = userContextProvider.getCurrentAge(); // Integer로 변경하여 null 처리
 
-                // 연령대 계산 (예: 20대, 30대 ...)
-                ageGroup = (currentAge / 10) * 10;
+                if (currentAge != null) {
+                    // 연령대 계산 (예: 20대, 30대 ...)
+                    ageGroup = (currentAge / 10) * 10;
+                }
+            } else {
+                dosageErrorCode = ErrorCode.UNAUTHORIZED.name();
             }
 
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
