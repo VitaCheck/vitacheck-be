@@ -2,6 +2,7 @@ package com.vitacheck.product.service;
 
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.vitacheck.product.domain.Purpose.AllPurpose;
 import com.vitacheck.product.dto.IngredientResponseDTO;
 import com.vitacheck.product.dto.SupplementResponseDTO;
 import com.vitacheck.product.repository.PurposeRepository;
@@ -20,15 +21,19 @@ public class PurposeService {
     private final PurposeRepository purposeRepository;
     private final JPAQueryFactory queryFactory;
 
-    // 모든 목적 반환
+    // 모든 목적 DB에서 가져오기
     public List<PurposeResponseDTO.AllPurposeDTO> getAllPurposes() {
         return purposeRepository.findAll().stream()
-                .map(p -> new PurposeResponseDTO.AllPurposeDTO(p.getId(),p.getName()))
-                .toList();
+                .map(purpose -> new PurposeResponseDTO.AllPurposeDTO(
+                        purpose.getEnumCode().name(), // Enum 이름 (EYE, IMMUNE 등)
+                        purpose.getName()             // DB의 name 컬럼 값 (한글 설명)
+                ))
+                .collect(Collectors.toList());
     }
 
-    public List<PurposeResponseDTO.PurposeWithIngredientSupplement> findByGoals(List<Long> goalIds) {
-        List<Object[]> rows = purposeRepository.findPurposeWithLimitedSupplements(goalIds);
+    public List<PurposeResponseDTO.PurposeWithIngredientSupplement> findByGoals(List<String> goalsEnum) {
+
+        List<Object[]> rows = purposeRepository.findPurposeWithLimitedSupplements(goalsEnum);
 
         // 목적명(String) -> (ingredientId -> rows)
         Map<String, Map<Long, List<Object[]>>> grouped = rows.stream()
