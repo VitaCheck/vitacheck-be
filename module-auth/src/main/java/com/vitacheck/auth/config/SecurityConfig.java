@@ -6,7 +6,8 @@ import com.vitacheck.auth.config.oauth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer; // 이 부분을 추가해주세요.
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,35 +37,32 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            // login, signup,
-            "/api/v1/auth/pre-signup",
-            "/api/v1/auth/signup",
-            "/api/v1/auth/login",
-            "/api/v1/auth/social-signup",
+            // login, signup
+            "/api/v1/auth/**",
             // OAuth2
             "/",
             "/login/**",
             "/oauth2/**",
-            // 기타
+            // 기타 공개 API
             "/error",
             "/fcm_test.html",
             "/firebase-messaging-sw.js",
-            //성분, 목적, 조합 등
             "/api/v1/ingredients/**",
             "/api/v1/purposes/**",
             "/api/v1/supplements/**",
             "/api/v1/combinations/**",
             "/api/v1/terms",
             "/api/v1/search/**",
-            "/api/v1/notification-settings/internal/trigger-notifications",
+            "/internal/trigger-notifications",
             "/health",
-            "/clova-ocr/**",
-
-            // terms
-            "/api/v1/user/terms",
-
-            // test
             "/api/v1/test"
+    };
+
+    private static final String[] AUTHENTICATED_URL_ARRAY = {
+            "/api/v1/users/me/**",
+            "/api/v1/likes/**",
+            "/api/v1/notifications/**",
+            "/api/v1/terms/agreements",
     };
 
     @Bean
@@ -98,6 +96,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(1)
+    public SecurityFilterChain jwtAuthenticationSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                // AntPathRequestMatcher를 사용하여 인증이 필요한 경로들을 명시적으로 지정합니다.
+                .securityMatcher(AUTHENTICATED_URL_ARRAY)
+                .authorizeHttpRequests(auth -> auth.requestMatchers(AUTHENTICATED_URL_ARRAY).authenticated())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // JWT 인증 필터를 추가합니다.
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 인증 실패 시 처리할 EntryPoint를 설정합니다.
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(customAuthenticationEntryPoint));
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // 기본 설정: CSRF, HTTP Basic, Form Login, Session 비활성화
         http
@@ -106,25 +122,23 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // CORS 설정 적용 (수정된 부분)
+        // CORS 설정 적용
         http.cors(Customizer.withDefaults());
 
         // 요청 경로별 권한 설정
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PERMIT_ALL_URL_ARRAY).permitAll()
-                        .anyRequest().authenticated());
+                                .requestMatchers(PERMIT_ALL_URL_ARRAY).permitAll()
+                );
 
         // OAuth2 로그인 설정
         http
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler));
 
-        // JWT 필터 및 예외 처리 설정
         http
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(customAuthenticationEntryPoint));
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(customAuthenticationEntryPoint));
+
 
         return http.build();
     }
