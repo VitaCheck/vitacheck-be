@@ -100,6 +100,7 @@ public class SecurityConfig {
     public SecurityFilterChain jwtAuthenticationSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 // AntPathRequestMatcher를 사용하여 인증이 필요한 경로들을 명시적으로 지정합니다.
                 .securityMatcher(AUTHENTICATED_URL_ARRAY)
                 .authorizeHttpRequests(auth -> auth.requestMatchers(AUTHENTICATED_URL_ARRAY).authenticated())
