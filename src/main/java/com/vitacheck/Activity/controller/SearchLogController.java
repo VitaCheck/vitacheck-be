@@ -98,7 +98,7 @@ public class SearchLogController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
     })
-    @GetMapping("/recent")
+    @GetMapping("/api/v1/recent")
     public CustomResponse<List<String>> getRecentSearches(
             @Parameter(description = "가져올 검색어 개수") @RequestParam(defaultValue = "3") int limit
     ) {
@@ -121,7 +121,7 @@ public class SearchLogController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
     })
-    @GetMapping("/me/recent-products")
+    @GetMapping("/api/v1/me/recent-products")
     public CustomResponse<List<SupplementResponseDTO.SimpleResponse>> getRecentProducts(
             @Parameter(description = "가져올 상품 개수") @RequestParam(defaultValue = "5") int limit
     ) {
@@ -178,7 +178,7 @@ public class SearchLogController {
             @Parameter(name = "size", description = "한 페이지에 보여줄 아이템 수", example = "10"),
             @Parameter(name = "sort", hidden = true)
     })
-    @GetMapping("/popular-supplements")
+    @GetMapping("/api/v1/popular-supplements")
     public CustomResponse<Page<PopularSupplementDTO>> getPopularSupplements(
             @RequestParam(defaultValue = "전체") String ageGroup,
             @RequestParam(defaultValue = "전체") String gender,
