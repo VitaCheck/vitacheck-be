@@ -88,3 +88,6 @@ firebase:
 oauth2:
   redirect:
     frontend-url: "http://localhost:5173"
+ai:
+  gcp:
+    enabled: false
