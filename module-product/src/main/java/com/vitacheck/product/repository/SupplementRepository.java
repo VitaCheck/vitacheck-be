@@ -100,7 +100,24 @@ public interface SupplementRepository extends JpaRepository<Supplement, Long>{
 
     );
 
-
-
-
+    // 목적(purpose_ids)에 맞는 성분을 가진 영양제 후보 Top-N을 뽑아온다.
+    // 1) 목적 커버리지(서로 다른 purpose_id 매칭 수)
+    // 2) 매칭 성분 수
+    // 3) 재고/인기 등 추가 정렬 기준은 나중에 컬럼 생기면 추가
+    @Query(
+            value = """
+        SELECT s.id
+        FROM supplements s
+        JOIN supplement_ingredients si ON si.supplement_id = s.id
+        JOIN purpose_ingredients   pi ON pi.ingredient_id   = si.ingredient_id
+        WHERE pi.purpose_id IN (:purposeIds)
+        GROUP BY s.id
+        ORDER BY COUNT(DISTINCT pi.purpose_id) DESC,
+                 COUNT(*) DESC,
+                 s.id ASC
+        LIMIT :limit
+        """,
+            nativeQuery = true
+    )
+    List<Long> findTopSupplementIdsForPurposes(List<Long> purposeIds, int limit);
 }

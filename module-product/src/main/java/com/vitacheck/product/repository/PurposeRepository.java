@@ -50,6 +50,6 @@ public interface PurposeRepository extends JpaRepository<Purpose, Long> {
     List<Object[]> findTop10SupplementsByIngredients(@Param("ingredientIds") List<Long> ingredientIds);
 
 
-
+    List<Purpose> findByNameInIgnoreCase(List<String> names);
 
 }
