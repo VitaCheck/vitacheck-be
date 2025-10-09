@@ -3,9 +3,9 @@ package com.vitacheck.Activity.controller;
 import com.vitacheck.Activity.dto.PopularIngredientDTO;
 import com.vitacheck.Activity.dto.PopularSupplementDTO;
 import com.vitacheck.Activity.service.SearchLogService;
-import com.vitacheck.auth.config.jwt.CustomUserDetails;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.enums.Gender;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.product.dto.SupplementResponseDTO;
 import com.vitacheck.product.service.SupplementService;
 import com.vitacheck.user.domain.User;
@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Period;
 import java.util.*;
 
 @RestController
@@ -72,7 +73,19 @@ public class SearchLogController {
     public CustomResponse<Void> recordSearchLog(
             @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
             @RequestParam String keyword) {
-        searchLogService.recordSearchLog(keyword);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = null;
+        Integer age = null;
+        Gender gender = null;
+
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof AuthenticatedUser) {
+            AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+            userId = user.getUserId();
+            age = Period.between(user.getBirthDate(), java.time.LocalDate.now()).getYears();
+            gender = user.getGender();
+        }
+
+        searchLogService.recordSearchLog(keyword, userId, age, gender);
         return CustomResponse.ok(null);
     }
 
@@ -85,19 +98,17 @@ public class SearchLogController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
     })
-    @GetMapping("/recent")
+    @GetMapping("/api/v1/recent")
     public CustomResponse<List<String>> getRecentSearches(
             @Parameter(description = "가져올 검색어 개수") @RequestParam(defaultValue = "3") int limit
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = null;
-
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            user = userDetails.getUser(); // User 객체를 꺼냅니다.
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AuthenticatedUser)) {
+            return CustomResponse.ok(Collections.emptyList());
         }
 
-        List<String> recentSearches = searchLogService.findRecentSearches(user, limit);
+        AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+        List<String> recentSearches = searchLogService.findRecentSearches(user.getUserId(), limit);
         return CustomResponse.ok(recentSearches);
     }
 
@@ -110,18 +121,18 @@ public class SearchLogController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
                     content = @Content(examples = @ExampleObject(value = "{\"isSuccess\":false,\"code\":\"U0002\",\"message\":\"사용자를 찾을 수 없습니다.\",\"result\":null}")))
     })
-    @GetMapping("/me/recent-products")
+    @GetMapping("/api/v1/me/recent-products")
     public CustomResponse<List<SupplementResponseDTO.SimpleResponse>> getRecentProducts(
             @Parameter(description = "가져올 상품 개수") @RequestParam(defaultValue = "5") int limit
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = null;
 
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            user = userDetails.getUser(); // User 객체를 꺼냅니다.
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AuthenticatedUser)) {
+            return CustomResponse.ok(Collections.emptyList());
         }
-        List<SupplementResponseDTO.SimpleResponse> recentProducts = searchLogService.findRecentProducts(user, limit);
+
+        AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+        List<SupplementResponseDTO.SimpleResponse> recentProducts = searchLogService.findRecentProducts(user.getUserId(), limit);
         return CustomResponse.ok(recentProducts);
     }
 
@@ -167,7 +178,7 @@ public class SearchLogController {
             @Parameter(name = "size", description = "한 페이지에 보여줄 아이템 수", example = "10"),
             @Parameter(name = "sort", hidden = true)
     })
-    @GetMapping("/popular-supplements")
+    @GetMapping("/api/v1/popular-supplements")
     public CustomResponse<Page<PopularSupplementDTO>> getPopularSupplements(
             @RequestParam(defaultValue = "전체") String ageGroup,
             @RequestParam(defaultValue = "전체") String gender,

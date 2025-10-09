@@ -19,9 +19,14 @@ public class Purpose {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 목적 이름 (예: 다이어트, 면역력 강화 등)
+    // 목적 이름 (예: 눈 건강, 뼈 건강 등)
     @Column(nullable = false, unique = true, length = 50)
     private String name;
+
+    // 목적 enum (예: EYE, BONE)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "enum_code", nullable = false, unique = true)
+    private AllPurpose enumCode;
 
     // Purpose가 관리하는 성분들
     @OneToMany(mappedBy = "purpose", cascade = CascadeType.ALL, orphanRemoval = true)

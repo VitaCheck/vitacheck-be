@@ -1,6 +1,7 @@
 package com.vitacheck.auth.config.jwt;
 
 import com.vitacheck.auth.dto.AuthDto;
+import com.vitacheck.user.dto.AuthUserDto;
 import com.vitacheck.auth.dto.OAuthAttributes;
 import com.vitacheck.common.enums.Gender;
 import io.jsonwebtoken.*;
@@ -34,17 +35,24 @@ public class JwtUtil {
         this.refreshTokenExpTime = refreshTokenExpTime * 24 * 60 * 60 * 1000; // 일 -> 밀리초
     }
 
-    public String createAccessToken(String email) {
-        return createToken(email, accessTokenExpTime);
+    public String createAccessToken(AuthUserDto user) {
+        Claims claims = Jwts.claims();
+        claims.put("userId", user.getId());
+        claims.put("email", user.getEmail());
+        claims.put("role", user.getRole());
+        claims.put("gender", user.getGender());
+        claims.put("birthDate", user.getBirthDate().toString());
+
+        return createToken(claims, accessTokenExpTime);
     }
 
     public String createRefreshToken(String email) {
-        return createToken(email, refreshTokenExpTime);
-    }
-
-    private String createToken(String email, long expirationTime) {
         Claims claims = Jwts.claims();
         claims.put("email", email);
+        return createToken(claims, refreshTokenExpTime);
+    }
+
+    private String createToken(Claims claims, long expirationTime) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))

@@ -1,17 +1,18 @@
 package com.vitacheck.product.dto;
 
+import com.vitacheck.product.domain.Purpose.AllPurpose;
 import lombok.*;
 
 import java.util.List;
 
 public class PurposeResponseDTO {
     // 모든 목적을 반환하는 DTO
-    @ToString   // ✅ 추가
     @Getter
     @AllArgsConstructor
     public static class AllPurposeDTO {
-        private Long id;
-        private String name;
+        private String code; //  purpose enum 값
+        private String description; // purpose name 값
+
     }
 
     // 선택한 목적에 맞는 성분 목록을 반환하는 DTO

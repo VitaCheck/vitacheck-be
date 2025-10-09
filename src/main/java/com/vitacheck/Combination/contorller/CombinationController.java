@@ -1,11 +1,12 @@
 package com.vitacheck.Combination.contorller;
 
-import com.vitacheck.auth.config.jwt.CustomUserDetails;
 import com.vitacheck.Combination.dto.CombinationDTO;
+import com.vitacheck.common.enums.Gender;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.Combination.service.CombinationService;
+import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @Tag(name="combination", description = "조합 관련 API")
 @RestController
@@ -33,18 +36,21 @@ public class CombinationController {
             @RequestBody CombinationDTO.AnalysisRequest request){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = null;
+        Gender gender = null;
+        LocalDate birthDate = null;
 
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            user = userDetails.getUser(); // User 객체를 꺼냅니다.
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authentication.getPrincipal();
+            gender = authenticatedUser.getGender();
+            birthDate = authenticatedUser.getBirthDate();
         }
 
         if (request.getSupplementIds() == null || request.getSupplementIds().isEmpty()) {
             throw new CustomException(ErrorCode.SUPPLEMENT_LIST_EMPTY);
         }
 
-        CombinationDTO.AnalysisResponse response = combinationService.analyze(user, request);
+
+        CombinationDTO.AnalysisResponse response = combinationService.analyze(gender, birthDate, request);
         return CustomResponse.ok(response);
     }
 

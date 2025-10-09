@@ -1,12 +1,12 @@
 package com.vitacheck.product.service;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.enums.Gender;
 import com.vitacheck.common.exception.CustomException;
+import com.vitacheck.common.security.UserContextProvider;
 import com.vitacheck.product.domain.Ingredient.*;
 import com.vitacheck.product.domain.Supplement.QSupplement;
 import com.vitacheck.product.domain.Supplement.QSupplementIngredient;
@@ -17,8 +17,6 @@ import com.vitacheck.product.repository.IngredientRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -34,16 +32,7 @@ public class IngredientService {
     private final IngredientRepository ingredientRepository;
     private final JPAQueryFactory queryFactory;
     private final IngredientDosageRepository ingredientDosageRepository;
-//    private final JwtParser jwtParser; // 토큰에서 email 추출용
-//    private final UserPort userPort;   // user 모듈의 구현체(UserAdapter)가 주입됨
-
-
-
-//    public UserInfoDTO getUserInfo(String token) {
-//        String email = jwtParser.getEmail(token);
-//        return userPort.getUserInfoByEmail(email);
-//    }
-
+    private final UserContextProvider userContextProvider;
 
     // 성분 이름으로 검색하여 매칭된 성분 가져오기
     public List<IngredientResponseDTO.IngredientName> searchIngredientName(String keyword) {
@@ -62,22 +51,6 @@ public class IngredientService {
                 .collect(Collectors.toList());
     }
 
-//    // 유저 정보에 따라 성분 권장량과 상한 정보 가져오기
-//    public Optional<IngredientDosage> findBestDosageForUser(Long ingredientId, User user) {
-//        if (user == null || user.getBirthDate() == null) {
-//            return Optional.empty();
-//        }
-//        int age = Period.between(user.getBirthDate(), LocalDate.now()).getYears();
-//        return ingredientRepository.findBestDosage(ingredientId, user.getGender(), age);
-//    }
-    // 유저 정보에 따라 성분 권장량과 상한 정보 가져오기 (변경 후)
-//    public Optional<IngredientDosage> findBestDosageForUser(Long ingredientId, UserInfoDTO userInfo) {
-//        if (userInfo == null || userInfo.age() == null) {
-//            return Optional.empty();
-//        }
-//        return ingredientRepository.findBestDosage(ingredientId, userInfo.gender(), userInfo.age()
-//        );
-//    }
 
     // 성분 정보(설명, 대체식품, 권장량 등) 가져오기
     public IngredientResponseDTO.IngredientDetails getIngredientDetails(Long id) {
@@ -92,11 +65,22 @@ public class IngredientService {
 
             // 2. 사용자 정보 가져오기 (로그인 여부에 따라 기본값 처리)
 
-//            UserInfoDTO userInfo = getUserInfo(token);
-//            Gender gender = (userInfo != null) ? userInfo.gender() : Gender.NONE;
-//            int ageGroup = (userInfo != null && userInfo.age() != null) ? (userInfo.age() / 10) * 10 : -1;
-            Gender gender=Gender.MALE;
-            int ageGroup=20;
+            // 기본값: 비로그인 사용자
+            Gender gender = Gender.ALL;
+            int ageGroup = 0; // 0이면 '전체'로 해석
+
+            if (userContextProvider.isAuthenticated()) {
+                // 로그인 사용자라면 정보 가져오기
+                gender = userContextProvider.getCurrentGender();
+                Integer currentAge = userContextProvider.getCurrentAge(); // Integer로 변경하여 null 처리
+
+                if (currentAge != null) {
+                    // 연령대 계산 (예: 20대, 30대 ...)
+                    ageGroup = (currentAge / 10) * 10;
+                }
+            } else {
+                dosageErrorCode = ErrorCode.UNAUTHORIZED.name();
+            }
 
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //

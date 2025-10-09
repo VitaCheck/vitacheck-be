@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Setter
 public class Supplement extends BaseTimeEntity {
 
     @Id
@@ -31,18 +32,18 @@ public class Supplement extends BaseTimeEntity {
     @Column(name = "coupang_url", length = 255)
     private String coupangUrl;
 
-    @Column(name = "image_url", length = 255)
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "price")
     private Integer price;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     private String method;
 
-    @Column(name = "caution")
+    @Column(name = "caution", columnDefinition = "TEXT")
     private String caution;
 
     @Column(nullable = false)

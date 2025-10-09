@@ -74,3 +74,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # script에서 모든 export 구문을 제거합니다.
           script: 'sh ~/deploy.sh'
+          command_timeout: 10m

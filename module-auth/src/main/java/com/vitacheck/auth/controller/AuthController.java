@@ -3,7 +3,6 @@ package com.vitacheck.auth.controller;
 import com.vitacheck.auth.dto.AuthDto;
 import com.vitacheck.auth.service.AuthService;
 import com.vitacheck.common.CustomResponse;
-import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

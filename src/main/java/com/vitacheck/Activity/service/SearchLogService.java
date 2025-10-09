@@ -5,7 +5,6 @@ import com.vitacheck.Activity.domain.SearchLog.QSearchLog;
 import com.vitacheck.Activity.dto.PopularIngredientDTO;
 import com.vitacheck.Activity.dto.PopularSupplementDTO;
 import com.vitacheck.Activity.repository.SupplementLikeRepository;
-import com.vitacheck.auth.config.jwt.CustomUserDetails;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.enums.Gender;
 import com.vitacheck.common.exception.CustomException;
@@ -174,16 +173,16 @@ public class SearchLogService {
     }
 
     @Transactional(readOnly = true)
-    public List<String> findRecentSearches(User user, int limit) {
+    public List<String> findRecentSearches(Long userid, int limit) {
         Pageable pageable = PageRequest.of(0, limit);
-        return searchLogRepository.findRecentKeywordsByUserId(user.getId(), pageable);
+        return searchLogRepository.findRecentKeywordsByUserId(userid, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<SupplementResponseDTO.SimpleResponse> findRecentProducts(User user, int limit) {
+    public List<SupplementResponseDTO.SimpleResponse> findRecentProducts(Long userId, int limit) {
         // 1. 최신순으로 정렬된, 중복 없는 상품 이름 목록을 가져옵니다.
         Pageable pageable = PageRequest.of(0, limit);
-        List<String> supplementNames = searchLogRepository.findRecentViewedSupplementNamesByUserId(user.getId(), pageable);
+        List<String> supplementNames = searchLogRepository.findRecentViewedSupplementNamesByUserId(userId, pageable);
 
         if (supplementNames.isEmpty()) {
             return Collections.emptyList();
@@ -203,22 +202,11 @@ public class SearchLogService {
                 .collect(Collectors.toList());
     }
 
-    public void recordSearchLog(String keyword) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()
-                || authentication.getPrincipal().equals("anonymousUser")) {
-            // 🔹 미로그인 사용자 로그
-            logSearch(null, keyword, SearchCategory.KEYWORD, null, null);
+    public void recordSearchLog(String keyword, Long userId, Integer age, Gender gender) {
+        if (userId == null) {
+            logSearch(null, keyword, SearchCategory.KEYWORD, age, gender);
         } else {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            User user = userDetails.getUser();
-
-            LocalDate birthDate = user.getBirthDate();
-            int age = Period.between(birthDate, LocalDate.now()).getYears();
-
-            // 🔹 로그인 사용자 로그
-            logSearch(user.getId(), keyword, SearchCategory.KEYWORD, age, user.getGender());
+            logSearch(userId, keyword, SearchCategory.KEYWORD, age, gender);
         }
     }
 

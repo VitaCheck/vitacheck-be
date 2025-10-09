@@ -5,11 +5,6 @@ HELP.md
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-module-common/build/
-module-product/build/
-module-auth/build/
-module-user/build/
-
 # macOS
 .DS_Store
 
@@ -58,4 +53,9 @@ firebase-service-account-key.json
 ### Module ###
 module-auth/build
 module-common/build
-module-user/buildsrc/main/resources/gcp-service-account-key.json
+src/main/resources/gcp-service-account-key.json
+module-user/build
+module-product/build
+
+### Gemini ###
+gcp-service-account-key.json
