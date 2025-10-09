@@ -53,6 +53,7 @@ firebase-service-account-key.json
 ### Module ###
 module-auth/build
 module-common/build
+src/main/resources/gcp-service-account-key.json
 module-user/build
 module-product/build
 
