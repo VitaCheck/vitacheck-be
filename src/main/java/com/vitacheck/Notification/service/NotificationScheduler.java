@@ -1,12 +1,12 @@
 package com.vitacheck.Notification.service;
 
 import com.vitacheck.Intake.domain.RoutineDayOfWeek;
-import com.vitacheck.Notification.domain.NotificationChannel;
+import com.vitacheck.user.notification.domain.NotificationChannel;
 import com.vitacheck.Notification.domain.NotificationRoutine;
-import com.vitacheck.Notification.domain.NotificationSettings;
-import com.vitacheck.Notification.domain.NotificationType;
+import com.vitacheck.user.notification.domain.NotificationSettings;
+import com.vitacheck.user.notification.domain.NotificationType;
 import com.vitacheck.Notification.repository.NotificationRoutineRepository;
-import com.vitacheck.Notification.repository.NotificationSettingsRepository; // Repository 주입
+import com.vitacheck.user.notification.repository.NotificationSettingsRepository; // Repository 주입
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package com.vitacheck.Notification.domain;
+package com.vitacheck.user.notification.domain;
 
 
 import com.vitacheck.common.entity.BaseTimeEntity;

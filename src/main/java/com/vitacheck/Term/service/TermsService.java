@@ -2,12 +2,12 @@ package com.vitacheck.Term.service;
 
 import com.vitacheck.Term.domain.UserTermsAgreement;
 import com.vitacheck.Term.domain.Terms;
-import com.vitacheck.Notification.domain.NotificationSettings;
-import com.vitacheck.Notification.domain.NotificationType;
+import com.vitacheck.user.notification.domain.NotificationSettings;
+import com.vitacheck.user.notification.domain.NotificationType;
 import com.vitacheck.Term.dto.TermsDto;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.code.ErrorCode;
-import com.vitacheck.Notification.repository.NotificationSettingsRepository;
+import com.vitacheck.user.notification.repository.NotificationSettingsRepository;
 import com.vitacheck.Term.repository.TermsRepository;
 import com.vitacheck.Term.repository.UserTermsAgreementRepository;
 import com.vitacheck.user.domain.User;

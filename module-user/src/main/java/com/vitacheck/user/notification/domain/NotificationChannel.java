@@ -1,4 +1,4 @@
-package com.vitacheck.Notification.domain;
+package com.vitacheck.user.notification.domain;
 
 public enum NotificationChannel {
     EMAIL,

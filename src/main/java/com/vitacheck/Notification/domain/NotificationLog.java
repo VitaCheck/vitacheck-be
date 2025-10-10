@@ -1,6 +1,8 @@
 package com.vitacheck.Notification.domain;
 
 import com.vitacheck.user.domain.User;
+import com.vitacheck.user.notification.domain.NotificationChannel;
+import com.vitacheck.user.notification.domain.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
