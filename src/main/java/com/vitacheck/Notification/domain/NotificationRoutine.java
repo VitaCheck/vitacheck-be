@@ -7,7 +7,7 @@ import com.vitacheck.Intake.domain.RoutineDetail;
 
 
 import com.vitacheck.product.domain.Supplement.Supplement;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

@@ -3,7 +3,7 @@ package com.vitacheck.Notification.repository;
 import com.vitacheck.Intake.domain.RoutineDetail;
 import com.vitacheck.Notification.domain.NotificationRoutine;
 import com.vitacheck.Intake.domain.RoutineDayOfWeek;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

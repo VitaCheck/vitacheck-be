@@ -12,7 +12,7 @@ import com.vitacheck.product.repository.SupplementRepository;
 import com.vitacheck.Intake.repository.CustomSupplementRepository;
 import com.vitacheck.Intake.repository.IntakeRecordRepository;
 import com.vitacheck.Notification.repository.NotificationRoutineRepository;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
