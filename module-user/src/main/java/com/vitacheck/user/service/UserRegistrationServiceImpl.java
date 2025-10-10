@@ -1,8 +1,8 @@
 package com.vitacheck.user.service;
 
-import com.vitacheck.user.domain.Role;
-import com.vitacheck.user.domain.User;
-import com.vitacheck.user.domain.UserStatus;
+import com.vitacheck.user.domain.user.Role;
+import com.vitacheck.user.domain.user.User;
+import com.vitacheck.user.domain.user.UserStatus;
 import com.vitacheck.user.dto.CreateUserRequest;
 import com.vitacheck.user.dto.UserSignedUpEvent;
 import com.vitacheck.user.repository.UserRepository;

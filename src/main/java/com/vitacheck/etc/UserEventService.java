@@ -1,17 +1,17 @@
 package com.vitacheck.etc;
 
-import com.vitacheck.user.notification.service.NotificationSettingsService;
+import com.vitacheck.user.service.NotificationSettingsService;
 import com.vitacheck.Term.service.TermsService;
 import com.vitacheck.Term.domain.Terms;
 import com.vitacheck.Term.domain.UserTermsAgreement;
 import com.vitacheck.Term.repository.TermsRepository;
 import com.vitacheck.Term.repository.UserTermsAgreementRepository;
 import com.vitacheck.user.dto.UserSignedUpEvent;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;

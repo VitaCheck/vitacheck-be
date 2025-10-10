@@ -5,7 +5,6 @@ import com.vitacheck.common.enums.Gender;
 import com.vitacheck.product.domain.Ingredient.Ingredient;
 import com.vitacheck.product.domain.Ingredient.IngredientDosage;
 import com.vitacheck.product.repository.IngredientDosageRepository;
-import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

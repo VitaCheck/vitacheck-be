@@ -18,7 +18,6 @@ import com.vitacheck.product.repository.BrandRepository;
 import com.vitacheck.product.repository.IngredientRepository;
 import com.vitacheck.product.repository.SupplementRepository;
 import com.vitacheck.Activity.repository.SearchLogRepository;
-import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,16 +25,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
 

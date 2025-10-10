@@ -2,7 +2,7 @@ package com.vitacheck.user.service;
 
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.exception.CustomException;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import com.vitacheck.user.dto.UserDto;
 import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

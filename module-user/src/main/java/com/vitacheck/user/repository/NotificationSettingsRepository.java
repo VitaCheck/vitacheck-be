@@ -1,9 +1,9 @@
-package com.vitacheck.user.notification.repository;
+package com.vitacheck.user.repository;
 
-import com.vitacheck.user.domain.User;
-import com.vitacheck.user.notification.domain.NotificationChannel;
-import com.vitacheck.user.notification.domain.NotificationSettings;
-import com.vitacheck.user.notification.domain.NotificationType;
+import com.vitacheck.user.domain.user.User;
+import com.vitacheck.user.domain.notification.NotificationChannel;
+import com.vitacheck.user.domain.notification.NotificationSettings;
+import com.vitacheck.user.domain.notification.NotificationType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

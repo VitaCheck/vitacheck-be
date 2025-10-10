@@ -8,7 +8,6 @@ import com.vitacheck.common.enums.Gender;
 import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.product.dto.SupplementResponseDTO;
 import com.vitacheck.product.service.SupplementService;
-import com.vitacheck.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;

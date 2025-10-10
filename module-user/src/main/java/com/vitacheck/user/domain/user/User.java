@@ -1,4 +1,4 @@
-package com.vitacheck.user.domain;
+package com.vitacheck.user.domain.user;
 
 import com.vitacheck.common.entity.BaseTimeEntity;
 import com.vitacheck.common.enums.Gender;

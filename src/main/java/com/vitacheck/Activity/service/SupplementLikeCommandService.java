@@ -7,7 +7,7 @@ import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.product.domain.Supplement.Supplement;
 import com.vitacheck.product.repository.SupplementRepository;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

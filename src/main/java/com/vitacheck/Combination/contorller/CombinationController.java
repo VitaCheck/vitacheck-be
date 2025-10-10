@@ -7,7 +7,6 @@ import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.Combination.service.CombinationService;
 import com.vitacheck.common.security.AuthenticatedUser;
-import com.vitacheck.user.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

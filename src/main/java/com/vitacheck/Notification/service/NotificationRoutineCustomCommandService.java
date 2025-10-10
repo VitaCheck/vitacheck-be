@@ -9,7 +9,7 @@ import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.Intake.repository.CustomSupplementRepository;
 import com.vitacheck.Notification.repository.NotificationRoutineRepository;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
