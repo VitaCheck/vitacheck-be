@@ -62,6 +62,8 @@ public class NotificationSettingsService {
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REQUEST));
 
         settingToUpdate.setIsEnabled(request.isEnabled());
+
+        notificationSettingsRepository.save(settingToUpdate);
     }
 
     /**
