@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class NotificationSettingsService {
 
     private final NotificationSettingsRepository notificationSettingsRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<NotificationSettingsDto> getNotificationSettings(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
