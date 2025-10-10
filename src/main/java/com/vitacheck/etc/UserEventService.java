@@ -1,6 +1,6 @@
 package com.vitacheck.etc;
 
-import com.vitacheck.Notification.service.NotificationSettingsService;
+import com.vitacheck.user.notification.service.NotificationSettingsService;
 import com.vitacheck.Term.service.TermsService;
 import com.vitacheck.Term.domain.Terms;
 import com.vitacheck.Term.domain.UserTermsAgreement;
@@ -32,7 +32,6 @@ public class UserEventService {
         if (event.getAgreeTermIds() != null && !event.getAgreeTermIds().isEmpty()) {
             List<Terms> termsList = termsRepository.findAllById(event.getAgreeTermIds());
 
-            // ✅ 이 부분을 빌더 패턴으로 수정합니다.
             List<UserTermsAgreement> agreements = termsList.stream()
                     .map(terms -> UserTermsAgreement.builder()
                             .user(event.getUser())
@@ -42,5 +41,8 @@ public class UserEventService {
 
             userTermsAgreementRepository.saveAll(agreements);
         }
+
+        notificationSettingsService.createDefaultSettingsForUser(event.getUser());
+        log.info("사용자 ID: {}의 기본 알림 설정을 생성했습니다.", event.getUser().getId());
     }
 }
