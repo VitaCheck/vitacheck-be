@@ -1,6 +1,6 @@
 package com.vitacheck.user.dto;
 
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

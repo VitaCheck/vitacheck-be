@@ -1,7 +1,7 @@
 package com.vitacheck.user.repository;
 
-import com.vitacheck.user.domain.User;
-import com.vitacheck.user.domain.UserStatus;
+import com.vitacheck.user.domain.user.User;
+import com.vitacheck.user.domain.user.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

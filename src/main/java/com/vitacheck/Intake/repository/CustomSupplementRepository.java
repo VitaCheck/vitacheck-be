@@ -1,7 +1,7 @@
 package com.vitacheck.Intake.repository;
 
 import com.vitacheck.Intake.domain.CustomSupplement;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

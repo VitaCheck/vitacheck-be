@@ -3,7 +3,7 @@ package com.vitacheck.Activity.domain.Like;
 import com.vitacheck.common.entity.BaseTimeEntity;
 
 import com.vitacheck.product.domain.Ingredient.Ingredient;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 

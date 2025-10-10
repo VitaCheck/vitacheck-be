@@ -1,8 +1,8 @@
-package com.vitacheck.user.notification.dto;
+package com.vitacheck.user.dto;
 
-import com.vitacheck.user.notification.domain.NotificationChannel;
-import com.vitacheck.user.notification.domain.NotificationSettings;
-import com.vitacheck.user.notification.domain.NotificationType;
+import com.vitacheck.user.domain.notification.NotificationChannel;
+import com.vitacheck.user.domain.notification.NotificationSettings;
+import com.vitacheck.user.domain.notification.NotificationType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

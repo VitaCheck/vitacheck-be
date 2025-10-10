@@ -3,7 +3,7 @@ package com.vitacheck.Activity.repository;
 
 import com.vitacheck.Activity.domain.Like.IngredientLike;
 import com.vitacheck.product.domain.Ingredient.Ingredient;
-import com.vitacheck.user.domain.User;
+import com.vitacheck.user.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

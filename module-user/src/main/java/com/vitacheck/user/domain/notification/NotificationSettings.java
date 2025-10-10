@@ -1,7 +1,8 @@
-package com.vitacheck.user.notification.domain;
+package com.vitacheck.user.domain.notification;
 
 
 import com.vitacheck.common.entity.BaseTimeEntity;
+import com.vitacheck.user.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,7 +20,7 @@ public class NotificationSettings extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private com.vitacheck.user.domain.User user;
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

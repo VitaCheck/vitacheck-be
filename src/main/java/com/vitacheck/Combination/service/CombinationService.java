@@ -11,7 +11,6 @@ import com.vitacheck.product.domain.Supplement.SupplementIngredient;
 import com.vitacheck.product.repository.SupplementRepository;
 import com.vitacheck.Combination.repository.CombinationRepository;
 import com.vitacheck.etc.DosageService;
-import com.vitacheck.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

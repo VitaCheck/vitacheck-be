@@ -1,13 +1,13 @@
-package com.vitacheck.user.notification.service;
+package com.vitacheck.user.service;
 
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.exception.CustomException;
-import com.vitacheck.user.domain.User;
-import com.vitacheck.user.notification.domain.NotificationChannel;
-import com.vitacheck.user.notification.domain.NotificationSettings;
-import com.vitacheck.user.notification.domain.NotificationType;
-import com.vitacheck.user.notification.dto.NotificationSettingsDto;
-import com.vitacheck.user.notification.repository.NotificationSettingsRepository;
+import com.vitacheck.user.domain.user.User;
+import com.vitacheck.user.domain.notification.NotificationChannel;
+import com.vitacheck.user.domain.notification.NotificationSettings;
+import com.vitacheck.user.domain.notification.NotificationType;
+import com.vitacheck.user.dto.NotificationSettingsDto;
+import com.vitacheck.user.repository.NotificationSettingsRepository;
 import com.vitacheck.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,10 +38,15 @@ public class NotificationSettingsService {
     public void updateNotificationSetting(Long userId, NotificationSettingsDto.UpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
         NotificationSettings settingToUpdate = notificationSettingsRepository
                 .findByUserAndTypeAndChannel(user, request.getType(), request.getChannel())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REQUEST));
-        settingToUpdate.setIsEnabled(request.isEnabled());
+
+        boolean currentStatus = settingToUpdate.isEnabled();
+        settingToUpdate.setIsEnabled(!currentStatus);
+
+        // 변경된 상태를 명시적으로 저장합니다.
         notificationSettingsRepository.save(settingToUpdate);
     }
 
