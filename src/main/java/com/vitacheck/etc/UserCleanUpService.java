@@ -4,7 +4,7 @@ import com.vitacheck.Activity.repository.IngredientLikeRepository;
 import com.vitacheck.Activity.repository.SearchLogRepository;
 import com.vitacheck.Activity.repository.SupplementLikeRepository;
 import com.vitacheck.Notification.repository.NotificationRoutineRepository;
-import com.vitacheck.Notification.repository.NotificationSettingsRepository;
+import com.vitacheck.user.notification.repository.NotificationSettingsRepository;
 import com.vitacheck.Term.repository.UserTermsAgreementRepository;
 import com.vitacheck.Intake.repository.CustomSupplementRepository;
 import com.vitacheck.Intake.repository.IntakeRecordRepository;

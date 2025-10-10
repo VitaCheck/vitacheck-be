@@ -1,11 +1,11 @@
 package com.vitacheck.Notification.controller;
 
-import com.vitacheck.Notification.dto.NotificationSettingsDto;
+import com.vitacheck.user.notification.dto.NotificationSettingsDto;
 import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.common.CustomResponse;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.Notification.service.NotificationScheduler;
-import com.vitacheck.Notification.service.NotificationSettingsService;
+import com.vitacheck.user.notification.service.NotificationSettingsService;
 import com.vitacheck.common.security.AuthenticatedUser;
 import com.vitacheck.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

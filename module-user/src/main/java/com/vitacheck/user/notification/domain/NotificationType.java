@@ -1,4 +1,4 @@
-package com.vitacheck.Notification.domain;
+package com.vitacheck.user.notification.domain;
 
 public enum NotificationType {
     EVENT, // 이벤트 및 혜택
