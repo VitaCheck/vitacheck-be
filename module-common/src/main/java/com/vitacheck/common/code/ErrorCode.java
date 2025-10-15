@@ -8,6 +8,7 @@ public enum ErrorCode implements BaseErrorCode {
     // 원하시는 에러 종류 계속 추가해주세용
     // 기본 에러
     INVALID_REQUEST("CE0001", "요청이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+    DATA_NOT_FOUND("CE0404", "데이터를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INTERNAL_ERROR("CE0500", "서버 내부 오류입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // 유저
