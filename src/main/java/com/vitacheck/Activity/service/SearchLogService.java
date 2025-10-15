@@ -12,6 +12,7 @@ import com.vitacheck.common.exception.CustomException;
 import com.vitacheck.Activity.domain.SearchLog.Method;
 import com.vitacheck.Activity.domain.SearchLog.SearchCategory;
 import com.vitacheck.Activity.domain.SearchLog.SearchLog;
+import com.vitacheck.common.exception.GlobalExceptionHandler;
 import com.vitacheck.product.domain.Ingredient.Ingredient;
 import com.vitacheck.product.domain.Purpose.AllPurpose;
 import com.vitacheck.product.domain.Supplement.Supplement;
@@ -22,6 +23,7 @@ import com.vitacheck.product.repository.IngredientRepository;
 import com.vitacheck.product.repository.SupplementRepository;
 import com.vitacheck.Activity.repository.SearchLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -163,14 +165,60 @@ public class SearchLogService {
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logClick(Long userId,
-                         String clickedText,            // 클릭된 라벨/이름(필수)
-                         SearchCategory category,       // 클릭 대상의 카테고리
+                         String clickedText,       // 클릭된 라벨/이름 (필수)
+                         SearchCategory category,  // 클릭 대상의 카테고리
                          Integer age,
                          Gender gender) {
 
+        // ---- 필수값 검증 ----
+        if (!StringUtils.hasText(clickedText) || category == null) {
+            throw new IllegalArgumentException("keyword is required");
+        }
+
+        // ---- 정규화 ----
+        final String normalizedClickedText = clickedText.trim();
+        final Gender normalizedGender = (gender != null) ? gender : Gender.NONE;
+
+        String found = "false";
+
+        // ---- 실제 DB에 있는 데이터인지 검증 ----
+        switch (category) {
+            case INGREDIENT:
+                found = ingredientRepository.existsByName(normalizedClickedText);
+                break;
+
+            case BRAND:
+                found = brandRepository.existsByName(normalizedClickedText);
+                break;
+
+            case SUPPLEMENT:
+                found = supplementRepository.existsByName(normalizedClickedText);
+                break;
+
+            case PURPOSE:
+                try {
+                    String upperText = normalizedClickedText.toUpperCase();
+                    AllPurpose purpose = AllPurpose.valueOf(upperText);
+                    clickedText = purpose.name(); // Enum name()으로 정규화
+                    found="true";
+                } catch (IllegalArgumentException e) {
+                    throw new CustomException(PurposeException.PURPOSE_NOT_FOUND);
+                }
+                break;
+
+            default:
+                throw new CustomException(ActivityException.CATEGORY_NOT_FOUND);
+        }
+        // ---- 데이터가 없으면 예외 발생 ----
+        if ("false".equals(found)) {
+            throw new CustomException(ErrorCode.DATA_NOT_FOUND);
+        }
+
+
         // 클릭은 method가 고정이므로 내부에서 지정
-        record(userId, clickedText, category, Method.CLICK, age, gender);
+        record(userId, clickedText, category, Method.CLICK, age, normalizedGender);
     }
+
 
     @Transactional(readOnly = true)
     public List<String> findRecentSearches(Long userid, int limit) {
@@ -219,13 +267,7 @@ public class SearchLogService {
         }
 
         if (searchCategory==SearchCategory.PURPOSE){
-            String upperText = clickedText.toUpperCase();
-            try {
-                AllPurpose purpose = AllPurpose.valueOf(upperText);
-                clickedText = purpose.name();
-            } catch (IllegalArgumentException e) {
-                throw new CustomException(PurposeException.PURPOSE_NOT_FOUND);
-            }
+            clickedText = clickedText.toUpperCase();
 
         }
 
