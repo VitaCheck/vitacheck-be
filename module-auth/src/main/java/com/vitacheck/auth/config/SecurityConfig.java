@@ -35,7 +35,7 @@ public class SecurityConfig {
             "/", "/login/**", "/oauth2/**",
             "/error", "/fcm_test.html", "/firebase-messaging-sw.js",
             "/api/v1/ingredients/**", "/api/v1/purposes/**", "/api/v1/supplements/**",
-            "/api/v1/combinations/**", "/api/v1/terms", "/api/v1/search/**",
+            "/api/v1/combinations/**", "/api/v1/terms", "/api/v1/search/**", "/api/v1/logs/**",
             "/internal/trigger-notifications", "/health", "/api/v1/test"
     };
 

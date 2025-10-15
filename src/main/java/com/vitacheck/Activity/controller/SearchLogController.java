@@ -68,9 +68,9 @@ public class SearchLogController {
             summary = "검색 기록 API By 박지영",
             description = " 검색에서 검색한 키워드를 DB에 저장/기록 합니다. 모든 검색 기능에서 이 api를 같이 호출해주시면 됩니다."
     )
-    @GetMapping("/api/v1/search/logs")
+    @GetMapping("/api/v1/logs/search")
     public CustomResponse<Void> recordSearchLog(
-            @Parameter(name = "keyword", description = "검색 키워드", example = "유산균")
+            @Parameter(name = "keyword", description = "검색 키워드", example = "비타민C")
             @RequestParam String keyword) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = null;
@@ -86,6 +86,39 @@ public class SearchLogController {
 
         searchLogService.recordSearchLog(keyword, userId, age, gender);
         return CustomResponse.ok(null);
+    }
+
+    @Operation(
+            summary = "클릭 기록 API By 박지영",
+            description = """
+                            클릭한 정보를 DB에 저장/기록 합니다. 
+                            모든 브랜드, 영양제, 목적 사진을 클릭할 때, 이 api를 호출해주시면 됩니다. 
+                            성분은 api/v1/ingredients/{id}를 호출할 때, 같이 호출해주시면 됩니다.
+                            
+                            ❗️이때, 반드시 카테고리를 같이 보내주세요 
+                            카테고리 종류 : INGREDIENT,SUPPLEMENT,BRAND,PURPOSE
+                        """
+    )
+    @GetMapping("/api/v1/logs/click")
+    public CustomResponse<Void> recordSearchLog(
+            @Parameter(name = "clickedText", description = "검색 키워드", example = "비타민C")
+            @RequestParam String clickedText,
+            @Parameter(name = "category", description = "검색 카테고리", example = "INGREDIENT")
+            @RequestParam String category){
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Long userId = null;
+            Integer age = null;
+            Gender gender = null;
+
+            if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof AuthenticatedUser) {
+                AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+                userId = user.getUserId();
+                age = Period.between(user.getBirthDate(), java.time.LocalDate.now()).getYears();
+                gender = user.getGender();
+            }
+
+            searchLogService.recordClickLog(clickedText, userId, category, age, gender);
+            return CustomResponse.ok(null);
     }
 
     @Operation(summary = "최근 검색어 조회", description = "로그인한 사용자의 최근 검색어 목록을 중복 없이 조회합니다.")
