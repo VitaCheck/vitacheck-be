@@ -99,7 +99,9 @@ public class SearchLogService {
         Objects.requireNonNull(category, "category is required");
 
         // ---- 정규화 ----
-        final String normalizedKeyword = keyword.replaceAll("\\s+", "");
+//        final String normalizedKeyword = keyword.replaceAll("\\s+", "");
+        final String normalizedKeyword = keyword.trim();
+
         final Gender normalizedGender = (gender != null) ? gender : Gender.NONE;
 
         String found = "false";
