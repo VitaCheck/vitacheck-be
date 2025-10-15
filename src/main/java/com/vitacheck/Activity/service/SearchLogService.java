@@ -4,6 +4,7 @@ import com.querydsl.core.Tuple;
 import com.vitacheck.Activity.domain.SearchLog.QSearchLog;
 import com.vitacheck.Activity.dto.PopularIngredientDTO;
 import com.vitacheck.Activity.dto.PopularSupplementDTO;
+import com.vitacheck.Activity.exception.ActivityException;
 import com.vitacheck.Activity.repository.SupplementLikeRepository;
 import com.vitacheck.common.code.ErrorCode;
 import com.vitacheck.common.enums.Gender;
@@ -12,8 +13,10 @@ import com.vitacheck.Activity.domain.SearchLog.Method;
 import com.vitacheck.Activity.domain.SearchLog.SearchCategory;
 import com.vitacheck.Activity.domain.SearchLog.SearchLog;
 import com.vitacheck.product.domain.Ingredient.Ingredient;
+import com.vitacheck.product.domain.Purpose.AllPurpose;
 import com.vitacheck.product.domain.Supplement.Supplement;
 import com.vitacheck.product.dto.SupplementResponseDTO;
+import com.vitacheck.product.exception.PurposeException;
 import com.vitacheck.product.repository.BrandRepository;
 import com.vitacheck.product.repository.IngredientRepository;
 import com.vitacheck.product.repository.SupplementRepository;
@@ -204,6 +207,32 @@ public class SearchLogService {
             logSearch(null, keyword, SearchCategory.KEYWORD, age, gender);
         } else {
             logSearch(userId, keyword, SearchCategory.KEYWORD, age, gender);
+        }
+    }
+
+    public void recordClickLog(String clickedText, Long userId, String category ,Integer age, Gender gender) {
+        SearchCategory searchCategory;
+        try{
+            searchCategory=SearchCategory.valueOf(category);
+        }catch(IllegalArgumentException e){
+            throw new CustomException(ActivityException.CATEGORY_NOT_FOUND);
+        }
+
+        if (searchCategory==SearchCategory.PURPOSE){
+            String upperText = clickedText.toUpperCase();
+            try {
+                AllPurpose purpose = AllPurpose.valueOf(upperText);
+                clickedText = purpose.name();
+            } catch (IllegalArgumentException e) {
+                throw new CustomException(PurposeException.PURPOSE_NOT_FOUND);
+            }
+
+        }
+
+        if (userId == null) {
+            logClick(null, clickedText, searchCategory, age, gender);
+        } else {
+            logClick(userId, clickedText, searchCategory, age, gender);
         }
     }
 
