@@ -88,9 +88,12 @@ jobs:
           echo "🚀 Downloading latest Swagger JSON..."
           curl -s https://vita-check.com/v3/api-docs -o swagger.json
 
-          echo "⚙️ Converting Swagger → Postman Collection..."
-          npx openapi-to-postmanv2 -s swagger.json -o postman_collection.json -p --folderStrategy=tags
-          
+          echo "⚙️ Installing latest openapi-to-postmanv2..."
+          npm install -g openapi-to-postmanv2@5.4.0
+
+          echo "⚙️ Converting Swagger → Postman Collection (tag-based folders)..."
+          openapi2postmanv2 -s swagger.json -o postman_collection.json -p --folderStrategy=tags
+
           echo "📦 Wrapping collection object..."
           jq -n --slurpfile data postman_collection.json '{collection: $data[0]}' > wrapped_postman.json
 
@@ -100,3 +103,4 @@ jobs:
             -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d @wrapped_postman.json
+      
