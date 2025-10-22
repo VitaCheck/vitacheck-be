@@ -83,21 +83,23 @@ jobs:
           node-version: '18'
 
       # Swagger Json을 다운받아 Postman 업데이트
-      # Swagger → Postman 자동 업데이트
       - name: Update Postman Collection
         run: |
           echo "🚀 Downloading latest Swagger JSON..."
           curl -s https://vita-check.com/v3/api-docs -o swagger.json
-          
+
           echo "⚙️ Installing openapi-to-postmanv2..."
           npm install -g openapi-to-postmanv2@5.1.0
-          
+
+          echo "🧩 Creating conversion-options.json (folderStrategy=Tags)..."
+          echo '{"folderStrategy": "Tags"}' > conversion-options.json
+
           echo "⚙️ Converting Swagger → Postman Collection (tag-based folders)..."
-          openapi2postmanv2 -s swagger.json -o postman_collection.json -p --folderStrategy=tags
-          
+          openapi2postmanv2 -s swagger.json -o postman_collection.json -p -O conversion-options.json
+
           echo "📦 Wrapping collection object..."
           jq -n --slurpfile data postman_collection.json '{collection: $data[0]}' > wrapped_postman.json
-          
+
           echo "📤 Updating Postman collection..."
           curl --fail --show-error --silent \
             -X PUT "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_ID }}" \
