@@ -89,7 +89,7 @@ jobs:
           curl -s https://vita-check.com/v3/api-docs -o swagger.json
 
           echo "⚙️ Converting Swagger → Postman Collection..."
-          npx openapi-to-postmanv2 -s swagger.json -o postman_collection.json -p
+          npx openapi-to-postmanv2 -s swagger.json -o postman_collection.json -p --folderStrategy=tags
           
           echo "📦 Wrapping collection object..."
           jq -n --slurpfile data postman_collection.json '{collection: $data[0]}' > wrapped_postman.json
