@@ -90,9 +90,13 @@ jobs:
 
           echo "⚙️ Converting Swagger → Postman Collection..."
           npx openapi-to-postmanv2 -s swagger.json -o postman_collection.json -p
+          
+          echo "📦 Wrapping collection object..."
+          jq -n --slurpfile data postman_collection.json '{collection: $data[0]}' > wrapped_postman.json
 
           echo "📤 Updating Postman collection..."
-          curl -X PUT "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_ID }}" \
+          curl --fail --show-error --silent \
+            -X PUT "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_ID }}" \
             -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d @postman_collection.json
