@@ -75,3 +75,24 @@ jobs:
           # script에서 모든 export 구문을 제거합니다.
           script: 'sh ~/deploy.sh'
           command_timeout: 10m
+
+      # 아래에 ClI 명령어를 사용하기 위한 Node 환경 세팅
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Swagger Json을 다운받아 Postman 업데이트
+      - name: Update Postman Collection
+        run: |
+          echo "🚀 Downloading latest Swagger JSON..."
+          curl -s https://vita-check.com/v3/api-docs -o swagger.json
+
+          echo "⚙️ Converting Swagger → Postman Collection..."
+          npx openapi-to-postmanv2 -s swagger.json -o postman_collection.json -p
+
+          echo "📤 Updating Postman collection..."
+          curl -X PUT "https://api.getpostman.com/collections/${{ secrets.POSTMAN_COLLECTION_ID }}" \
+            -H "X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d @postman_collection.json
