@@ -210,7 +210,7 @@ public class SearchLogController {
             @Parameter(name = "size", description = "한 페이지에 보여줄 아이템 수", example = "10"),
             @Parameter(name = "sort", hidden = true)
     })
-    @GetMapping("/api/v1/popular-supplements")
+    @GetMapping("/api/v1/supplements/popular")
     public CustomResponse<Page<PopularSupplementDTO>> getPopularSupplements(
             @RequestParam(defaultValue = "전체") String ageGroup,
             @RequestParam(defaultValue = "전체") String gender,
