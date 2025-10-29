@@ -1,9 +1,11 @@
 package com.vitacheck.ai.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vitacheck.ai.config.GcpAuthConfig;
 import com.vitacheck.ai.dto.AiRecommendationResponseDto;
 import com.vitacheck.ai.repository.SupplementCatalogRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,18 +35,44 @@ public class GeminiRecommendationService {
         return accessTokenProvider.getAccessToken();
     }
 
-    // --- 내부 데이터 구조 ---
+    // --- 내부 데이터 구조 (DB 조회용) ---
     private static class CatalogIndex {
         Map<Long, String> idToName = new HashMap<>();
         Map<Long, List<String>> idToIngredients = new HashMap<>();
-        Map<Long, Set<String>> idToPurposes   = new HashMap<>();
         List<Long> idsInOrder                 = new ArrayList<>();
     }
+
+    // --- 내부 데이터 구조 (AI 전달용 DTO) ---
+    @Getter
+    private static class AiCatalogItem {
+        private final long id;
+        private final String name;
+        private final List<String> ingredients;
+
+        AiCatalogItem(long id, String name, List<String> ingredients) {
+            this.id = id;
+            this.name = name;
+            this.ingredients = ingredients;
+        }
+    }
+
+    @Getter
+    private static class AiKnowledgeItem {
+        private final String purpose;
+        private final List<String> ingredients;
+
+        AiKnowledgeItem(String purpose, List<String> ingredients) {
+            this.purpose = purpose;
+            this.ingredients = ingredients;
+        }
+    }
+
 
     // =====================================================================================
     // 외부 호출 메인 메서드 (Controller -> Service)
     // =====================================================================================
     public AiRecommendationResponseDto getRecommendations(List<String> userPurposes) throws IOException {
+
         // 1. 사용자 목표 정리
         LinkedHashSet<String> goals = new LinkedHashSet<>(
                 userPurposes == null ? List.of() :
@@ -55,237 +83,192 @@ public class GeminiRecommendationService {
         if (goals.isEmpty()) {
             return new AiRecommendationResponseDto(Collections.emptyList());
         }
+        String userGoalsStr = String.join(", ", goals);
 
-        // 2. DB에서 데이터 조회 및 인덱스 생성
-        List<String> purposeKeys = normalizePurposeKeys(goals);
-        List<Object[]> targetedRows = catalogRepository.findCatalogForPurposesNative(purposeKeys);
-        CatalogIndex targetedIdx = buildCatalogIndex(targetedRows);
-
+        // 2. DB에서 AI에게 전달할 '지식' 조회
+        // 2-1. [지식1] 전체 영양제 카탈로그 (ID, 이름, 주요 성분)
+        // (주의: findWholeCatalogNative 쿼리 수정 필요 - 컬럼 4개: id, name, purposeCsv, ingredientCsv)
         List<Object[]> allRows = catalogRepository.findWholeCatalogNative();
         CatalogIndex wholeIdx = buildCatalogIndex(allRows);
         if (wholeIdx.idsInOrder.isEmpty()) {
             return new AiRecommendationResponseDto(Collections.emptyList());
         }
+        String catalogContext = buildCatalogContext(wholeIdx);
 
-        // 3. DB 기반으로 견고한 조합 생성
-        List<AiRecommendationResponseDto.RecommendedCombination> dbCombos =
-                buildCombinationsRobust(goals, targetedIdx, wholeIdx);
+        // 2-2. [지식2] 목적-성분 매핑 정보 (Repository에 추가 필요)
+        List<Object[]> knowledgeRows = catalogRepository.findPurposeIngredientKnowledgeNative();
+        String knowledgeContext = buildKnowledgeContext(knowledgeRows);
 
-        // 4. 각 조합을 AI에게 보내 이름과 이유를 자연스럽게 다듬기
-        for (AiRecommendationResponseDto.RecommendedCombination combo : dbCombos) {
-            try {
-                String prompt = createEnrichmentPrompt(combo, goals, wholeIdx);
-                String rawJsonResponse = callVertex(buildVertexRequestBodyForEnrichment(prompt));
-                updateComboWithLlmResponse(combo, rawJsonResponse);
-            } catch (Exception e) {
-                log.warn("LLM 보강 실패 (조합 ID: {}) – DB 템플릿 사용: {}", combo.getSupplementIds(), e.getMessage());
+        // 3. AI에게 추천을 요청하는 프롬프트 생성
+        String prompt = createRecommendationPrompt(userGoalsStr, catalogContext, knowledgeContext);
+
+        try {
+            // 4. AI 호출 (Vertex)
+            String rawJsonResponse = callVertex(buildVertexRequestBodyForRecommendation(prompt));
+            log.info(">>>>> [디버깅] Vertex AI 원본 응답: {}", rawJsonResponse);
+
+            // 5. AI 응답을 DTO로 파싱
+            AiRecommendationResponseDto aiResponse = parseLlmResponse(rawJsonResponse);
+
+            if (aiResponse != null && aiResponse.getRecommendedCombinations() != null) {
+                List<AiRecommendationResponseDto.RecommendedCombination> validatedCombinations =
+                        aiResponse.getRecommendedCombinations().stream()
+                                .filter(combo -> {
+                                    boolean hasOverlap = hasIngredientOverlapJavaCheck(combo.getSupplementIds(), wholeIdx);
+                                    if (hasOverlap) {
+                                        log.warn(">>> AI 추천 조합 ID {} 에서 성분 중복이 발견되어 필터링합니다.", combo.getSupplementIds());
+                                    }
+                                    return !hasOverlap; // 중복이 없는 것만 통과
+                                })
+                                .collect(Collectors.toList());
+
+                // 중복 없는 조합만 최종 결과로 설정
+                aiResponse.setRecommendedCombinations(validatedCombinations);
+                log.info(">>> 최종 추천 조합 (중복 검증 후): {}개", validatedCombinations.size());
             }
-        }
+            return aiResponse != null ? aiResponse : new AiRecommendationResponseDto(Collections.emptyList()); // null 체크 추가
 
-        return new AiRecommendationResponseDto(dbCombos);
+        } catch (Exception e) {
+            log.error("Gemini 추천 생성 실패 (사용자 목적: {}): {}", userGoalsStr, e.getMessage(), e);
+            // AI 실패 시 비상 폴백: 빈 리스트 반환
+            return new AiRecommendationResponseDto(Collections.emptyList());
+        }
     }
-
-
-    // =====================================================================================
-    // 조합 생성 핵심 로직 (최종 수정본)
-    // =====================================================================================
-    private List<AiRecommendationResponseDto.RecommendedCombination> buildCombinationsRobust(
-            Set<String> goals, CatalogIndex targetedIdx, CatalogIndex wholeIdx) {
-
-        // 1. 각 목적별로 상위 5개의 후보 영양제 목록을 만듭니다.
-        Map<String, List<Long>> candidatesByGoal = new LinkedHashMap<>();
-        for (String goal : goals) {
-            List<Long> candidates = targetedIdx.idsInOrder.stream()
-                    .filter(id -> targetedIdx.idToPurposes.getOrDefault(id, Collections.emptySet())
-                            .stream().anyMatch(p -> matchesGoal(goal, p)))
-                    .limit(5)
-                    .collect(Collectors.toList());
-
-            // 만약 타겟 카탈로그에서 후보를 못찾으면, 전체 카탈로그에서 다시 검색
-            if (candidates.isEmpty()) {
-                candidates = wholeIdx.idsInOrder.stream()
-                        .filter(id -> wholeIdx.idToPurposes.getOrDefault(id, Collections.emptySet())
-                                .stream().anyMatch(p -> matchesGoal(goal, p)))
-                        .limit(5)
-                        .collect(Collectors.toList());
-            }
-            if (!candidates.isEmpty()) {
-                candidatesByGoal.put(goal, candidates);
-            }
-        }
-        log.info(">>>>> [디버깅] 목적별 후보군: {}", candidatesByGoal);
-
-        List<AiRecommendationResponseDto.RecommendedCombination> results = new ArrayList<>();
-        Set<String> seenCombos = new HashSet<>(); // 조합 중복 방지용
-        List<String> goalList = new ArrayList<>(candidatesByGoal.keySet());
-
-        // 2. [우선순위 1] 3개 조합 생성 시도
-        if (goalList.size() >= 3) {
-            // 각 목적별 1순위 후보들을 가져옴
-            Long sup1 = candidatesByGoal.get(goalList.get(0)).get(0);
-            Long sup2 = candidatesByGoal.get(goalList.get(1)).get(0);
-            Long sup3 = candidatesByGoal.get(goalList.get(2)).get(0);
-
-            // 중복되지 않는 3개의 고유한 영양제를 찾기 위한 노력
-            Set<Long> uniqueThree = new LinkedHashSet<>();
-            uniqueThree.add(sup1);
-            uniqueThree.add(sup2);
-            uniqueThree.add(sup3);
-
-            // 만약 중복이 있다면, 2,3순위 후보를 사용하여 채움
-            if (uniqueThree.size() < 3) {
-                for (String goal : goalList) {
-                    for (Long candidateId : candidatesByGoal.get(goal)) {
-                        uniqueThree.add(candidateId);
-                        if (uniqueThree.size() >= 3) break;
-                    }
-                    if (uniqueThree.size() >= 3) break;
-                }
-            }
-
-            if (uniqueThree.size() >= 3) {
-                List<Integer> triplet = uniqueThree.stream().map(Long::intValue).collect(Collectors.toList());
-                String key = triplet.stream().sorted().map(String::valueOf).collect(Collectors.joining(","));
-                if (seenCombos.add(key)) {
-                    AiRecommendationResponseDto.RecommendedCombination rc = new AiRecommendationResponseDto.RecommendedCombination();
-                    rc.setCombinationName(fallbackNameFor(goalList.get(0)) + " & 종합 케어");
-                    rc.setSupplementIds(triplet);
-                    rc.setReason(String.join(", ", toNameReason(goalList.get(0)), toNameReason(goalList.get(1)).toLowerCase(), toNameReason(goalList.get(2)).toLowerCase()));
-                    results.add(rc);
-                }
-            }
-        }
-
-        // 3. [우선순위 2] 2개 조합 생성 (최대 3개가 될 때까지)
-        if (goalList.size() >= 2) {
-            for (int i = 0; i < goalList.size(); i++) {
-                for (int j = i + 1; j < goalList.size(); j++) {
-                    if (results.size() >= 3) break;
-
-                    String goal1 = goalList.get(i);
-                    String goal2 = goalList.get(j);
-
-                    // 각 목적의 후보군에서 아직 사용되지 않은 최상위 영양제를 하나씩 선택
-                    Optional<Long> sup1Opt = candidatesByGoal.get(goal1).stream().findFirst();
-                    Optional<Long> sup2Opt = candidatesByGoal.get(goal2).stream().findFirst();
-
-                    if (sup1Opt.isPresent() && sup2Opt.isPresent()) {
-                        List<Integer> pair = List.of(sup1Opt.get().intValue(), sup2Opt.get().intValue());
-                        String key = pair.stream().sorted().map(String::valueOf).collect(Collectors.joining(","));
-
-                        if (seenCombos.add(key) && !hasIngredientOverlap(pair, wholeIdx)) {
-                            AiRecommendationResponseDto.RecommendedCombination rc = new AiRecommendationResponseDto.RecommendedCombination();
-                            rc.setCombinationName(fallbackNameFor(goal1) + " & " + fallbackNameFor(goal2));
-                            rc.setSupplementIds(pair);
-                            rc.setReason(toNameReason(goal1) + ", 그리고 " + toNameReason(goal2).toLowerCase());
-                            results.add(rc);
-                        }
-                    }
-                }
-                if (results.size() >= 3) break;
-            }
-        }
-
-        // 4. [우선순위 3] 단일 목적 폴백 (조합이 하나도 없을 경우)
-        if (results.isEmpty() && !goalList.isEmpty()) {
-            String goal = goalList.get(0);
-            List<Long> candidates = candidatesByGoal.get(goal);
-
-            // 후보군 내에서 성분이 다른 2개를 찾아 조합
-            for (int i = 0; i < candidates.size(); i++) {
-                for (int j = i + 1; j < candidates.size(); j++) {
-                    List<Integer> pair = List.of(candidates.get(i).intValue(), candidates.get(j).intValue());
-                    if (!hasIngredientOverlap(pair, wholeIdx)) {
-                        AiRecommendationResponseDto.RecommendedCombination rc = new AiRecommendationResponseDto.RecommendedCombination();
-                        rc.setCombinationName(fallbackNameFor(goal) + " 맞춤 조합");
-                        rc.setSupplementIds(pair);
-                        rc.setReason(toNameReason(goal) + " 및 시너지 효과를 위한 조합입니다.");
-                        results.add(rc);
-                        return results; // 하나만 찾으면 바로 반환
-                    }
-                }
-            }
-            // 2개 조합 못찾으면 단일 추천
-            AiRecommendationResponseDto.RecommendedCombination rc = new AiRecommendationResponseDto.RecommendedCombination();
-            rc.setCombinationName(fallbackNameFor(goal) + " 추천");
-            rc.setSupplementIds(List.of(candidates.get(0).intValue()));
-            rc.setReason(toNameReason(goal));
-            results.add(rc);
-        }
-
-        log.info(">>>>> [디버깅] 최종 조합 결과: {}", results);
-        return results;
-    }
-
 
     // =====================================================================================
     // AI 상호작용 (프롬프트, 파싱, 요청)
     // =====================================================================================
-    private String createEnrichmentPrompt(AiRecommendationResponseDto.RecommendedCombination combo, Set<String> goals, CatalogIndex idx) {
-        String supplementDetails = combo.getSupplementIds().stream()
-                .map(id -> {
-                    long longId = id.longValue();
-                    String name = idx.idToName.getOrDefault(longId, "영양제 (ID: " + longId + ")");
-                    List<String> ingredients = idx.idToIngredients.getOrDefault(longId, List.of());
-                    return String.format("- %s (주요 성분: %s)", name, String.join(", ", ingredients));
-                })
-                .collect(Collectors.joining("\n"));
 
+    /**
+     * AI에게 전달할 영양제 카탈로그 JSON 문자열 생성
+     */
+    private String buildCatalogContext(CatalogIndex wholeIdx) throws JsonProcessingException {
+        List<AiCatalogItem> catalogItems = wholeIdx.idsInOrder.stream()
+                .map(id -> new AiCatalogItem(
+                        id,
+                        wholeIdx.idToName.getOrDefault(id, "N/A"),
+                        wholeIdx.idToIngredients.getOrDefault(id, Collections.emptyList())
+                ))
+                .collect(Collectors.toList());
+
+        // [{id: 1, name: "...", ingredients: ["..."]}, ...]
+        return objectMapper.writeValueAsString(catalogItems);
+    }
+
+    /**
+     * AI에게 전달할 목적-성분 지식 JSON 문자열 생성
+     */
+    private String buildKnowledgeContext(List<Object[]> knowledgeRows) throws JsonProcessingException {
+        // [목적명] -> [성분 리스트] 로 그룹화
+        Map<String, List<String>> knowledgeMap = knowledgeRows.stream()
+                .filter(row -> row[0] != null && row[1] != null)
+                .collect(Collectors.groupingBy(
+                        row -> (String) row[0], // purpose_name
+                        Collectors.mapping(row -> (String) row[1], Collectors.toList()) // ingredient_name
+                ));
+
+        List<AiKnowledgeItem> knowledgeItems = knowledgeMap.entrySet().stream()
+                .map(entry -> new AiKnowledgeItem(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+        // [{purpose: "눈 건강", ingredients: ["루테인", ...]}, ...]
+        return objectMapper.writeValueAsString(knowledgeItems);
+    }
+
+    /**
+     * AI에게 실제 추천을 요청하는 프롬프트 생성
+     */
+    private String createRecommendationPrompt(String userGoals, String catalogJson, String knowledgeJson) {
         return String.format(
-                "사용자의 건강 목적은 '%s'입니다. 아래 영양제 조합에 대한 추천 이름과 추천 이유를 생성해주세요.\n\n" +
-                        "조합:\n%s\n\n" +
-                        "규칙:\n" +
-                        "1. 'combinationName'과 'reason' 필드만 있는 JSON 객체로만 답변하세요. (절대 다른 텍스트나 markdown 없이 순수 JSON만 출력)\n" +
-                        "2. 'combinationName'은 15자 내외의 직관적이고 매력적인 한글 이름이어야 합니다.\n" +
-                        "3. 'reason'은 각 영양제가 사용자의 목적에 어떻게 기여하는지 1~2 문장의 자연스러운 한글 설명이어야 합니다.",
-                String.join(", ", goals), supplementDetails
+                "당신은 사용자의 건강 목적에 맞춰 영양제를 조합해주는 전문 영양사 AI입니다.\n\n" +
+                        "[사용자 건강 목적]\n%s\n\n" +
+                        "[추천 가능한 영양제 카탈로그 (각 항목은 `id`, `name`, `ingredients` 포함)]:\n%s\n\n" +
+                        "[건강 목적별 주요 성분 지식 (참고용)]:\n%s\n\n" +
+                        "[요청 사항]\n" +
+                        "1. [사용자 건강 목적] 해결에 가장 도움이 되는 조합을 **최대 3개** 추천해주세요.\n" +
+                        "2. 조합은 반드시 [추천 가능한 영양제 카탈로그]에 명시된 `id`만 사용해야 합니다.\n" +
+                        "3. (매우 중요!) **각 조합 내 영양제들의 `ingredients` 목록을 모두 합쳤을 때, 동일하거나 유사한 성분 이름이 중복되지 않도록 해주세요.** 예를 들어, 한 제품에 '비타민C'가 있고 다른 제품에 '아스코르빈산'이 있다면 중복으로 간주해야 합니다. 종합비타민처럼 여러 성분이 포함된 제품을 조합할 때 특히 주의해주세요.\n" + // <-- 중복 관련 지시 구체화
+                        "4. 사용자의 모든 목적을 1순위로 고려하되, 달성하기 어렵다면 가장 중요한 목적 1~2개를 중심으로 조합해도 좋습니다.\n" +
+                        "5. 각 조합의 `reason`은 **2~3 문장 이내로 간결하게**, 어떤 영양제(이름 언급)의 어떤 성분(`ingredients` 목록 참고)이 사용자의 어떤 목적에 기여하는지 명확히 설명해주세요.\n" +
+                        "6. 응답은 다른 설명이나 markdown(` ```json `) 없이, 아래 [출력 형식]과 정확히 일치하는 순수 JSON 객체로만 생성해주세요.\n\n" +
+                        "[출력 형식]\n" +
+                        "{\n" +
+                        "  \"recommendedCombinations\": [\n" +
+                        "    {\n" +
+                        "      \"combinationName\": \"눈 피로 집중 케어 조합\",\n" +
+                        "      \"supplementIds\": [15, 22],\n" +
+                        "      \"reason\": \"눈 건강의 핵심인 루테인과 피로 회복을 돕는 비타민B군을 함께 섭취하여 시너지 효과를 낼 수 있는 조합입니다.\"\n" +
+                        "    }\n" +
+                        "  ]\n" +
+                        "}\n",
+                userGoals, catalogJson, knowledgeJson
         );
     }
 
-    private void updateComboWithLlmResponse(AiRecommendationResponseDto.RecommendedCombination combo, String jsonResponse) {
+    /**
+     * AI의 전체 추천 응답을 파싱
+     */
+    private AiRecommendationResponseDto parseLlmResponse(String jsonResponse) throws JsonProcessingException {
         try {
             Map<String, Object> fullResponse = objectMapper.readValue(jsonResponse, Map.class);
             List<Map<String, Object>> candidates = (List<Map<String, Object>>) fullResponse.get("candidates");
-            if (candidates == null || candidates.isEmpty()) return;
+            if (candidates == null || candidates.isEmpty()) {
+                log.warn("AI 응답에 'candidates' 필드가 없습니다.");
+                return new AiRecommendationResponseDto(Collections.emptyList());
+            }
 
             Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-            if (content == null) return;
+            if (content == null) return new AiRecommendationResponseDto(Collections.emptyList());
 
             List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-            if (parts == null || parts.isEmpty()) return;
+            if (parts == null || parts.isEmpty()) return new AiRecommendationResponseDto(Collections.emptyList());
 
             String textPayload = (String) parts.get(0).get("text");
-            if (textPayload == null) return;
+            if (textPayload == null) return new AiRecommendationResponseDto(Collections.emptyList());
 
             String payload = stripToJsonEnvelope(textPayload);
-            Map<String, String> enrichedData = objectMapper.readValue(payload, Map.class);
 
-            String name = enrichedData.get("combinationName");
-            String reason = enrichedData.get("reason");
-
-            if (name != null && !name.isBlank()) combo.setCombinationName(name);
-            if (reason != null && !reason.isBlank()) combo.setReason(reason);
+            // AI가 생성한 JSON을 AiRecommendationResponseDto 객체로 바로 변환
+            return objectMapper.readValue(payload, AiRecommendationResponseDto.class);
 
         } catch (Exception e) {
-            log.warn("AI 응답 파싱 실패, 템플릿 유지: {}", e.getMessage());
+            log.warn("AI 응답 파싱 실패, 비어있는 추천 반환: {}", e.getMessage());
+            throw new JsonProcessingException("AI 응답 파싱 실패", e) {};
         }
     }
 
-    private Map<String, Object> buildVertexRequestBodyForEnrichment(String prompt) {
-        Map<String, Object> responseSchema = Map.of(
+    /**
+     * AI 추천을 위한 Vertex 요청 Body 생성
+     */
+    private Map<String, Object> buildVertexRequestBodyForRecommendation(String prompt) {
+
+        // AI가 반환해야 할 JSON 스키마를 AiRecommendationResponseDto에 맞게 정의
+        Map<String, Object> comboSchema = Map.of(
                 "type", "OBJECT",
                 "properties", Map.of(
                         "combinationName", Map.of("type", "STRING"),
+                        "supplementIds", Map.of("type", "ARRAY", "items", Map.of("type", "NUMBER")),
                         "reason", Map.of("type", "STRING")
                 ),
-                "required", List.of("combinationName", "reason")
+                "required", List.of("combinationName", "supplementIds", "reason")
+        );
+
+        Map<String, Object> responseSchema = Map.of(
+                "type", "OBJECT",
+                "properties", Map.of(
+                        "recommendedCombinations", Map.of(
+                                "type", "ARRAY",
+                                "items", comboSchema
+                        )
+                ),
+                "required", List.of("recommendedCombinations")
         );
 
         return Map.of(
                 "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of(
-                        "maxOutputTokens", 256,
-                        "temperature", 0.3,
+                        "maxOutputTokens", 8192, // (응답 토큰을 넉넉하게 설정)
+                        "temperature", 0.4,   // (창의성/일관성 조절)
                         "response_mime_type", "application/json",
                         "response_schema", responseSchema
                 )
@@ -308,7 +291,7 @@ public class GeminiRecommendationService {
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .block();
+                    .block(); // (실제 프로덕션에서는 .block() 대신 비동기 처리를 권장합니다)
         } catch (Exception e) {
             throw new IOException("Vertex 호출 실패: " + e.getMessage(), e);
         }
@@ -321,15 +304,18 @@ public class GeminiRecommendationService {
         CatalogIndex idx = new CatalogIndex();
         if (rows == null) return idx;
         for (Object[] r : rows) {
-            Long   id            = ((Number) r[0]).longValue();
-            String name          = (String) r[1];
-            String purposeCsv    = (String) r[2];
-            String ingredientCsv = (String) r[3];
+            try {
+                Long   id            = ((Number) r[0]).longValue();
+                String name          = (String) r[1];
+                // String purposeCsv    = (String) r[2]; // (참고: 인덱스 2번이 purposeCsv로 가정)
+                String ingredientCsv = (String) r[3]; // (참고: 인덱스 3번이 ingredientCsv로 가정)
 
-            idx.idToName.put(id, name);
-            idx.idToIngredients.put(id, parseCsv(ingredientCsv));
-            idx.idToPurposes.put(id, new HashSet<>(parseCsv(purposeCsv)));
-            idx.idsInOrder.add(id);
+                idx.idToName.put(id, name);
+                idx.idToIngredients.put(id, parseCsv(ingredientCsv));
+                idx.idsInOrder.add(id);
+            } catch (Exception e) {
+                log.warn("카탈로그 인덱스 생성 중 오류 발생 (행 데이터: {}): {}", Arrays.toString(r), e.getMessage());
+            }
         }
         return idx;
     }
@@ -340,74 +326,6 @@ public class GeminiRecommendationService {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
-    }
-
-    private boolean hasIngredientOverlap(List<Integer> ids, CatalogIndex idx) {
-        Set<String> seen = new HashSet<>();
-        if (idx == null || idx.idToIngredients == null) return false;
-        for (Integer i : ids) {
-            if (i == null) continue;
-            List<String> list = idx.idToIngredients.getOrDefault(i.longValue(), List.of());
-            for (String raw : list) {
-                String n = normIng(raw);
-                if (n.isEmpty()) continue;
-                if (seen.contains(n)) return true;
-                seen.add(n);
-            }
-        }
-        return false;
-    }
-
-    private String normIng(String s) {
-        if (s == null) return "";
-        return s.trim().toLowerCase().replace("-", " ").replaceAll("\\s+", " ").trim();
-    }
-
-    private boolean matchesGoal(String goal, String purpose) {
-        if (goal == null || purpose == null) return false;
-        String g = goal.trim().toLowerCase();
-        String p = purpose.trim().toLowerCase();
-        if (g.isEmpty() || p.isEmpty()) return false;
-
-        if (g.contains("피로") && p.contains("피로")) return true;
-        if (g.contains("면역") && p.contains("면역")) return true;
-
-        return g.equals(p) || g.contains(p) || p.contains(g);
-    }
-
-    private List<String> normalizePurposeKeys(LinkedHashSet<String> goals) {
-        return goals.stream()
-                .map(s -> s == null ? "" : s.trim().toLowerCase())
-                .filter(s -> !s.isEmpty())
-                .toList();
-    }
-
-    private String fallbackNameFor(String goal) {
-        String g = (goal == null ? "" : goal.trim());
-        if (g.isEmpty()) return "건강 시너지 조합";
-
-        String representativeGoal = g.split(" & ")[0];
-
-        if (representativeGoal.contains("건강")) {
-            return representativeGoal;
-        }
-        if (representativeGoal.endsWith("감")) {
-            return representativeGoal.substring(0, representativeGoal.length() - 1) + " 개선";
-        }
-        return representativeGoal;
-    }
-
-    private String toNameReason(String goal) {
-        String g = (goal == null ? "" : goal.trim());
-        if (g.isEmpty()) return "주요 건강 목표 달성에 도움을 줍니다";
-
-        if (g.endsWith("감")) {
-            return g.substring(0, g.length() - 1) + " 개선에 도움을 줍니다";
-        }
-        if (g.contains("혈당") || g.contains("혈압") || g.contains("콜레스테롤")) {
-            return g + " 관리에 도움을 줍니다";
-        }
-        return g + "에 도움을 줍니다";
     }
 
     private String stripToJsonEnvelope(String contentText) {
@@ -422,5 +340,141 @@ public class GeminiRecommendationService {
             return s.substring(first, last + 1).trim();
         }
         return "{}"; // Fallback to empty JSON object
+    }
+
+    /**
+     * Java 코드로 영양제 조합 내 성분 중복 여부를 확인합니다.
+     * @param supplementIds 검사할 영양제 ID 목록
+     * @param wholeIdx 전체 영양제 성분 정보가 담긴 인덱스
+     * @return 중복이 있으면 true, 없으면 false
+     */
+    private boolean hasIngredientOverlapJavaCheck(List<Integer> supplementIds, CatalogIndex wholeIdx) {
+        if (supplementIds == null || supplementIds.size() < 2 || wholeIdx == null || wholeIdx.idToIngredients == null) {
+            return false; // 비교 대상이 없으면 중복 아님
+        }
+        Set<String> seenIngredients = new HashSet<>();
+        for (Integer supplementId : supplementIds) {
+            if (supplementId == null) continue;
+            // wholeIdx에서 해당 영양제의 성분 목록을 가져옴
+            List<String> ingredients = wholeIdx.idToIngredients.getOrDefault(supplementId.longValue(), Collections.emptyList());
+
+            for (String ingredient : ingredients) {
+                String normalizedIngredient = normalizeIngredientName(ingredient); // 성분 이름 정규화
+                if (!normalizedIngredient.isEmpty()) {
+                    // 이미 Set에 존재하면 중복 발견
+                    if (!seenIngredients.add(normalizedIngredient)) {
+                        log.debug(">>> 성분 중복 감지! 조합: {}, 중복 성분: '{}' (원문: '{}')", supplementIds, normalizedIngredient, ingredient);
+                        return true; // 중복 발견 즉시 true 반환
+                    }
+                }
+            }
+        }
+        return false; // 루프를 다 돌았는데 중복 없으면 false 반환
+    }
+
+    /**
+     * 성분 이름을 비교하기 쉽도록 정규화합니다.
+     * 예: " 비타민 B1 (티아민) " -> "비타민b1", "오메가3 (EPA 및 DHA 함유 유지)" -> "오메가3"
+     * 실제 데이터셋을 기반으로 동의어 처리를 강화합니다.
+     * @param name 원본 성분 이름
+     * @return 정규화된 대표 성분 이름 (소문자, 주요 명칭 위주)
+     */
+    private String normalizeIngredientName(String name) {
+        if (name == null) return "";
+
+        String lowerCaseName = name.trim().toLowerCase();
+
+        // 1. 괄호 안 내용 제거 (부가 설명 제거 목적)
+        // "오메가3 (epa 및 dha 함유 유지)" -> "오메가3"
+        // "비타민 b1 (티아민)" -> "비타민 b1"
+        lowerCaseName = lowerCaseName.replaceAll("\\s*\\(.*?\\)\\s*", "").trim();
+
+        // 2. 특수문자(하이픈 등) 및 연속 공백을 단일 공백으로 처리 (완전 제거 대신)
+        // "비타민 b-1", "비타민 b 1" -> "비타민 b 1" (이후 동의어 처리에서 "비타민b1"로 변환)
+        // 불필요한 특수기호 제거는 유지하되, 공백은 남겨서 단어 구분을 유지
+        lowerCaseName = lowerCaseName.replaceAll("[^a-z0-9가-힣\\s]", "").replaceAll("\\s+", " ").trim();
+
+        // 3. 동의어 처리 (Map 사용)
+        //    성능을 위해 Map은 클래스 멤버 변수로 선언하고 static 초기화 블록에서 생성하는 것이 더 좋음
+        Map<String, String> synonymMap = createSynonymMap(); // 헬퍼 메서드 사용
+
+        // 정규화된 이름 또는 공백 제거된 이름이 동의어 Map의 키에 해당하면 대표 이름으로 변환
+        String key1 = lowerCaseName; // 공백 포함 키 (예: "비타민 b1")
+        String key2 = lowerCaseName.replaceAll("\\s", ""); // 공백 제거 키 (예: "비타민b1")
+
+        if (synonymMap.containsKey(key1)) {
+            return synonymMap.get(key1);
+        } else if (synonymMap.containsKey(key2)) {
+            return synonymMap.get(key2);
+        } else {
+            // 동의어 맵에 없으면 공백 제거한 형태를 최종 반환 (예: "비타민c", "오메가3")
+            return key2;
+        }
+    }
+
+    // 동의어 Map을 생성하는 헬퍼 메서드 (클래스 초기화 시 한 번만 실행되도록 static 멤버로 빼는 것을 권장)
+    private static Map<String, String> createSynonymMap() {
+        Map<String, String> map = new HashMap<>();
+        // 비타민 C
+        map.put("비타민c", "비타민c");
+        map.put("비타민 c", "비타민c");
+        map.put("아스코르빈산", "비타민c");
+        map.put("아스코브산", "비타민c");
+        // 비타민 B1
+        map.put("비타민b1", "비타민b1");
+        map.put("비타민 b1", "비타민b1");
+        map.put("티아민", "비타민b1");
+        // 비타민 B2
+        map.put("비타민b2", "비타민b2");
+        map.put("비타민 b2", "비타민b2");
+        map.put("리보플라빈", "비타민b2");
+        // 비타민 B3
+        map.put("비타민b3", "비타민b3");
+        map.put("비타민 b3", "비타민b3");
+        map.put("나이아신", "비타민b3");
+        map.put("니코틴산", "비타민b3");
+        // 비타민 B5
+        map.put("비타민b5", "비타민b5");
+        map.put("비타민 b5", "비타민b5");
+        map.put("판토텐산", "비타민b5");
+        // 비타민 B6
+        map.put("비타민b6", "비타민b6");
+        map.put("비타민 b6", "비타민b6");
+        map.put("피리독신", "비타민b6");
+        // 비타민 B7
+        map.put("비타민b7", "비타민b7");
+        map.put("비타민 b7", "비타민b7");
+        map.put("비오틴", "비타민b7"); // 비오틴을 대표명으로 써도 무방
+        // 비타민 B9
+        map.put("비타민b9", "비타민b9");
+        map.put("비타민 b9", "비타민b9");
+        map.put("엽산", "비타민b9");
+        // 비타민 B12
+        map.put("비타민b12", "비타민b12");
+        map.put("비타민 b12", "비타민b12");
+        map.put("코발라민", "비타민b12");
+        map.put("시아노코발라민", "비타민b12");
+        // 비타민 A
+        map.put("비타민a", "비타민a");
+        map.put("비타민 a", "비타민a");
+        map.put("레티놀", "비타민a");
+        // 비타민 D
+        map.put("비타민d", "비타민d");
+        map.put("비타민 d", "비타민d");
+        map.put("칼시페롤", "비타민d");
+        // 비타민 E
+        map.put("비타민e", "비타민e");
+        map.put("비타민 e", "비타민e");
+        map.put("토코페롤", "비타민e");
+        // 오메가3 관련 (괄호 제거 후 처리 예시)
+        map.put("오메가3", "오메가3");
+        map.put("epa및dha함유유지", "오메가3"); // 괄호 제거 후 남는 문자열
+        map.put("epa dha", "오메가3"); // 다른 표기 가능성
+        // 프로바이오틱스
+        map.put("프로바이오틱스", "프로바이오틱스");
+        map.put("유산균", "프로바이오틱스"); // 유산균도 프로바이오틱스로 통일
+
+        // !!! 중요: 실제 ingredients.csv 파일을 전체적으로 보고 더 많은 동의어와 표기법(띄어쓰기 등)을 추가해야 함 !!!
+        return Collections.unmodifiableMap(map); // 변경 불가능한 Map으로 반환
     }
 }

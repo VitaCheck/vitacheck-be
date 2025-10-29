@@ -15,10 +15,10 @@ import jakarta.persistence.Query;
  * This avoids Spring Data's repository store detection issues in multi-store setups.
  *
  * Row layout for both methods:
- *   [0] Long   supplement_id
- *   [1] String supplement_name
- *   [2] String purpose_names_csv  (lowercased, comma-separated)
- *   [3] String ingredient_names_csv (comma-separated)
+ * [0] Long   supplement_id
+ * [1] String supplement_name
+ * [2] String purpose_names_csv  (lowercased, comma-separated)
+ * [3] String ingredient_names_csv (comma-separated)
  */
 @Repository
 @Transactional(readOnly = true)
@@ -72,6 +72,29 @@ public class SupplementCatalogRepository {
             LEFT JOIN purposes p               ON p.id = pi.purpose_id
             GROUP BY s.id, s.name
             ORDER BY s.name ASC, s.id ASC
+            """;
+        Query q = entityManager.createNativeQuery(sql);
+        return (List<Object[]>) q.getResultList();
+
+    }
+
+    /**
+     * AI에게 '지식'으로 전달할 [목적 - 성분] 매핑 데이터를 조회합니다.
+     * (purpose_ingredients.csv 기반) [from file: vitacheck_dataset.xlsx - purpose_ingredients.csv]
+     * @return List<Object[]>, [ [목적명(String), 성분명(String)], [목적명, 성분명], ... ]
+     */
+    @SuppressWarnings("unchecked")
+    public List<Object[]> findPurposeIngredientKnowledgeNative() {
+        // 'purpose_ingredients' 테이블을 'purposes'와 'ingredients' 테이블과 조인하여
+        // [목적명]과 [성분명]을 가져옵니다.
+        String sql = """
+            SELECT 
+              p.name AS purpose_name,
+              i.name AS ingredient_name
+            FROM purpose_ingredients pi
+            JOIN purposes p ON pi.purpose_id = p.id
+            JOIN ingredients i ON pi.ingredient_id = i.id
+            ORDER BY p.name, i.name
             """;
         Query q = entityManager.createNativeQuery(sql);
         return (List<Object[]>) q.getResultList();
