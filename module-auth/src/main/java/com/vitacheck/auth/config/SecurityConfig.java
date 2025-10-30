@@ -38,7 +38,7 @@ public class SecurityConfig {
             "/api/v1/combinations/**", "/api/v1/terms", "/api/v1/search/**", "/api/v1/logs/**",
             // "/internal/trigger-notifications", // <-- 기존에 이 경로였나요? NotificationSettingsController 확인 필요
             "/api/v1/notification-settings/internal/trigger-notifications", // <-- 이 경로를 추가해야 합니다!
-            "/health", "/api/v1/test"
+            "/health", "/api/v1/test", "/api/v1/ai/**"
     };
 
     @Bean
