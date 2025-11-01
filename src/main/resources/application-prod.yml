@@ -84,3 +84,6 @@ logging:
     org.hibernate.SQL: DEBUG # 실행되는 SQL 쿼리 로그 출력
     org.hibernate.type.descriptor.sql: TRACE # SQL 바인딩 파라미터 로그 출력 ( ? 에 들어가는 값 확인)
     com.vitacheck.Notification.service: DEBUG # 알림 관련 서비스 로깅 레벨 상세 설정 (이미 추가한 로그 확인용)
+
+fastapi:
+  base-url: http://vita-check.com:8000
