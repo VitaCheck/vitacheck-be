@@ -115,8 +115,8 @@ vitacheck-be/
 ---
 
 **🚀 김예준 (Backend Developer)**
-- **GitHub**: [@park-rama](https://github.com/park-rama)
-- **Portfolio**: [rama-portfolio.com](https://rama-portfolio.com)
+- **GitHub**: [@yejun05011](https://github.com/yejun05011)
+- **Email**: dpwnsdl0501@hufs.ac.kr
 - **한 줄 소개**: 대용량 데이터 처리와 성능 최적화에 관심이 많습니다.
 
 ---
